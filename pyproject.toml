@@ -62,7 +62,7 @@ disallow_any_generics = true
 no_implicit_optional = true
 show_error_codes = true
 pretty = true
-exclude = "(^|/)interface/cli/check_cua\.py$"
+exclude = '(^|/)interface/cli/check_cua\.py$'
 
 [[tool.mypy.overrides]]
 module = ["streamlit", "playwright.*", "openai", "dotenv"]
