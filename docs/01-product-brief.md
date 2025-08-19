@@ -3,32 +3,34 @@ Product Brief
 Working Name: YC Co-Founder Autonomous Matching Agent
 
 ## One-liner
-An autonomous matching agent that uses OpenAI's CUA (Computer Using Agent) to browse YC cofounder profiles, evaluate matches against YOUR criteria, and automatically send connection invites - all from a simple Streamlit dashboard.
+A 3-input control panel (Your Profile, Match Criteria, Message Template) that deploys OpenAI's CUA to autonomously browse YC profiles, evaluate compatibility, and auto-send invites to high-scoring matches.
 
 ## Why now
-- OpenAI's CUA model (2025) provides 87% accuracy on browser tasks via Responses API
-- No need for complex Playwright scripting - CUA handles all browser interaction via screenshots
-- $3/1M input tokens makes it cost-effective for autonomous browsing sessions
+- OpenAI's CUA (March 2025) available NOW via Responses API for tier 3-5 developers
+- $3/1M input tokens for autonomous browser control via screenshots
+- No complex scripting - CUA sees and clicks like a human
+- Playwright remains as fallback only when CUA unavailable
 
 ## Goals
-- **User-centric design**: Input YOUR profile once, set criteria, let CUA find matches for you
-- **Fully autonomous browsing**: CUA navigates, screenshots, evaluates, and sends invites
-- **Smart matching**: AI evaluates compatibility based on your specific criteria
-- **Safety controls**: Quota limits, deduplication, stop button, audit logs
-- **Simple dashboard**: Streamlit UI for configuration and monitoring
+- **3-input simplicity**: Your Profile + Match Criteria + Message Template = Done
+- **Autonomous discovery**: CUA browses profiles WITHOUT manual intervention
+- **Local decision engine**: Evaluate compatibility using your exact criteria
+- **Auto-messaging**: Send invites to matches above threshold (with quotas)
+- **Real-time control**: STOP button, pacing, JSONL audit trail
 
 ## Non-Goals (for MVP)
-- Manual profile pasting (old approach - we're automating discovery)
-- Complex Playwright scripting (CUA handles browser control)
-- Multi-site support (focus on YC first)
-- Advanced ML ranking (use OpenAI's evaluation for now)
+- Manual profile pasting (NEVER - fully autonomous only)
+- Primary Playwright usage (fallback only when CUA unavailable)
+- Credential storage or CAPTCHA breaking
+- Bulk spam (ethical, quota-limited outreach only)
+- Multi-site support (YC-focused initially)
 
 ## Success Metrics (MVP)
-- Setup time under 10 minutes (just add profile + criteria)
-- Autonomous session processes 20+ profiles without intervention
-- Match accuracy > 80% (good matches based on criteria)
-- Zero duplicate messages (deduplication working)
-- Cost < $0.50 per session (CUA token efficiency)
+- Matches contacted per day (within quota)
+- Reply rate from sent invites
+- Zero policy violations or unintended sends
+- Cost < $0.50 per 20-profile session
+- 100% autonomous (no manual profile entry)
 
 ## Stakeholders & Usage
 - **Primary user**: Founders seeking cofounders on YC platform
@@ -36,32 +38,32 @@ An autonomous matching agent that uses OpenAI's CUA (Computer Using Agent) to br
 - **Frequency**: Daily/weekly sessions with 5-10 messages per run
 
 ## Technical Approach
-- **Browser Control**: OpenAI CUA via Responses API (no Playwright needed)
-- **Matching Logic**: OpenAI GPT-4 evaluates profiles against criteria
-- **UI**: Streamlit for user profile, criteria, templates, monitoring
-- **Storage**: SQLite for deduplication, JSONL for event logs
+- **Primary**: OpenAI CUA via Responses API (computer-use-preview model)
+- **Fallback**: Playwright ONLY when CUA unavailable (ENABLE_PLAYWRIGHT_FALLBACK=1)
+- **Decision**: Local evaluation engine with strict rubric
+- **UI**: Streamlit with 3 inputs + control panel
+- **Storage**: SQLite quotas/dedupe, JSONL event stream
 
 ## User Flow
-1. **Setup (one-time)**:
-   - Enter your profile (background, skills, vision)
-   - Define match criteria (technical skills, domain, location)
-   - Customize message template
+1. **Configure (3 inputs)**:
+   - YOUR profile (Dr. Jung's background)
+   - Match criteria (what you seek)
+   - Message template (personalized)
 
-2. **Run Session**:
-   - Click "Start Matching" in Streamlit
-   - CUA opens browser, logs into YC
-   - CUA browses profiles autonomously
-   - For each profile: screenshot → evaluate → send if match
+2. **Execute**:
+   - Click RUN → CUA launches
+   - CUA autonomously: open YC → browse → read profiles
+   - Backend: evaluate each against criteria
+   - If match + quota: CUA auto-sends invite
 
 3. **Monitor**:
-   - Real-time event log in dashboard
-   - Match decisions with explanations
-   - Stop button for immediate halt
-   - Session summary with stats
+   - Real-time: decision events, sent confirmations
+   - STOP button for emergency halt
+   - Quota remaining, matches found
 
 ## Key Differentiators
-- **Autonomous**: No manual profile pasting required
-- **Intelligent**: AI-driven matching, not keyword search
-- **Transparent**: See why each match was accepted/rejected
-- **Safe**: Multiple safeguards against over-messaging
-- **Simple**: One dashboard, minimal configuration
+- **Truly autonomous**: CUA browses WITHOUT any manual input
+- **Provider flexibility**: CUA_PROVIDER=openai|anthropic|none
+- **Fallback ready**: Playwright kicks in if CUA fails
+- **Quota-enforced**: Hard limits prevent over-messaging
+- **Audit complete**: Every decision and send logged in JSONL
