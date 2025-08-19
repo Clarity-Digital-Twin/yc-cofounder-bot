@@ -4,34 +4,34 @@ Principles
 - Keep orchestration minimal; leverage OpenAI’s Computer Use with a thin Playwright adapter.
 - Prefer human‑visible, supervised operation; no hidden background actions.
 - Use simple local storage (SQLite/JSON) only where it adds clear value.
+ - Adopt DDD layering: Domain (pure) → Application (use cases) → Infrastructure (adapters) → Interface (UI/CLI).
 
-High‑Level Components
-- Decision Engine (HIL Paste Mode): OpenAI model prompt that takes Profile Text + Criteria + Template and returns {decision, rationale, message}.
-- Agent Orchestrator (Semi‑Auto): OpenAI Agents SDK + `ComputerTool` for optional auto‑send actions.
-- Computer Adapter: Playwright (Chromium, headful) implementing the Computer interface (screenshot, click, type, scroll, keypress, drag, wait, move).
-- Tools:
-  - quota_guard(limit): increments/guards the send count (hard stop when exceeded).
-  - templates: resolved message template variables (e.g., candidate name if present).
-  - scoring (optional): simple rubric to support decision rationale.
-- UI Layer:
-  - Streamlit app (preferred) with panes for criteria, template, paste profile, results, and optional send button. CLI as fallback.
+High‑Level Components (mapped to DDD layers)
+- Domain:
+  - Entities/VOs: Criteria, Profile, Decision, Score.
+  - Domain Services: ScoringService (Strategy pattern for weights/rules).
+- Application:
+  - Use Cases: EvaluateProfile, SendMessage, ProcessCandidate.
+  - Ports: DecisionPort, ScoringPort, MessagePort, QuotaPort, SeenRepo, LoggerPort, BrowserPort.
+- Infrastructure:
+  - OpenAIDecisionAdapter (Facade/Adapter) implements DecisionPort.
+  - SQLiteSeenRepo implements SeenRepo.
+  - JSONLLogger implements LoggerPort.
+  - PlaywrightBrowserAdapter implements BrowserPort with `click_by_text` + retries.
+  - TemplateRenderer implements MessagePort with clamps and safety.
+- Interface:
+  - Streamlit UI and CLI; DI factories to wire ports to use cases.
 - Config & Secrets:
   - `.env` for OPENAI_API_KEY and URL; app args for run‑time overrides.
-- Persistence (lightweight):
-  - JSON counter for quota; optional SQLite for run/session logs, dedupe, and saved drafts.
+- Persistence:
+  - SQLite: `seen_profiles` (hash, ts), `runs`, `events`; session logs and dedupe.
 
-Data Flow
-HIL Paste Mode (MVP)
-1) Operator enters Criteria + Template in UI.
-2) Operator pastes Profile Text; presses “Evaluate”.
-3) Model returns Yes/No, rationale, and a draft message.
-4) Operator edits/approves; optionally clicks “Send via browser”.
-
-Semi‑Auto Browser Mode (Next)
-1) Headful browser opens Startup School cofounder-matching URL (WEBSITE_LINK.MD); operator logs in (see initial_log_in.png).
-2) Agent clicks “View profile”, reads the profile, drafts message using the configured template.
-3) Before sending, agent focuses the right‑panel message box; calls `quota_guard`; on approval, clicks “Send” or “Skip”.
-4) Stops when quota reached or candidates exhausted.
+Data Flow (MVP Semi‑Auto)
+1) Operator enters Criteria + Template; headful browser opens target URL; operator logs in.
+2) Agent navigates list → clicks “View profile” (visible text), reads profile.
+3) Decision Service parses profile → schema output; Rubric gates YES/NO; model provides rationale/draft.
+4) UI shows decision; on approval, `quota_guard` → focus right panel → slot & clamp draft → click “Send” or “Skip”.
+5) Logger writes JSONL; SQLite updates seen/dedupe; stop at quota or no more candidates.
 
 Key Configs
 - Model: `computer-use-preview` (OpenAI Responses/Agents SDK backend).

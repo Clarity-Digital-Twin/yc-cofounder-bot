@@ -7,34 +7,31 @@ M0 — Repo hygiene and configs
 - Add base docs (this folder) and `.gitignore`.
 - Confirm OpenAI access to `computer-use-preview`.
 
-M1 — MVP HIL Paste Mode (Streamlit or CLI)
-- Create modern Python project (uv + `pyproject.toml`).
-- Streamlit UI with inputs: Criteria, Template, Quota.
-- Paste Profile → decision (Yes/No + rationale) + draft message.
-- Quota counter and per‑session log; export summary.
- - Use MATCH_MESSAGE_TEMPLATE.MD as the default template; allow edits per session.
+M1 — MVP Semi‑Auto (headful, HIL approvals)
+- Streamlit UI: criteria, template, quota, N remaining, approve/send/skip.
+- Agents SDK + Playwright: navigate list, click “View profile”, focus right panel.
+- Decisioning: schema‑validated outputs; deterministic rubric gate; rationale/draft from model.
+- Safety: quota_guard, STOP switch, per‑run max steps/tokens.
+- Observability: JSONL event log; SQLite dedupe; export summary.
+- Defaults: preload URL from WEBSITE_LINK.MD; template from MATCH_MESSAGE_TEMPLATE.MD.
 
-M2 — Semi‑Auto Browser Mode
-- Playwright adapter implementing the Computer interface.
-- Agents SDK integration with `ComputerTool` and `quota_guard`.
-- Manual login; optional “Send via browser” from UI, with approval gate.
-- Screenshots on send; improved logs.
- - Actions aligned to UI: click “View profile”, populate right‑panel message box, click “Send” or “Skip”.
+M2 — Quality upgrades (P1–P5)
+- P1: Pydantic schema + strict parsing; weighted rubric + threshold.
+- P2: SQLite seen‑profiles + JSONL log + prompt versioning.
+- P3: click_by_text helpers + retry/jitter wrappers; screenshot on send.
+- P4: UI polish: side‑by‑side review; Approve & Copy; N remaining; Export CSV.
+- P5: Shadow Mode to calibrate rubric (no sends; collect human labels).
 
 M3 — Targeting quality
-- Add simple `score_profile` heuristic tool and `message_template` helper.
-- Add per‑run dedupe (avoid repeats using session history).
+- Improve scoring weights; add criteria presets; A/B template variants.
 
 M4 — Robustness & polish
-- Add small delays between sends; make selectors/coordinates more resilient.
-- Add error handling for common navigation dead‑ends.
-- Improve observability: structured logs and optional screenshot trail.
+- Advanced observability (session viewer); better error handling for dead‑ends; cost estimates in UI.
 
 Acceptance Criteria (M1)
-- Streamlit app runs; user can set criteria/template/quota.
-- Paste → returns decision + rationale + draft message in < 5s.
-- Quota counter visible; exportable session summary.
- - Default URL and template preloaded from WEBSITE_LINK.MD and MATCH_MESSAGE_TEMPLATE.MD.
+- Headful browser navigates to profiles; “View profile” and message box interactions work.
+- For each candidate, show decision (schema‑validated) + rationale + draft; on approval, quota_guard enforced; click Send; stops exactly at N.
+- JSONL logs and SQLite dedupe in place; default URL/template preloaded.
 
 Risks & Mitigations
 - Layout drift: keep actions general; rely on visible labels; supervised runs.

@@ -3,16 +3,17 @@ Product Brief
 Working Name: YC Co‑Founder Matching Bot
 
 One‑liner
-- A human‑in‑the‑loop outreach agent that evaluates pasted profiles (and later automates browsing), decides whether to message based on your criteria, drafts a personalized DM using your template, and (optionally) sends it under quota and safety controls.
+- A semi‑autonomous outreach agent for YC/Startup School cofounder matching that navigates profiles, evaluates fit using a transparent rubric, drafts a templated DM, and (with HIL approval) sends under strict quotas and safety controls.
 
 Why now
 - OpenAI’s Computer Use model is reliable for browser tasks and integrates cleanly with Python via Playwright, enabling fast MVP delivery without site‑specific APIs.
 
 Goals
-- Mirror current workflow: paste profile → analyze → yes/no with rationale → draft message.
-- Provide fields for “ideal match” criteria and a message template/tone.
-- Enable optional auto‑send with strict quota and safety gates.
-- Make it easy to run locally (Streamlit UI preferred) and via CLI.
+- Autonomous browsing with human‑in‑the‑loop approvals at key gates (send/skip).
+- High‑quality decisions: structured outputs (schema) + transparent scoring rubric.
+- Draft messages that strictly follow your template and safety rules.
+- Quota enforcement, cross‑run dedupe, and observable runs (JSONL + summary).
+- Streamlit UI for control and review; CLI for power users.
 
 Non‑Goals (for MVP)
 - Full automation of credential entry or CAPTCHA solving.
@@ -28,4 +29,4 @@ Success Metrics (MVP)
 Stakeholders & Usage
 - Primary user: founder/operator initiating curated outreach sessions.
 - Operation cadence: small batches (e.g., 3–10 messages) with human supervision.
-- Modes: HIL Paste Mode (MVP), Semi‑Auto Browser Mode (next), Full Auto (later).
+- Modes: Semi‑Auto Browser Mode (MVP), HIL Paste Mode (diagnostics), Full Auto (later).
