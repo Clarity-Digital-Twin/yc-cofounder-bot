@@ -1,68 +1,57 @@
 UI Reference
 
-## Streamlit Dashboard Components
+## Streamlit Dashboard - 3 Core Inputs
 
-### User Profile Section
-- **Purpose**: One-time setup of YOUR profile (loaded from CURRENT_COFOUNDER_PROFILE.MD)
-- **Fields**:
-  - Name, location, background
-  - Technical skills and expertise
-  - Vision and interests
-  - What you bring to a partnership
-- **Actions**: Save profile, Load from file
+### INPUT 1: Your Profile
+- **What**: Dr. Jung's background, skills, vision
+- **Source**: Loads from CURRENT_COFOUNDER_PROFILE.MD
+- **Format**: Multi-line text area
+- **Required**: YES - this is YOUR identity
 
-### Match Criteria Builder
-- **Purpose**: Define your ideal cofounder
-- **Fields**:
-  - Required skills (e.g., "full-stack", "React", "ML")
-  - Domain interests (e.g., "healthcare", "fintech")
-  - Location preferences
-  - Experience level
-  - Availability timeline
-- **Match Threshold**: Slider 0-100% (default 80%)
+### INPUT 2: Match Criteria
+- **What**: Exactly what you're looking for
+- **Controls**:
+  - Technical skills checkboxes
+  - Domain/industry selectors
+  - Location requirements
+  - Commitment level (full-time, part-time)
+- **Threshold**: Score slider (default 80% for auto-send)
 
-### Message Template Editor
-- **Purpose**: Customize outreach messages (loaded from MATCH_MESSAGE_TEMPLATE.MD)
-- **Placeholders**:
-  - {candidate_name} - Their name
-  - {common_interests} - Shared interests
-  - {why_match} - Reason for reaching out
-  - {your_name} - Your name
-- **Preview**: Live preview with sample data
+### INPUT 3: Message Template
+- **What**: Your outreach message
+- **Source**: Loads from MATCH_MESSAGE_TEMPLATE.MD
+- **Variables**: {name}, {tech_match}, {shared_interest}
+- **Preview**: Shows with sample substitutions
 
 ### Control Panel
-- **Start Button**: Launch CUA autonomous browsing
-- **Stop Button**: Emergency abort (creates .runs/stop.flag)
-- **Status Indicators**:
-  - CUA status (idle/running/stopped)
-  - Profiles processed counter
-  - Messages sent counter
-  - Remaining quota
-- **Settings**:
-  - Session quota (default 10)
-  - Rate limit delay (5-10s)
-  - Screenshot saving (on/off)
+- **RUN Button**: Start autonomous session
+- **STOP Button**: Immediate halt (sets stop flag)
+- **Provider Selector**: 
+  - OpenAI CUA (primary)
+  - Anthropic CUA (alternative)
+  - Playwright (fallback only)
+- **Mode Toggle**:
+  - Live (sends messages)
+  - Shadow (evaluate only, no sends)
+- **Quota Display**: 
+  - Daily: X/20 remaining
+  - Weekly: Y/60 remaining
 
-### Live Event Log
-- **Purpose**: Real-time monitoring of CUA actions
-- **Events Shown**:
-  - Navigation actions ("Opening YC site", "Clicking View Profile")
-  - Profile evaluations ("Evaluating: John Doe")
-  - Match decisions ("MATCH: 85% - Sending invite")
-  - Errors and retries
-- **Format**: Timestamp | Event Type | Details
+### Live Event Stream (JSONL)
+- **decision**: {profile_id, score, YES/NO, rationale}
+- **sent**: {profile_id, ok:true, mode:auto}
+- **stopped**: {reason: user_requested|quota_exceeded}
+- **model_usage**: {provider, tokens, cost}
+- **Format**: Real-time tail of events.jsonl
 
-### Results Table
-- **Columns**:
-  - Profile Name
-  - Match Score (0-100%)
-  - Decision (Match/Pass)
-  - Rationale
-  - Message Status (Sent/Skipped)
-- **Actions**:
-  - View full profile
-  - View/edit message
-  - Manual override
+### Session Summary
+- **Metrics**:
+  - Profiles evaluated: N
+  - Matches found: M (score > threshold)
+  - Messages sent: S
+  - Success rate: S/M
+  - Total cost: $X.XX
+- **NO MANUAL PASTE**: Never show "paste profile" UI
 
 ## YC Site Elements (for CUA)
 
@@ -90,65 +79,61 @@ UI Reference
   - "Invite to connect" button
   - Character limit indicator
 
-## CUA Automation Flow
+## Autonomous Flow (NO MANUAL INPUT)
 
-1. **Initialize**:
-   - Load user profile and criteria
-   - Open browser via CUA
-   - Navigate to YC site
+1. **User Configures Once**:
+   - Enters 3 inputs
+   - Clicks RUN
 
-2. **Browse Profiles**:
-   - Take screenshot of list
-   - Identify "View profile" buttons
-   - Click each profile sequentially
+2. **CUA Takes Over**:
+   - Opens YC autonomously
+   - Browses profile list
+   - Clicks "View profile" for each
+   - Screenshots and reads content
 
-3. **Evaluate Match**:
-   - Screenshot profile page
-   - Extract text via OCR/CUA
-   - Compare against user criteria
-   - Calculate match score
+3. **Backend Evaluates**:
+   - Local decision engine scores profile
+   - Compares to threshold
+   - Logs decision event
 
-4. **Send Invites**:
-   - If score > threshold
-   - Fill message with template
-   - Click "Invite to connect"
-   - Log result
+4. **CUA Sends (if match)**:
+   - Fills personalized message
+   - Clicks "Invite to connect"
+   - Verifies send success
+   - Logs sent event
 
-5. **Continue Until**:
-   - Quota reached
-   - Stop button pressed
+5. **Loop Until**:
+   - STOP pressed
+   - Quota exhausted
    - No more profiles
 
-## Configuration Files
+## Key Environment Variables
+```bash
+# Primary Configuration
+ENABLE_CUA=1
+CUA_PROVIDER=openai  # or anthropic
+CUA_API_KEY=sk-...
 
-### Assets Used
-- `WEBSITE_LINK.MD` - Target YC URL
-- `CURRENT_COFOUNDER_PROFILE.MD` - User's profile template
-- `MATCH_MESSAGE_TEMPLATE.MD` - Outreach message template
-- `.env` - API keys and settings
+# Fallback Option
+ENABLE_PLAYWRIGHT_FALLBACK=1
 
-### Output Files
-- `events.jsonl` - All CUA actions and decisions
-- `.runs/seen.sqlite` - Deduplication database
-- `.runs/quota.sqlite` - Usage tracking
-- `screenshots/` - Saved screenshots (optional)
+# Quotas and Pacing
+DAILY_LIMIT=20
+WEEKLY_LIMIT=60
+SEND_DELAY_MS=5000
 
-## Best Practices for CUA
+# Target
+YC_MATCH_URL=https://www.startupschool.org/cofounder-matching
+```
 
-### Reliable Selectors
-- Use visible text when possible
-- Fallback to aria-labels
-- Avoid dynamic class names
-- Handle loading states
+## REMOVED Features (OLD/BROKEN)
+- ❌ **"Paste candidate profile" panel** - NEVER USE
+- ❌ **Manual profile entry** - Fully autonomous only
+- ❌ **Playwright as primary** - It's fallback only
 
-### Error Handling
-- Retry with exponential backoff
-- Take screenshot on error
-- Log detailed error context
-- Graceful degradation
-
-### Performance
-- Cache profile evaluations
-- Batch API calls when possible
-- Optimize screenshot size
-- Minimize token usage
+## Critical Reminders
+- **CUA is PRIMARY**: OpenAI/Anthropic CUA does the work
+- **Playwright is FALLBACK**: Only when CUA unavailable
+- **3 inputs only**: Profile, Criteria, Template
+- **Fully autonomous**: No manual intervention
+- **Event-driven**: Everything logged to JSONL

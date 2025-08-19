@@ -1,48 +1,52 @@
 Scope and Requirements
 
-## In-Scope (MVP: Autonomous Matching Agent)
-- **User Profile Setup**: One-time entry of user's profile, match criteria, message template
-- **Autonomous Browsing via OpenAI CUA**:
-  - Open YC cofounder matching site (WEBSITE_LINK.MD)
-  - Navigate profile list autonomously
-  - Take screenshots, click "View profile" for each candidate
-  - Extract profile text from screenshots
-- **Intelligent Matching**:
-  - Evaluate each candidate against user's criteria
-  - Produce structured decision: {match_score, decision, rationale, compatibility_notes}
-  - Apply configurable threshold for auto-send (e.g., score > 80%)
-- **Automated Messaging**:
-  - Fill message form with personalized template
-  - Click "Invite to connect" for matches above threshold
-  - Respect quota limits (daily/session caps)
-- **Streamlit Dashboard**:
-  - User profile editor (load from CURRENT_COFOUNDER_PROFILE.MD)
-  - Match criteria configuration
-  - Message template editor (load from MATCH_MESSAGE_TEMPLATE.MD)
-  - Real-time event log and match decisions
-  - Start/Stop controls
-- **Safety & Tracking**:
-  - SQLite deduplication (never message same profile twice)
-  - JSONL event logging with timestamps
-  - Quota enforcement (hard limits)
-  - Emergency stop button (.runs/stop.flag)
+## In-Scope (MVP: 3-Input Autonomous System)
+- **3 Core Inputs**:
+  1. Your Profile (Dr. Jung's background, skills, vision)
+  2. Match Criteria (what you're looking for in a cofounder)
+  3. Message Template (personalized outreach)
+- **CUA Autonomous Browsing (PRIMARY)**:
+  - Open YC site → iterate profiles → read each → evaluate
+  - No manual intervention required
+  - Screenshot-based perception and action
+  - Provider switch: CUA_PROVIDER=openai|anthropic
+- **Playwright Fallback (SECONDARY)**:
+  - ONLY when CUA unavailable (ENABLE_PLAYWRIGHT_FALLBACK=1)
+  - Same autonomous flow, different adapter
+- **Local Decision Engine**:
+  - Evaluate against YOUR criteria (not generic)
+  - Structured output: {score, YES/NO, rationale}
+  - Configurable threshold (default 80%)
+- **Auto-Messaging with Safeguards**:
+  - Send ONLY if: match=YES + within quota + not duplicate
+  - Template personalization with {name}, {tech}, {hook}
+  - Verification of send success
+- **Control & Monitoring**:
+  - RUN/STOP controls
+  - Quota display (remaining daily/weekly)
+  - Real-time JSONL event stream
+  - Pacing control (SEND_DELAY_MS)
 
 ## Out-of-Scope (MVP)
-- Manual profile pasting (old approach - we're autonomous now)
-- Complex Playwright scripting (CUA handles browser control)
-- Multi-site support (focus on YC only)
-- CAPTCHA solving (manual intervention if needed)
-- Background scheduling (manual start for now)
-- External CRM integrations
+- Manual profile pasting (NEVER - this is the OLD broken way)
+- Credential storage (user logs in manually if needed)
+- CAPTCHA breaking or automation
+- Bulk spam operations
+- Multi-site support (YC only initially)
+- Background scheduling
+- External CRM/database integrations
 
 ## Functional Requirements
 
 ### User Experience
-- **Profile Input**: Rich text area for user's background, skills, vision
-- **Criteria Builder**: Define ideal cofounder (skills, domain, location, etc.)
-- **Template Editor**: Customize outreach message with placeholders
-- **Live Monitoring**: See CUA's actions, decisions, and messages in real-time
-- **Session Summary**: Profiles viewed, matches found, messages sent, cost
+- **3 Inputs Only**:
+  - Your Profile text area
+  - Match Criteria checkboxes/sliders
+  - Message Template with variables
+- **One-Click Run**: Start autonomous session
+- **Real-Time Monitoring**: See decisions and sends as they happen
+- **Emergency Stop**: Immediate halt capability
+- **Quota Display**: Always visible remaining sends
 
 ### Matching Engine
 - **Compatibility Scoring**: AI evaluates candidate against user's criteria
@@ -50,11 +54,15 @@ Scope and Requirements
 - **Threshold-based Actions**: Only message high-score matches
 - **Explanation**: Clear reasoning for each accept/reject decision
 
-### CUA Browser Control
-- **Screenshot-based Navigation**: CUA sees what human sees
-- **Natural Actions**: Click buttons by visible text, fill forms
-- **Error Recovery**: Retry failed actions with backoff
-- **State Tracking**: Remember position in profile list
+### Browser Automation
+- **Primary (CUA)**:
+  - OpenAI Responses API with computer-use-preview
+  - Screenshot → reasoning → action cycle
+  - Natural language understanding of UI
+- **Fallback (Playwright)**:
+  - Activated ONLY if CUA fails/unavailable
+  - Selector-based automation
+  - Same flow, different implementation
 
 ### Safety Features
 - **Quota Management**: Hard limits per session/day/week
@@ -84,10 +92,14 @@ Scope and Requirements
 
 ## Technical Requirements
 
-### OpenAI CUA
-- **API Access**: Tier 3-5 for Responses API with computer_use tool
-- **Model**: CUA or gpt-4o with computer use capability
-- **Token Budget**: 4000 tokens per action, 0.3 temperature
+### Provider Configuration
+- **OpenAI CUA**: Tier 3-5 Responses API access required
+- **Anthropic CUA**: Computer Use API (if preferred)
+- **Environment Variables**:
+  - ENABLE_CUA=1
+  - CUA_PROVIDER=openai|anthropic
+  - CUA_API_KEY=...
+  - ENABLE_PLAYWRIGHT_FALLBACK=1
 
 ### Infrastructure
 - **Python**: 3.12+ with async support
@@ -102,14 +114,17 @@ Scope and Requirements
 - Cost of $3/1M input tokens is acceptable
 
 ## Configuration Defaults
-- **Match Threshold**: 80% compatibility for auto-send
-- **Session Quota**: 10 messages per run
-- **Daily Quota**: 20 messages per day
-- **Rate Limit**: 5-10 seconds between actions
-- **Max Retries**: 3 attempts for failed actions
+- **Match Threshold**: 80% for auto-send
+- **Daily Quota**: DAILY_LIMIT=20
+- **Weekly Quota**: WEEKLY_LIMIT=60
+- **Pacing**: SEND_DELAY_MS=5000 (5 seconds)
+- **Provider**: CUA_PROVIDER=openai (primary)
+- **Fallback**: ENABLE_PLAYWRIGHT_FALLBACK=1
 
-## Success Metrics
-- **Automation Rate**: 90% of profiles processed without intervention
-- **Match Quality**: 80% of sent messages to relevant matches
-- **Cost Efficiency**: < $0.03 per profile processed
-- **User Satisfaction**: Setup in < 10 minutes, results in < 30 minutes
+## Acceptance Criteria
+- **Dry Run**: Shows decision events without sending
+- **Live Run**: Logs sent{ok:true} for each message
+- **Zero Manual Input**: No profile pasting required
+- **Provider Switch**: Can toggle between CUA/Playwright
+- **Quota Enforcement**: Hard stop at limits
+- **STOP Works**: Immediate halt when triggered
