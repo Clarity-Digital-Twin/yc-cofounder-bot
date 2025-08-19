@@ -23,7 +23,7 @@ type: ## Run mypy
 	$(PY) mypy src
 
 test: ## Run tests
-	$(PY) pytest
+	PYTHONPATH=src $(PY) pytest -q
 
 run: ## Run Streamlit UI
 	$(PY) streamlit run -m yc_matcher.ui_streamlit

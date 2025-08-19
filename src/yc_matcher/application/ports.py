@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Protocol, Iterable, Mapping, Any
 
-from ..domain.entities import Criteria, Profile
+from ..domain.entities import Criteria, Profile, Score
 
 
 class DecisionPort(Protocol):
@@ -13,6 +13,11 @@ class DecisionPort(Protocol):
 class MessagePort(Protocol):
     def render(self, decision: Mapping[str, Any]) -> str:
         """Render a message from decision + template, applying clamps/safety."""
+
+
+class ScoringPort(Protocol):
+    def score(self, profile: Profile, criteria: Criteria) -> Score:
+        ...
 
 
 class QuotaPort(Protocol):
