@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import sqlite3
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Optional
 from datetime import date
 from pathlib import Path
 
@@ -26,7 +26,7 @@ def _iso_week(d: date) -> str:
 @dataclass
 class SQLiteDailyWeeklyQuota:
     db_path: Path
-    today: Optional[Callable[[], date]] = None
+    today: Callable[[], date] | None = None
 
     def __post_init__(self) -> None:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)

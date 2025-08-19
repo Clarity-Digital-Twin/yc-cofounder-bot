@@ -1,8 +1,14 @@
 from __future__ import annotations
 
+import os
+from pathlib import Path
+
 import streamlit as st
 
+from ...application.use_cases import ProcessCandidate
+from ...config import load_settings
 from ...domain.entities import Criteria, Profile
+from ...infrastructure.sqlite_repo import SQLiteSeenRepo
 from ...infrastructure.storage import read_count
 from ...infrastructure.template_loader import load_default_template
 from ..di import build_services
@@ -42,7 +48,7 @@ def main() -> None:
     with col1:
         go = st.button("Evaluate", type="primary")
     with col2:
-        st.caption("Semi‑auto send is wired next; this path evaluates using schema + rubric.")
+        st.caption("Evaluate with schema + rubric. Approve & Send uses Playwright if enabled.")
 
     if go:
         if not profile_text.strip():
@@ -63,6 +69,33 @@ def main() -> None:
         if draft:
             st.markdown("**Draft message:**")
             st.code(draft)
+        if data.get("decision") == "YES":
+            colA, colB = st.columns([1, 3])
+            with colA:
+                do_send = st.button("Approve & Send (Playwright)")
+            with colB:
+                st.caption("Requires ENABLE_PLAYWRIGHT=1 and manual login in the opened browser.")
+            if do_send:
+                if os.getenv("ENABLE_PLAYWRIGHT", "0") not in {"1", "true", "True"}:
+                    st.error("Set ENABLE_PLAYWRIGHT=1 in your environment to enable sending.")
+                else:
+                    try:
+                        settings = load_settings()
+                        seen = SQLiteSeenRepo(db_path=Path(".runs/seen.sqlite"))
+                        eval_use2, send_use2, logger2 = build_services(
+                            criteria_text=criteria_text, template_text=template_text, prompt_ver="v1", rubric_ver="v1"
+                        )
+                        pc = ProcessCandidate(
+                            evaluate=eval_use2,
+                            send=send_use2,
+                            browser=send_use2.browser,
+                            seen=seen,
+                            logger=logger2,
+                        )
+                        pc(url=settings.yc_match_url, criteria=Criteria(text=criteria_text), limit=int(quota), auto_send=True)
+                        st.success("Sent (check logs for details).")
+                    except Exception as e:
+                        st.error(f"Send failed: {e}")
 
 
 if __name__ == "__main__":
