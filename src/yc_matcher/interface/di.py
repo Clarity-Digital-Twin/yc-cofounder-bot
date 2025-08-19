@@ -14,6 +14,7 @@ from ..infrastructure.jsonl_logger import JSONLLogger
 from ..infrastructure.local_decision import LocalDecisionAdapter
 from ..infrastructure.logger_stamped import LoggerWithStamps
 from ..infrastructure.quota import FileQuota
+from ..infrastructure.sqlite_quota import SQLiteDailyWeeklyQuota
 from ..infrastructure.template_loader import load_default_template
 from ..infrastructure.templates import TemplateRenderer
 
@@ -79,7 +80,8 @@ def build_services(
     except Exception:
         pass
 
-    quota = FileQuota()
+    # Quota: calendar-aware (daily/weekly) if enabled, else simple file counter
+    quota = SQLiteDailyWeeklyQuota(Path(".runs/quota.sqlite")) if os.getenv("ENABLE_CALENDAR_QUOTA", "0") in {"1", "true", "True"} else FileQuota()
 
     # Send use case needs a BrowserPort; allow Playwright behind a flag
     class _NullBrowser:

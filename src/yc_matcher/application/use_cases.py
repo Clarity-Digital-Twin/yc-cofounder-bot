@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+import time
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
@@ -39,9 +41,16 @@ class SendMessage:
         if not self.quota.check_and_increment(limit):
             self.logger.emit({"event": "quota_block", "limit": limit})
             return False
+        # Optional pacing delay between sends (ms)
+        try:
+            delay_ms = int(os.getenv("SEND_DELAY_MS", "0"))
+        except Exception:
+            delay_ms = 0
         self.browser.focus_message_box()
         self.browser.fill_message(draft)
         self.browser.send()
+        if delay_ms:
+            time.sleep(delay_ms / 1000.0)
         # Verify sent; retry once if needed
         if self.browser.verify_sent():
             self.logger.emit({"event": "sent", "chars": len(draft), "verified": True})
@@ -49,6 +58,8 @@ class SendMessage:
         # retry once
         self.logger.emit({"event": "verify_failed", "attempt": 1})
         self.browser.send()
+        if delay_ms:
+            time.sleep(delay_ms / 1000.0)
         if self.browser.verify_sent():
             self.logger.emit({"event": "sent", "chars": len(draft), "verified": True, "retry": 1})
             return True

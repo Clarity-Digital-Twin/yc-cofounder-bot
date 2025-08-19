@@ -35,6 +35,16 @@ def main() -> None:
         )
         _shadow = st.toggle("Shadow Mode (no sending)", value=True)
         st.caption("Shadow Mode on: evaluate only, do not send.")
+        # STOP switch (.runs/stop.flag)
+        from ...infrastructure.stop_flag import FileStopFlag
+        stop_flag = FileStopFlag(Path(".runs/stop.flag"))
+        stopped = st.toggle("STOP (abort run)", value=stop_flag.is_stopped())
+        if stopped:
+            stop_flag.set()
+        else:
+            stop_flag.clear()
+        if os.getenv("ENABLE_CALENDAR_QUOTA", "0") in {"1", "true", "True"}:
+            st.info("Calendar quota enabled (daily/weekly caps). Sends will be blocked at limit.")
         try:
             sent = read_count()
             st.metric("Remaining", max(0, int(quota) - sent))
@@ -85,14 +95,18 @@ def main() -> None:
                         eval_use2, send_use2, logger2 = build_services(
                             criteria_text=criteria_text, template_text=template_text, prompt_ver="v1", rubric_ver="v1"
                         )
+                        browser = send_use2.browser
                         pc = ProcessCandidate(
                             evaluate=eval_use2,
                             send=send_use2,
-                            browser=send_use2.browser,
+                            browser=browser,
                             seen=seen,
                             logger=logger2,
                         )
-                        pc(url=settings.yc_match_url, criteria=Criteria(text=criteria_text), limit=int(quota), auto_send=True)
+                        url = getattr(settings, "yc_match_url", None) or os.getenv(
+                            "YC_MATCH_URL", "https://www.startupschool.org/cofounder-matching"
+                        )
+                        pc(url=str(url), criteria=Criteria(text=criteria_text), limit=int(quota), auto_send=True)
                         st.success("Sent (check logs for details).")
                     except Exception as e:
                         st.error(f"Send failed: {e}")
