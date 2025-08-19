@@ -1,7 +1,14 @@
+# --- repo-scoped caches & env (confine tools to this repo) ---
+ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+export UV_LINK_MODE=copy
+export UV_CACHE_DIR := $(ROOT)/.uv_cache
+export XDG_CACHE_HOME := $(ROOT)/.cache
+export PLAYWRIGHT_BROWSERS_PATH := $(ROOT)/.ms-playwright
+export MPLCONFIGDIR := $(ROOT)/.mplconfig
+
 PY=uv run
 
-.PHONY: setup install browsers precommit lint format type test run run-cli check-cua clean clean-pyc lint-fix verify
-.PHONY: lint-fix verify
+.PHONY: setup install browsers precommit lint format type test run run-cli check-cua clean clean-pyc lint-fix verify doctor
 
 setup: install browsers precommit ## Install deps and browsers
 
@@ -38,6 +45,15 @@ verify: ## Run lint, type, tests
 	make type
 	make test
 
+doctor: ## Print env/caches to verify repo-scoped setup
+	@echo "ROOT=$(ROOT)"
+	@echo "UV_CACHE_DIR=$(UV_CACHE_DIR)"
+	@echo "XDG_CACHE_HOME=$(XDG_CACHE_HOME)"
+	@echo "PLAYWRIGHT_BROWSERS_PATH=$(PLAYWRIGHT_BROWSERS_PATH)"
+	@echo "MPLCONFIGDIR=$(MPLCONFIGDIR)"
+	@echo "Using PY=$(PY)"
+	@ls -ld .uv_cache .cache .ms-playwright .mplconfig .venv .runs || true
+
 run: ## Run Streamlit UI
 	$(PY) streamlit run -m yc_matcher.interface.web.ui_streamlit
 
@@ -49,7 +65,6 @@ check-cua: ## Probe access to OpenAI Computer Use model
 
 clean:
 	rm -rf .mypy_cache .ruff_cache .pytest_cache dist build *.egg-info
-export UV_LINK_MODE=copy
 
 clean-pyc:
 	find . -name '__pycache__' -type d -prune -exec rm -rf {} +
