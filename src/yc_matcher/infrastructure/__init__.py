@@ -2,4 +2,3 @@
 
 Implements application ports; keep domain-independent.
 """
-

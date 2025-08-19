@@ -14,8 +14,6 @@ class Settings:
 def load_settings() -> Settings:
     return Settings(
         openai_api_key=os.getenv("OPENAI_API_KEY"),
-        yc_match_url=os.getenv(
-            "YC_MATCH_URL", "https://www.startupschool.org/cofounder-matching"
-        ),
+        yc_match_url=os.getenv("YC_MATCH_URL", "https://www.startupschool.org/cofounder-matching"),
         max_send=int(os.getenv("MAX_SEND", "5")),
     )

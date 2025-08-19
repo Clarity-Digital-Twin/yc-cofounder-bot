@@ -11,7 +11,9 @@ class ScoringService:
 
     def score(self, profile: Profile, criteria: Criteria) -> Score:
         text = profile.raw_text.lower()
-        keys = criteria.keywords or [k.strip() for k in criteria.text.replace("\n", ",").split(",") if k.strip()]
+        keys = criteria.keywords or [
+            k.strip() for k in criteria.text.replace("\n", ",").split(",") if k.strip()
+        ]
         reasons: list[str] = []
         hits = 0
         for k in keys:

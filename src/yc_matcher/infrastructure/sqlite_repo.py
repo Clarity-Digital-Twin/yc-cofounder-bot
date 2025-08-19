@@ -3,7 +3,6 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
-
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS seen_profiles (
   profile_hash TEXT PRIMARY KEY,

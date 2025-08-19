@@ -1,4 +1,4 @@
-from yc_matcher.infrastructure.templates import TemplateRenderer, MAX_CHARS
+from yc_matcher.infrastructure.templates import MAX_CHARS, TemplateRenderer
 
 
 def test_template_renderer_slots_and_bans_and_clamps():
@@ -13,4 +13,3 @@ def test_template_renderer_slots_and_bans_and_clamps():
     r2 = TemplateRenderer(template=long_tpl)
     out2 = r2.render({"extracted": {"name": "Sam"}})
     assert len(out2) == MAX_CHARS
-
