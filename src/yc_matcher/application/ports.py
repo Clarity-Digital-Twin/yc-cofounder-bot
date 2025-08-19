@@ -66,3 +66,9 @@ class ProgressRepo(Protocol):
 
     def get_last(self) -> str | None: ...
     def set_last(self, ident: str) -> None: ...
+
+
+class StopController(Protocol):
+    """Signals whether the current run should stop early."""
+
+    def is_stopped(self) -> bool: ...

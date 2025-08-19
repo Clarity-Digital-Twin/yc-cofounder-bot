@@ -14,6 +14,7 @@ from .ports import (
     ProgressRepo,
     QuotaPort,
     SeenRepo,
+    StopController,
 )
 
 
@@ -63,8 +64,12 @@ class ProcessCandidate:
     seen: SeenRepo
     logger: LoggerPort
     progress: ProgressRepo | None = None
+    stop: StopController | None = None
 
     def __call__(self, url: str, criteria: Criteria, limit: int, auto_send: bool = False) -> None:
+        if self.stop is not None and self.stop.is_stopped():
+            self.logger.emit({"event": "stopped"})
+            return
         self.browser.open(url)
         if not self.browser.click_view_profile():
             self.logger.emit({"event": "no_profile"})
@@ -79,6 +84,9 @@ class ProcessCandidate:
         self.seen.mark_seen(phash)
         data = self.evaluate(profile, criteria)
         self.logger.emit({"event": "decision", "data": data})
+        if self.stop is not None and self.stop.is_stopped():
+            self.logger.emit({"event": "stopped"})
+            return
         if auto_send and data.get("decision") == "YES":
             draft = str(data.get("draft", ""))
             if draft:
