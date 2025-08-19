@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import streamlit as st
+import streamlit as st  # type: ignore[import]
 
 from ...domain.entities import Criteria, Profile
 from ...infrastructure.template_loader import load_default_template

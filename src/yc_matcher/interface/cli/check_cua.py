@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import Any
+from typing import Any, Optional
 
 try:
-    from dotenv import load_dotenv
+    from dotenv import load_dotenv as _load_dotenv
 except Exception:  # pragma: no cover
-    def load_dotenv() -> None:
-        return None
+    _load_dotenv = None  # type: ignore[assignment]
 
 
 def _print(msg: str) -> None:
@@ -17,7 +16,8 @@ def _print(msg: str) -> None:
 
 
 def main() -> int:
-    load_dotenv()
+    if _load_dotenv is not None:
+        _load_dotenv()
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         _print("ERROR: OPENAI_API_KEY not set. Add it to .env or your environment.")
