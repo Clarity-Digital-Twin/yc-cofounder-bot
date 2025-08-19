@@ -13,3 +13,22 @@ build/
 .idea/
 .vscode/
 sent_counter.json
+
+# Cache directories
+.cache/
+.uv_cache/
+.mplconfig/
+.home/
+
+# Playwright browsers
+.ms-playwright/
+
+# Runtime artifacts
+.runs/
+events.jsonl
+
+# Claude settings
+.claude/
+
+# Streamlit
+.streamlit/

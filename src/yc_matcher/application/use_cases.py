@@ -53,7 +53,7 @@ class SendMessage:
             time.sleep(delay_ms / 1000.0)
         # Verify sent; retry once if needed
         if self.browser.verify_sent():
-            self.logger.emit({"event": "sent", "chars": len(draft), "verified": True})
+            self.logger.emit({"event": "sent", "ok": True, "mode": "auto", "chars": len(draft), "verified": True})
             return True
         # retry once
         self.logger.emit({"event": "verify_failed", "attempt": 1})
@@ -61,7 +61,7 @@ class SendMessage:
         if delay_ms:
             time.sleep(delay_ms / 1000.0)
         if self.browser.verify_sent():
-            self.logger.emit({"event": "sent", "chars": len(draft), "verified": True, "retry": 1})
+            self.logger.emit({"event": "sent", "ok": True, "mode": "auto", "chars": len(draft), "verified": True, "retry": 1})
             return True
         self.logger.emit({"event": "send_failed", "verified": False})
         return False
