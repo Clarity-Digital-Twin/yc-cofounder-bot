@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 from ..application.gating import GatedDecision
 from ..application.ports import BrowserPort, DecisionPort
@@ -35,9 +35,30 @@ def build_services(
     scoring = WeightedScoringService(weights_float)
 
     # Decision + message rendering
-    decision = LocalDecisionAdapter()
+    decision: DecisionPort = LocalDecisionAdapter()
     template = template_text if template_text is not None else load_default_template()
     renderer = TemplateRenderer(template=template, banned_phrases=["guarantee", "promise"])
+    # Optionally replace decision with OpenAI adapter if enabled
+    if os.getenv("ENABLE_OPENAI", "0") in {"1", "true", "True"}:
+        try:
+            from ..infrastructure.openai_decision import OpenAIDecisionAdapter
+            # Lazy import of SDK done inside adapter by client you pass. Here we assume a client will be created by consumer;
+            # For now, use a very lightweight placeholder that matches our FakeClient in tests if real client missing.
+            try:
+                from openai import OpenAI
+                client: Any = OpenAI()
+            except Exception:
+                class _Noop:
+                    class responses:
+                        @staticmethod
+                        def create(**_: Any) -> Any:
+                            return type("R", (), {"output": {"decision": "NO", "rationale": "offline", "draft": ""}})()
+                client = _Noop()
+            # logger is defined below; create a temporary base for decision stamping
+            decision = OpenAIDecisionAdapter(client=client, logger=None, prompt_ver=prompt_ver, rubric_ver=rubric_ver)
+        except Exception:
+            # Fallback to local decision if adapter import fails
+            decision = LocalDecisionAdapter()
     gated: DecisionPort = GatedDecision(scoring=scoring, decision=decision, threshold=threshold)
     eval_use = EvaluateProfile(decision=gated, message=renderer)
 
@@ -50,6 +71,13 @@ def build_services(
         rubric_ver=rubric_ver,
         criteria_preset=criteria_preset or "custom",
     )
+    # If decision adapter exists without logger, attach the stamped logger now
+    try:
+        from ..infrastructure.openai_decision import OpenAIDecisionAdapter
+        if isinstance(decision, OpenAIDecisionAdapter) and decision.logger is None:
+            decision.logger = logger
+    except Exception:
+        pass
 
     quota = FileQuota()
 
