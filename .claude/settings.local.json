@@ -5,7 +5,17 @@
       "WebFetch(domain:github.com)",
       "Bash(node:*)",
       "Bash(npm:*)",
-      "Bash(codex:*)"
+      "Bash(codex:*)",
+      "Bash(make:*)",
+      "Bash(PLAYWRIGHT_HEADLESS=1 make test-int)",
+      "Bash(export ENABLE_PLAYWRIGHT=1)",
+      "Bash(export YC_MATCH_URL=\"https://www.startupschool.org/cofounder-matching\")",
+      "Bash(uv run streamlit run:*)",
+      "Bash(pkill:*)",
+      "Bash(PYTHONPATH=src ENABLE_PLAYWRIGHT=1 YC_MATCH_URL=\"https://www.startupschool.org/cofounder-matching\" uv run python -m streamlit run src/yc_matcher/interface/web/ui_streamlit.py --server.headless true --server.port 8502)",
+      "Bash(curl:*)",
+      "Bash(git restore:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
