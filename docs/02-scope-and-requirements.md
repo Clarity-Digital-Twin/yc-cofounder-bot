@@ -1,35 +1,41 @@
 Scope and Requirements
 
-## In-Scope (MVP: 3-Input Autonomous System)
+## In-Scope (MVP: 3-Input Autonomous System with Decision Modes)
 - **3 Core Inputs**:
   1. Your Profile (Dr. Jung's background, skills, vision)
-  2. Match Criteria (what you're looking for in a cofounder)
-  3. Message Template (personalized outreach)
+  2. Match Criteria (free text or structured fields)
+  3. Message Template (personalized with variables)
+
 - **CUA Autonomous Browsing (PRIMARY)**:
   - Open YC site → iterate profiles → read each → evaluate
   - No manual intervention required
   - Screenshot-based perception and action
-  - Provider switch: CUA_PROVIDER=openai|anthropic
+  - Provider switch: CUA_PROVIDER=anthropic|openai
+
+- **Three Decision Modes**:
+  1. **Advisor**: LLM-only evaluation, HIL approval required
+  2. **Rubric**: Deterministic scoring, auto-send if threshold met
+  3. **Hybrid**: Combines rubric + LLM confidence, auto-send if threshold met
+
 - **Playwright Fallback (SECONDARY)**:
   - ONLY when CUA unavailable (ENABLE_PLAYWRIGHT_FALLBACK=1)
   - Same autonomous flow, different adapter
-- **Local Decision Engine**:
-  - Evaluate against YOUR criteria (not generic)
-  - Structured output: {score, YES/NO, rationale}
-  - Configurable threshold (default 80%)
+
 - **Auto-Messaging with Safeguards**:
-  - Send ONLY if: match=YES + within quota + not duplicate
-  - Template personalization with {name}, {tech}, {hook}
+  - Send ONLY if: decision=YES + within quota + not duplicate
+  - Template personalization with {name}, {tech}, {hook}, {city}, {why_match}
   - Verification of send success
+
 - **Control & Monitoring**:
   - RUN/STOP controls
+  - Mode selector (Advisor/Rubric/Hybrid)
   - Quota display (remaining daily/weekly)
   - Real-time JSONL event stream
-  - Pacing control (SEND_DELAY_MS)
+  - Shadow Mode (evaluate-only)
 
 ## Out-of-Scope (MVP)
 - Manual profile pasting (NEVER - this is the OLD broken way)
-- Credential storage (user logs in manually if needed)
+- Credential storage or automated login
 - CAPTCHA breaking or automation
 - Bulk spam operations
 - Multi-site support (YC only initially)
@@ -38,93 +44,99 @@ Scope and Requirements
 
 ## Functional Requirements
 
-### User Experience
-- **3 Inputs Only**:
-  - Your Profile text area
-  - Match Criteria checkboxes/sliders
-  - Message Template with variables
-- **One-Click Run**: Start autonomous session
-- **Real-Time Monitoring**: See decisions and sends as they happen
-- **Emergency Stop**: Immediate halt capability
-- **Quota Display**: Always visible remaining sends
+### Decision Engine
+- **Common Schema**: All modes output same structure
+  ```json
+  {
+    "mode": "advisor|rubric|hybrid",
+    "decision": "YES|NO",
+    "rationale": "≤120 chars",
+    "extracted": {...},
+    "scores": {
+      "rubric_score": 0.0,
+      "llm_confidence": 0.0,
+      "final_score": 0.0
+    }
+  }
+  ```
 
-### Matching Engine
-- **Compatibility Scoring**: AI evaluates candidate against user's criteria
-- **Structured Output**: JSON with score, decision, rationale
-- **Threshold-based Actions**: Only message high-score matches
-- **Explanation**: Clear reasoning for each accept/reject decision
+- **Advisor Mode**:
+  - Input: Profile text + criteria
+  - Process: LLM evaluation ("Is this a good fit?")
+  - Output: YES/NO + rationale
+  - Sending: Manual approval required (HIL)
+
+- **Rubric Mode**:
+  - Input: Profile text + structured criteria
+  - Process: Deterministic scoring (skills overlap, location match, etc.)
+  - Output: YES if score ≥ threshold, NO otherwise
+  - Sending: Auto-send if YES + quota available
+
+- **Hybrid Mode**:
+  - Input: Profile text + criteria
+  - Process: α * llm_confidence + (1-α) * rubric_score
+  - Output: YES if final_score ≥ threshold + hard rules pass
+  - Sending: Auto-send if YES + quota available
 
 ### Browser Automation
 - **Primary (CUA)**:
-  - OpenAI Responses API with computer-use-preview
+  - Anthropic Computer Use API (available now)
+  - OpenAI Responses API (when available)
   - Screenshot → reasoning → action cycle
-  - Natural language understanding of UI
+
 - **Fallback (Playwright)**:
   - Activated ONLY if CUA fails/unavailable
   - Selector-based automation
   - Same flow, different implementation
 
 ### Safety Features
-- **Quota Management**: Hard limits per session/day/week
-- **Deduplication**: SHA256 hash of profiles to prevent re-messaging
-- **Rate Limiting**: Configurable delays between actions
-- **Stop Control**: Immediate abort via UI button
+- **Quota Management**: Daily/weekly hard limits
+- **Deduplication**: SHA256 hash prevents re-messaging
+- **Rate Limiting**: SEND_DELAY_MS between actions
+- **Stop Control**: Immediate abort via flag
 - **Audit Trail**: Complete JSONL log of all actions
 
 ## Non-Functional Requirements
 
 ### Performance
-- **Profile Processing**: < 30 seconds per profile (including evaluation)
-- **Token Efficiency**: < 1000 tokens per profile evaluation
-- **Cost Target**: < $0.50 per 20-profile session
-- **Reliability**: 95% success rate for browser actions
+- Profile processing: < 30 seconds per profile
+- Token efficiency: < 2000 tokens per evaluation
+- Cost target: < $0.50 per 20-profile session
+- Reliability: 95% success rate for browser actions
 
 ### Security & Privacy
-- **API Keys**: Stored in .env, never in code or logs
-- **No Credential Storage**: CUA doesn't see login credentials
-- **PII Handling**: Optional redaction in logs
-- **Isolated Sessions**: Each run in separate browser context
-
-### Compliance
-- **Site ToS**: Respect rate limits and usage policies
-- **Ethical Use**: Only for legitimate cofounder matching
-- **Transparency**: Clear about automated nature when appropriate
-
-## Technical Requirements
+- API keys stored in .env, never in code or logs
+- No credential storage
+- PII handling with optional redaction
+- Isolated browser sessions
 
 ### Provider Configuration
-- **OpenAI CUA**: Tier 3-5 Responses API access required
-- **Anthropic CUA**: Computer Use API (if preferred)
-- **Environment Variables**:
-  - ENABLE_CUA=1
-  - CUA_PROVIDER=openai|anthropic
-  - CUA_API_KEY=...
-  - ENABLE_PLAYWRIGHT_FALLBACK=1
-
-### Infrastructure
-- **Python**: 3.12+ with async support
-- **Storage**: SQLite for persistence, JSONL for logs
-- **UI**: Streamlit 1.28+ for dashboard
-- **Browser**: Chromium for CUA control
-
-## Assumptions
-- User has OpenAI API key with CUA access (tier 3-5)
-- YC site structure remains relatively stable
-- Manual login acceptable for initial MVP
-- Cost of $3/1M input tokens is acceptable
+```bash
+ENABLE_CUA=1
+CUA_PROVIDER=anthropic  # or openai
+CUA_API_KEY=...
+ENABLE_PLAYWRIGHT_FALLBACK=1
+DECISION_MODE=advisor  # or rubric or hybrid
+THRESHOLD=0.72
+ALPHA=0.30  # for hybrid mode
+STRICT_RULES=1
+```
 
 ## Configuration Defaults
-- **Match Threshold**: 80% for auto-send
+- **Decision Mode**: advisor (safest default)
+- **Match Threshold**: 0.72 (for rubric/hybrid)
+- **Alpha**: 0.30 (hybrid weight for LLM)
 - **Daily Quota**: DAILY_LIMIT=20
 - **Weekly Quota**: WEEKLY_LIMIT=60
-- **Pacing**: SEND_DELAY_MS=5000 (5 seconds)
-- **Provider**: CUA_PROVIDER=openai (primary)
-- **Fallback**: ENABLE_PLAYWRIGHT_FALLBACK=1
+- **Pacing**: SEND_DELAY_MS=5000
+- **Provider**: CUA_PROVIDER=anthropic
 
 ## Acceptance Criteria
-- **Dry Run**: Shows decision events without sending
+- **Dry Run**: Shadow Mode shows decision events without sending
 - **Live Run**: Logs sent{ok:true} for each message
-- **Zero Manual Input**: No profile pasting required
+- **Mode Switching**: Can toggle between Advisor/Rubric/Hybrid
 - **Provider Switch**: Can toggle between CUA/Playwright
 - **Quota Enforcement**: Hard stop at limits
 - **STOP Works**: Immediate halt when triggered
+- **Decision Logging**: Every decision includes mode, scores, rationale
+- **Audit Trail**: Complete JSONL with versioning (prompt_ver, rubric_ver)
