@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-
+from typing import Any
 
 DEFAULT_COUNTER = Path("sent_counter.json")
 
 
-def _read_json(path: Path) -> dict:
+def _read_json(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
     try:

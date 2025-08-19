@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from typing import Literal, List, Optional
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
 class Extracted(BaseModel):
-    name: Optional[str] = None
-    tags: List[str] = Field(default_factory=list)
+    name: str | None = None
+    tags: list[str] = Field(default_factory=list)
 
 
 class DecisionDTO(BaseModel):
@@ -14,4 +15,4 @@ class DecisionDTO(BaseModel):
     rationale: str
     draft: str = ""
     extracted: Extracted = Field(default_factory=Extracted)
-    prompt_version: Optional[str] = None
+    prompt_version: str | None = None

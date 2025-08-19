@@ -1,5 +1,6 @@
-from pathlib import Path
 import json
+from pathlib import Path
+
 from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
 
 
@@ -13,4 +14,3 @@ def test_jsonl_logger_writes_event(tmp_path: Path):
     assert row["event"] == "decision"
     assert row["prompt_ver"] == "v1"
     assert row["rubric_ver"] == "v1"
-

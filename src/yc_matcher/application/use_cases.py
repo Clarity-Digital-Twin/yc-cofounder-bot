@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Mapping, Any
+from typing import Any
 
 from ..domain.entities import Criteria, Profile
-from .ports import DecisionPort, MessagePort, QuotaPort, SeenRepo, LoggerPort, BrowserPort
+from .ports import BrowserPort, DecisionPort, LoggerPort, MessagePort, QuotaPort, SeenRepo
 
 
 @dataclass

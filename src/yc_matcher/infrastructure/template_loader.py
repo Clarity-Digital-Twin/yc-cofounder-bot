@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-
 DEFAULT_TEMPLATE_PATHS = [
     Path("MATCH_MESSAGE_TEMPLATE.MD"),
     Path("docs/MATCH_MESSAGE_TEMPLATE.MD"),

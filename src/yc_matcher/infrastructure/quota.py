@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ..storage import read_count, write_count
+from .storage import read_count, write_count
 
 
 class FileQuota:
@@ -10,4 +10,3 @@ class FileQuota:
             return False
         write_count(n + 1)
         return True
-

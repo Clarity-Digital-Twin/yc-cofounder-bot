@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from yc_matcher.infrastructure.sqlite_repo import SQLiteSeenRepo
 
 
@@ -9,4 +10,3 @@ def test_sqlite_seen_repo_roundtrip(tmp_path: Path):
     assert repo.is_seen(ph) is False
     repo.mark_seen(ph)
     assert repo.is_seen(ph) is True
-

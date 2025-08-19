@@ -1,8 +1,8 @@
-from dataclasses import dataclass
-from typing import Mapping, Any
+from collections.abc import Mapping
+from typing import Any
 
-from yc_matcher.domain.entities import Criteria, Profile
 from yc_matcher.application.use_cases import EvaluateProfile, SendMessage
+from yc_matcher.domain.entities import Criteria, Profile
 
 
 class DecisionMock:
@@ -12,7 +12,7 @@ class DecisionMock:
 
 class MessageMock:
     def render(self, decision: Mapping[str, Any]) -> str:
-        return f"Hello {decision.get('extracted',{}).get('name','there')}"
+        return f"Hello {decision.get('extracted', {}).get('name', 'there')}"
 
 
 def test_evaluate_profile_combines_decision_and_draft():

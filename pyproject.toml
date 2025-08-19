@@ -30,7 +30,7 @@ dev = [
 ]
 
 [project.scripts]
-yc-matcher = "yc_matcher.run_cli:main"
+yc-matcher = "yc_matcher.interface.cli.run:main"
 
 [tool.ruff]
 line-length = 100

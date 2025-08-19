@@ -1,5 +1,6 @@
-from pathlib import Path
 import json
+from pathlib import Path
+
 from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
 from yc_matcher.infrastructure.logger_stamped import LoggerWithStamps
 
@@ -14,4 +15,3 @@ def test_logger_stamps_versions_and_preset(tmp_path: Path):
     assert row["prompt_ver"] == "v1"
     assert row["rubric_ver"] == "v1"
     assert row["criteria_preset"] == "NYC-AI"
-

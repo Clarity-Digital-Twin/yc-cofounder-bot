@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import re
-from typing import Mapping, Any
+from collections.abc import Mapping
+from typing import Any
 
 MAX_CHARS = 500
 
@@ -18,8 +19,7 @@ class TemplateRenderer:
             else None
         ) or "there"
         text = (
-            self.template
-            .replace("[Name]", str(name))
+            self.template.replace("[Name]", str(name))
             .replace("[project/skill]", "work")
             .replace("[specific ability]", "skills")
         )
@@ -32,4 +32,3 @@ class TemplateRenderer:
         if len(text) > MAX_CHARS:
             text = text[:MAX_CHARS]
         return text.strip()
-
