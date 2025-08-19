@@ -6,7 +6,15 @@ from typing import Any
 
 from ..domain.entities import Criteria, Profile
 from ..infrastructure.normalize import hash_profile_text
-from .ports import BrowserPort, DecisionPort, LoggerPort, MessagePort, QuotaPort, SeenRepo
+from .ports import (
+    BrowserPort,
+    DecisionPort,
+    LoggerPort,
+    MessagePort,
+    ProgressRepo,
+    QuotaPort,
+    SeenRepo,
+)
 
 
 @dataclass
@@ -54,6 +62,7 @@ class ProcessCandidate:
     browser: BrowserPort
     seen: SeenRepo
     logger: LoggerPort
+    progress: ProgressRepo | None = None
 
     def __call__(self, url: str, criteria: Criteria, limit: int, auto_send: bool = False) -> None:
         self.browser.open(url)
@@ -75,3 +84,6 @@ class ProcessCandidate:
             if draft:
                 sent = self.send(draft, limit)
                 self.logger.emit({"event": "auto_send", "ok": sent})
+        # update progress cursor last
+        if self.progress is not None:
+            self.progress.set_last(phash)
