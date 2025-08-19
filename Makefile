@@ -1,6 +1,6 @@
 PY=uv run
 
-.PHONY: setup install browsers precommit lint format type test run run-cli check-cua clean
+.PHONY: setup install browsers precommit lint format type test run run-cli check-cua clean clean-pyc lint-fix verify
 .PHONY: lint-fix verify
 
 setup: install browsers precommit ## Install deps and browsers
@@ -46,3 +46,7 @@ check-cua: ## Probe access to OpenAI Computer Use model
 
 clean:
 	rm -rf .mypy_cache .ruff_cache .pytest_cache dist build *.egg-info
+export UV_LINK_MODE=copy
+
+clean-pyc:
+	find . -name '__pycache__' -type d -prune -exec rm -rf {} +
