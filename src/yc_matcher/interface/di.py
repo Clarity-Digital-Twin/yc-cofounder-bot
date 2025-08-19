@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import cast
 
 from ..application.gating import GatedDecision
+from ..application.ports import BrowserPort, DecisionPort
 from ..application.use_cases import EvaluateProfile, SendMessage
 from ..domain.services import WeightedScoringService
 from ..infrastructure.jsonl_logger import JSONLLogger
@@ -35,7 +37,7 @@ def build_services(
     decision = LocalDecisionAdapter()
     template = template_text if template_text is not None else load_default_template()
     renderer = TemplateRenderer(template=template, banned_phrases=["guarantee", "promise"])
-    gated = GatedDecision(scoring=scoring, decision=decision, message=renderer, threshold=threshold)
+    gated: DecisionPort = GatedDecision(scoring=scoring, decision=decision, threshold=threshold)
     eval_use = EvaluateProfile(decision=gated, message=renderer)
 
     # Logger and quota/seen
@@ -56,6 +58,6 @@ def build_services(
         def fill_message(self, text: str) -> None: ...
         def send(self) -> None: ...
 
-    send_use = SendMessage(quota=quota, browser=_NullBrowser(), logger=logger)
+    send_use = SendMessage(quota=quota, browser=cast(BrowserPort, _NullBrowser()), logger=logger)
 
     return eval_use, send_use, logger
