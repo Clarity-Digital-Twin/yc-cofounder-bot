@@ -26,8 +26,10 @@ def build_services(
     threshold: float = 4.0,
 ) -> tuple[EvaluateProfile, SendMessage, LoggerWithStamps]:
     # Scoring
-    default_weights = {"python": 3, "fastapi": 2, "health": 2, "ny": 1, "crypto": -999}
-    scoring = WeightedScoringService(weights or default_weights)
+    default_weights = {"python": 3.0, "fastapi": 2.0, "health": 2.0, "ny": 1.0, "crypto": -999.0}
+    _w = weights or default_weights
+    weights_float = {k: float(v) for k, v in _w.items()}
+    scoring = WeightedScoringService(weights_float)
 
     # Decision + message rendering
     decision = LocalDecisionAdapter()

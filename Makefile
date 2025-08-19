@@ -1,6 +1,7 @@
 PY=uv run
 
 .PHONY: setup install browsers precommit lint format type test run run-cli check-cua clean
+.PHONY: lint-fix verify
 
 setup: install browsers precommit ## Install deps and browsers
 
@@ -13,7 +14,10 @@ browsers: ## Install Playwright Chromium
 precommit: ## Install pre-commit hooks
 	$(PY) pre-commit install
 
-lint: ## Run ruff lints (auto-fix) and format
+lint: ## Run ruff lints
+	$(PY) ruff check .
+
+lint-fix: ## Auto-fix lints and format
 	$(PY) ruff check --fix .
 	$(PY) ruff format .
 
@@ -25,6 +29,11 @@ type: ## Run mypy
 
 test: ## Run tests
 	PYTHONPATH=src $(PY) pytest -q
+
+verify: ## Run lint, type, tests
+	make lint
+	make type
+	make test
 
 run: ## Run Streamlit UI
 	$(PY) streamlit run -m yc_matcher.interface.web.ui_streamlit
