@@ -3,20 +3,36 @@ Product Brief
 Working Name: YC Co-Founder Autonomous Matching Agent
 
 ## One-liner
-A 3-input control panel (Your Profile, Match Criteria, Message Template) that deploys OpenAI's CUA to autonomously browse YC profiles, evaluate compatibility, and auto-send invites to high-scoring matches.
+A 3-input control panel (Your Profile, Match Criteria, Message Template) that deploys CUA to autonomously browse YC profiles, evaluates via configurable decision modes (Advisor/Rubric/Hybrid), and auto-sends invites with quota safeguards.
 
 ## Why now
-- OpenAI's CUA (March 2025) available NOW via Responses API for tier 3-5 developers
+- OpenAI CUA (March 2025) and Anthropic Computer Use API available NOW
 - $3/1M input tokens for autonomous browser control via screenshots
 - No complex scripting - CUA sees and clicks like a human
-- Playwright remains as fallback only when CUA unavailable
+- Flexible decision modes: from pure AI judgment to deterministic scoring
 
 ## Goals
 - **3-input simplicity**: Your Profile + Match Criteria + Message Template = Done
 - **Autonomous discovery**: CUA browses profiles WITHOUT manual intervention
-- **Local decision engine**: Evaluate compatibility using your exact criteria
-- **Auto-messaging**: Send invites to matches above threshold (with quotas)
+- **Flexible decisions**: Three modes - Advisor (AI-only), Rubric (rules), Hybrid (both)
+- **Guarded auto-send**: Messages sent only with approval (mode-dependent) and within quotas
 - **Real-time control**: STOP button, pacing, JSONL audit trail
+
+## Decision Modes
+1. **Advisor Mode** (LLM-only, no auto-send)
+   - AI evaluates like ChatGPT: "Is this a good fit?"
+   - Returns YES/NO + rationale
+   - Requires manual approval to send (HIL)
+
+2. **Rubric Gate Mode** (deterministic, auto-send)
+   - Structured scoring against criteria
+   - Threshold-based decisions
+   - Auto-sends if score > threshold + quota available
+
+3. **Hybrid Mode** (guardrails + AI, auto-send)
+   - Combines rubric score with LLM confidence
+   - Hard rules must pass first
+   - Auto-sends if final_score > threshold + quota available
 
 ## Non-Goals (for MVP)
 - Manual profile pasting (NEVER - fully autonomous only)
@@ -28,42 +44,47 @@ A 3-input control panel (Your Profile, Match Criteria, Message Template) that de
 ## Success Metrics (MVP)
 - Matches contacted per day (within quota)
 - Reply rate from sent invites
+- Decision accuracy (validated against manual review)
 - Zero policy violations or unintended sends
 - Cost < $0.50 per 20-profile session
-- 100% autonomous (no manual profile entry)
-
-## Stakeholders & Usage
-- **Primary user**: Founders seeking cofounders on YC platform
-- **Operation mode**: Set profile/criteria → Start CUA → Monitor progress
-- **Frequency**: Daily/weekly sessions with 5-10 messages per run
 
 ## Technical Approach
-- **Primary**: OpenAI CUA via Responses API (computer-use-preview model)
+- **Primary**: CUA via Anthropic (now) or OpenAI (when available)
 - **Fallback**: Playwright ONLY when CUA unavailable (ENABLE_PLAYWRIGHT_FALLBACK=1)
-- **Decision**: Local evaluation engine with strict rubric
-- **UI**: Streamlit with 3 inputs + control panel
+- **Decision Engine**: Mode-configurable (Advisor/Rubric/Hybrid)
+- **UI**: Streamlit with 3 inputs + mode selector + control panel
 - **Storage**: SQLite quotas/dedupe, JSONL event stream
 
 ## User Flow
-1. **Configure (3 inputs)**:
+1. **Configure (3 inputs + mode)**:
    - YOUR profile (Dr. Jung's background)
-   - Match criteria (what you seek)
-   - Message template (personalized)
+   - Match criteria (structured or free text)
+   - Message template (with variables)
+   - Select decision mode (Advisor/Rubric/Hybrid)
 
 2. **Execute**:
    - Click RUN → CUA launches
    - CUA autonomously: open YC → browse → read profiles
-   - Backend: evaluate each against criteria
-   - If match + quota: CUA auto-sends invite
+   - Backend: evaluate per selected mode
+   - If approved + quota: CUA auto-sends invite (Rubric/Hybrid) or waits for HIL (Advisor)
 
 3. **Monitor**:
-   - Real-time: decision events, sent confirmations
+   - Real-time: decision events with scores/rationale
+   - Sent confirmations with verification
    - STOP button for emergency halt
-   - Quota remaining, matches found
+   - Quota remaining display
+
+## Safety Features
+- **STOP flag**: Immediate halt capability
+- **Quotas**: Daily/weekly hard limits
+- **Pacing**: Configurable delay between sends
+- **Deduplication**: Never message same profile twice
+- **Shadow Mode**: Evaluate-only without sending
+- **HIL option**: Manual approval in Advisor mode
 
 ## Key Differentiators
+- **Three decision modes**: Flexible from pure AI to pure rules
 - **Truly autonomous**: CUA browses WITHOUT any manual input
-- **Provider flexibility**: CUA_PROVIDER=openai|anthropic|none
+- **Provider flexibility**: CUA_PROVIDER=anthropic|openai
 - **Fallback ready**: Playwright kicks in if CUA fails
-- **Quota-enforced**: Hard limits prevent over-messaging
-- **Audit complete**: Every decision and send logged in JSONL
+- **Audit complete**: Every decision and send logged with versioning
