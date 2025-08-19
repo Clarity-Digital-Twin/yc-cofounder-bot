@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+import os
 
 try:
     from playwright.sync_api import Page, sync_playwright  # type: ignore
@@ -25,7 +26,8 @@ class PlaywrightBrowser:
         if sync_playwright is None:  # pragma: no cover
             raise RuntimeError("Playwright not available; install with `python -m playwright install chromium`")
         self._pl = sync_playwright().start()
-        browser = self._pl.chromium.launch(headless=False)
+        headless = os.getenv("PLAYWRIGHT_HEADLESS", "0") in {"1", "true", "True"}
+        browser = self._pl.chromium.launch(headless=headless)
         ctx = browser.new_context(viewport={"width": 1280, "height": 800})
         self._page = ctx.new_page()
         return self._page
@@ -46,9 +48,23 @@ class PlaywrightBrowser:
             except Exception:
                 pass
             try:
+                link = page.get_by_role("link", name=label)
+                if link.count() > 0:
+                    link.first.click()
+                    return True
+            except Exception:
+                pass
+            try:
                 el = page.get_by_text(label, exact=True)
                 if el.count() > 0:
                     el.first.click()
+                    return True
+            except Exception:
+                pass
+            try:
+                el2 = page.get_by_text(label)  # non-exact
+                if el2.count() > 0:
+                    el2.first.click()
                     return True
             except Exception:
                 pass
@@ -99,3 +115,37 @@ class PlaywrightBrowser:
     def skip(self) -> None:
         self._click_by_labels(["Skip"])  # best-effort
 
+    def verify_sent(self) -> bool:
+        page = self._ensure_page()
+        try:
+            tb = page.get_by_role("textbox")
+            if tb.count() > 0:
+                val = tb.first.input_value()
+                return val.strip() == ""
+        except Exception:
+            pass
+        try:
+            toast = page.get_by_text("Message sent")
+            return toast.count() > 0
+        except Exception:
+            return False
+
+    def close(self) -> None:
+        try:
+            if self._page is not None:
+                ctx = self._page.context
+                ctx.close()
+        finally:
+            if self._pl is not None:
+                try:
+                    self._pl.stop()
+                except Exception:
+                    pass
+            self._pl = None
+            self._page = None
+
+    def __enter__(self):  # pragma: no cover
+        return self
+
+    def __exit__(self, *_):  # pragma: no cover
+        self.close()

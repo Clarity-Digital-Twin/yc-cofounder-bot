@@ -30,6 +30,9 @@ type: ## Run mypy
 test: ## Run tests
 	PYTHONPATH=src $(PY) pytest -q
 
+test-int: ## Run integration tests
+	PYTHONPATH=src $(PY) pytest -q -m integration
+
 verify: ## Run lint, type, tests
 	make lint
 	make type
