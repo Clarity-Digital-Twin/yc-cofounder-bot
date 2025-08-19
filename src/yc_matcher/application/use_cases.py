@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from ..domain.entities import Criteria, Profile
+from ..infrastructure.normalize import hash_profile_text
 from .ports import BrowserPort, DecisionPort, LoggerPort, MessagePort, QuotaPort, SeenRepo
 
 
@@ -54,18 +55,23 @@ class ProcessCandidate:
     seen: SeenRepo
     logger: LoggerPort
 
-    def __call__(self, url: str, criteria: Criteria, limit: int) -> None:
+    def __call__(self, url: str, criteria: Criteria, limit: int, auto_send: bool = False) -> None:
         self.browser.open(url)
         if not self.browser.click_view_profile():
             self.logger.emit({"event": "no_profile"})
             return
         text = self.browser.read_profile_text()
         profile = Profile(raw_text=text)
-        phash = str(abs(hash(text)))
+        phash = hash_profile_text(text)
         if self.seen.is_seen(phash):
             self.logger.emit({"event": "skip_seen", "profile_hash": phash})
             self.browser.skip()
             return
+        self.seen.mark_seen(phash)
         data = self.evaluate(profile, criteria)
-        # Decision gate is HIL-controlled in UI; here we just log
         self.logger.emit({"event": "decision", "data": data})
+        if auto_send and data.get("decision") == "YES":
+            draft = str(data.get("draft", ""))
+            if draft:
+                sent = self.send(draft, limit)
+                self.logger.emit({"event": "auto_send", "ok": sent})
