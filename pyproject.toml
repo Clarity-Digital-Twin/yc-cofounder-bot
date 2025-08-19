@@ -1,0 +1,72 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "yc-matcher"
+version = "0.1.0"
+description = "YC Co‑Founder Matching bot (HIL paste mode + semi-auto Playwright)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [{name = "JJ", email = ""}]
+dependencies = [
+  "openai>=1.40.0",
+  "openai-agents>=0.0.7",
+  "playwright>=1.45.0",
+  "python-dotenv>=1.0.1",
+  "pydantic>=2.7.0",
+  "streamlit>=1.36.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.2.0",
+  "pytest-asyncio>=0.23.0",
+  "mypy>=1.10.0",
+  "ruff>=0.5.0",
+  "pre-commit>=3.7.0",
+  "types-requests>=2.32.0.20240712",
+]
+
+[project.scripts]
+yc-matcher = "yc_matcher.run_cli:main"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+  "E","F","W",   # pycodestyle/pyflakes
+  "I",              # isort (via ruff)
+  "UP",             # pyupgrade
+  "B",              # flake8-bugbear
+]
+ignore = [
+  "E501",  # allow longer lines where helpful; formatter will handle
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+disallow_any_generics = true
+no_implicit_optional = true
+show_error_codes = true
+pretty = true
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/yc_matcher"]

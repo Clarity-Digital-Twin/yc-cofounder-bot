@@ -1,0 +1,15 @@
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+.env
+.env.*
+*.pyc
+dist/
+build/
+*.egg-info/
+.DS_Store
+.idea/
+.vscode/
+sent_counter.json
