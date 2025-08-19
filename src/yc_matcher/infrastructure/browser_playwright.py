@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
 import os
+from collections.abc import Iterable
 
 try:
     from playwright.sync_api import Page, sync_playwright
@@ -150,7 +150,7 @@ class PlaywrightBrowser:
             self._pl = None
             self._page = None
 
-    def __enter__(self) -> "PlaywrightBrowser":  # pragma: no cover
+    def __enter__(self) -> PlaywrightBrowser:  # pragma: no cover
         return self
 
     def __exit__(self, *_: object) -> None:  # pragma: no cover

@@ -43,7 +43,6 @@ HTML = """
 
 @pytest.mark.integration
 def test_smoke_local_html(tmp_path, monkeypatch):
-    import os
     from yc_matcher.infrastructure.browser_playwright import PlaywrightBrowser
 
     monkeypatch.setenv("PLAYWRIGHT_HEADLESS", "1")

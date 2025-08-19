@@ -3,6 +3,7 @@ from __future__ import annotations
 import streamlit as st
 
 from ...domain.entities import Criteria, Profile
+from ...infrastructure.storage import read_count
 from ...infrastructure.template_loader import load_default_template
 from ..di import build_services
 
@@ -23,11 +24,16 @@ def main() -> None:
         template_text = st.text_area(
             "Message template", value=default_template, height=300, key="template"
         )
-        _quota = st.number_input(
+        quota = st.number_input(
             "Quota (messages this session)", min_value=1, max_value=50, value=5, step=1, key="quota"
         )
         _shadow = st.toggle("Shadow Mode (no sending)", value=True)
         st.caption("Shadow Mode on: evaluate only, do not send.")
+        try:
+            sent = read_count()
+            st.metric("Remaining", max(0, int(quota) - sent))
+        except Exception:
+            pass
 
     st.subheader("Paste Candidate Profile")
     profile_text = st.text_area("Profile text", height=400, key="profile")

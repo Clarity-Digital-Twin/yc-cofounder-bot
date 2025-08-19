@@ -44,6 +44,9 @@ class BrowserMock:
     def send(self) -> None:
         self.actions.append("send")
 
+    def verify_sent(self) -> bool:
+        return True
+
 
 class LoggerMock:
     def __init__(self):

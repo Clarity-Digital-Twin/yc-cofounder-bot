@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import cast
 
@@ -52,12 +53,26 @@ def build_services(
 
     quota = FileQuota()
 
-    # Send use case needs a BrowserPort; will be wired later (semi-auto)
+    # Send use case needs a BrowserPort; allow Playwright behind a flag
     class _NullBrowser:
         def focus_message_box(self) -> None: ...
         def fill_message(self, text: str) -> None: ...
         def send(self) -> None: ...
+        def verify_sent(self) -> bool: return True
+        def open(self, url: str) -> None: ...
+        def click_view_profile(self) -> bool: return True
+        def read_profile_text(self) -> str: return ""
+        def skip(self) -> None: ...
+        def close(self) -> None: ...
 
-    send_use = SendMessage(quota=quota, browser=cast(BrowserPort, _NullBrowser()), logger=logger)
+    browser: BrowserPort
+    if os.getenv("ENABLE_PLAYWRIGHT", "0") in {"1", "true", "True"}:
+        # Import lazily to avoid mypy/import issues when playwright is unavailable
+        from ..infrastructure.browser_playwright import PlaywrightBrowser
+        browser = cast(BrowserPort, PlaywrightBrowser())
+    else:
+        browser = cast(BrowserPort, _NullBrowser())
+
+    send_use = SendMessage(quota=quota, browser=browser, logger=logger)
 
     return eval_use, send_use, logger
