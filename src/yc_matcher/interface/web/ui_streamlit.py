@@ -5,13 +5,13 @@ from pathlib import Path
 
 import streamlit as st
 
-from ...application.use_cases import ProcessCandidate
-from ...config import load_settings
-from ...domain.entities import Criteria, Profile
-from ...infrastructure.sqlite_repo import SQLiteSeenRepo
-from ...infrastructure.storage import read_count
-from ...infrastructure.template_loader import load_default_template
-from ..di import build_services
+from yc_matcher.application.use_cases import ProcessCandidate
+from yc_matcher.config import load_settings
+from yc_matcher.domain.entities import Criteria, Profile
+from yc_matcher.infrastructure.sqlite_repo import SQLiteSeenRepo
+from yc_matcher.infrastructure.storage import read_count
+from yc_matcher.infrastructure.template_loader import load_default_template
+from yc_matcher.interface.di import build_services
 
 
 def main() -> None:
@@ -36,7 +36,7 @@ def main() -> None:
         _shadow = st.toggle("Shadow Mode (no sending)", value=True)
         st.caption("Shadow Mode on: evaluate only, do not send.")
         # STOP switch (.runs/stop.flag)
-        from ...infrastructure.stop_flag import FileStopFlag
+        from yc_matcher.infrastructure.stop_flag import FileStopFlag
         stop_flag = FileStopFlag(Path(".runs/stop.flag"))
         stopped = st.toggle("STOP (abort run)", value=stop_flag.is_stopped())
         if stopped:
