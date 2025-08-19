@@ -1,102 +1,140 @@
 UI Reference
 
-## Streamlit Dashboard - 3 Core Inputs
+## Streamlit Dashboard - Single Page with 3 Core Inputs
 
-### INPUT 1: Your Profile
-- **What**: Dr. Jung's background, skills, vision
+### Section 1: Core Inputs
+
+#### INPUT 1: Your Profile
+- **What**: Dr. Jung's background, skills, vision, what you bring
 - **Source**: Loads from CURRENT_COFOUNDER_PROFILE.MD
-- **Format**: Multi-line text area
-- **Required**: YES - this is YOUR identity
+- **Format**: Multi-line text area (markdown supported)
+- **Required**: YES - this defines who YOU are
 
-### INPUT 2: Match Criteria
-- **What**: Exactly what you're looking for
-- **Controls**:
-  - Technical skills checkboxes
-  - Domain/industry selectors
-  - Location requirements
-  - Commitment level (full-time, part-time)
-- **Threshold**: Score slider (default 80% for auto-send)
+#### INPUT 2: Match Criteria
+- **Format Options**:
+  - **Free Text Mode**: "Looking for a technical cofounder with ML experience..."
+  - **Structured Mode** (Advanced):
+    - Technical skills checkboxes
+    - Domain/industry selectors
+    - Location requirements
+    - Commitment level (full-time, part-time)
+    - Stage preference (idea, MVP, revenue)
+- **Required**: YES - defines your ideal match
 
-### INPUT 3: Message Template
-- **What**: Your outreach message
+#### INPUT 3: Message Template
+- **What**: Your personalized outreach message
 - **Source**: Loads from MATCH_MESSAGE_TEMPLATE.MD
-- **Variables**: {name}, {tech_match}, {shared_interest}
-- **Preview**: Shows with sample substitutions
+- **Variables Available**:
+  - `{name}` - Candidate's name
+  - `{tech}` - Matching technical skills
+  - `{hook}` - Personalized connection point
+  - `{city}` - Their location
+  - `{why_match}` - Reason for reaching out
+- **Preview**: Shows rendered example with sample data
 
-### Control Panel
-- **RUN Button**: Start autonomous session
-- **STOP Button**: Immediate halt (sets stop flag)
-- **Provider Selector**: 
-  - OpenAI CUA (primary)
-  - Anthropic CUA (alternative)
-  - Playwright (fallback only)
-- **Mode Toggle**:
-  - Live (sends messages)
-  - Shadow (evaluate only, no sends)
-- **Quota Display**: 
-  - Daily: X/20 remaining
-  - Weekly: Y/60 remaining
+### Section 2: Decision Controls
 
-### Live Event Stream (JSONL)
-- **decision**: {profile_id, score, YES/NO, rationale}
-- **sent**: {profile_id, ok:true, mode:auto}
-- **stopped**: {reason: user_requested|quota_exceeded}
-- **model_usage**: {provider, tokens, cost}
-- **Format**: Real-time tail of events.jsonl
+#### Mode Selector (Radio Buttons)
+- **Advisor Mode** 🤔
+  - Pure AI evaluation ("Is this a good fit?")
+  - No auto-send, requires manual approval
+  - Best for: Cautious exploration
 
-### Session Summary
-- **Metrics**:
-  - Profiles evaluated: N
-  - Matches found: M (score > threshold)
-  - Messages sent: S
-  - Success rate: S/M
-  - Total cost: $X.XX
-- **NO MANUAL PASTE**: Never show "paste profile" UI
+- **Rubric Mode** 📊
+  - Deterministic scoring based on criteria
+  - Auto-sends if score > threshold
+  - Best for: Clear, quantifiable requirements
 
-## YC Site Elements (for CUA)
+- **Hybrid Mode** 🔄
+  - Combines AI judgment with rubric scoring
+  - Weighted blend (configurable alpha)
+  - Best for: Balanced approach
 
-### Login Page
-- **URL**: From WEBSITE_LINK.MD
-- **Elements**: Email/password fields, login button
-- **Screenshot**: initial_log_in.png
+#### Mode-Specific Controls
 
-### Profile List Page
-- **Elements**:
-  - Profile cards with summary
-  - "View profile" buttons
-  - Pagination/infinite scroll
-- **CUA Actions**: Scroll, click profiles
+**For Rubric & Hybrid Modes:**
+- **Threshold Slider**: 0.0 to 1.0 (default 0.72)
+  - Label: "Auto-send if score ≥ [value]"
 
-### Individual Profile Page
-- **Screenshot**: view_profile_clicked.png
-- **Main Content**:
-  - About section
-  - Background/experience
-  - Skills and interests
-  - What they're looking for
-- **Message Panel**:
-  - Text area for message
-  - "Invite to connect" button
-  - Character limit indicator
+**For Hybrid Mode Only:**
+- **Alpha Slider**: 0.0 to 1.0 (default 0.30)
+  - Label: "AI weight: [α]% AI, [1-α]% Rubric"
+
+**For All Modes:**
+- **Strict Rules Toggle**: ☑️ "Hard rules must pass"
+  - When enabled, certain criteria are mandatory
+
+### Section 3: Execution Controls
+
+#### Main Controls
+- **RUN Button** ▶️: Start autonomous session
+- **STOP Button** ⏹️: Immediate halt (sets stop flag)
+- **Shadow Mode Toggle** 👻: "Evaluate only (no sends)"
+
+#### Provider Selection
+- **Dropdown**: CUA Provider
+  - Anthropic (available now)
+  - OpenAI (coming soon)
+  - Playwright Fallback (auto-activates if CUA fails)
+- **Status Indicator**: 🟢 Connected | 🔴 Unavailable
+
+#### Quota Display
+```
+Daily:   [████████░░] 16/20 remaining
+Weekly:  [██████░░░░] 42/60 remaining
+```
+
+### Section 4: Live Monitoring
+
+#### Event Stream Panel
+Real-time tail of JSONL events:
+```
+[12:34:56] decision  | Profile: John Doe | Mode: hybrid | YES | Score: 0.76 | "Strong ML match"
+[12:34:58] sent      | Profile: John Doe | ok: true | mode: auto | 312 chars
+[12:35:02] decision  | Profile: Jane Smith | Mode: hybrid | NO | Score: 0.41 | "Different domain"
+[12:35:15] stopped   | Reason: quota_exceeded
+```
+
+#### Session Statistics
+```
+Profiles Evaluated: 23
+Matches Found:      8 (34.8%)
+Messages Sent:      5
+Pending Approval:   3 (Advisor mode)
+Total Cost:         $0.42
+```
+
+### Section 5: HIL Approval Queue (Advisor Mode Only)
+
+When in Advisor mode, YES decisions appear here:
+```
+┌─────────────────────────────────────┐
+│ John Doe - Score: HIGH              │
+│ Rationale: "Strong ML background"   │
+│ [View Profile] [Approve & Send]     │
+└─────────────────────────────────────┘
+```
 
 ## Autonomous Flow (NO MANUAL INPUT)
 
 1. **User Configures Once**:
-   - Enters 3 inputs
+   - Fills 3 inputs
+   - Selects decision mode
+   - Sets thresholds if applicable
    - Clicks RUN
 
 2. **CUA Takes Over**:
-   - Opens YC autonomously
+   - Opens YC site autonomously
    - Browses profile list
    - Clicks "View profile" for each
    - Screenshots and reads content
 
-3. **Backend Evaluates**:
-   - Local decision engine scores profile
-   - Compares to threshold
-   - Logs decision event
+3. **Backend Evaluates (Per Mode)**:
+   - **Advisor**: AI evaluation → queue for HIL
+   - **Rubric**: Score calculation → auto-send if threshold met
+   - **Hybrid**: Combined scoring → auto-send if threshold met
 
-4. **CUA Sends (if match)**:
+4. **CUA Sends (When Approved)**:
    - Fills personalized message
    - Clicks "Invite to connect"
    - Verifies send success
@@ -106,15 +144,23 @@ UI Reference
    - STOP pressed
    - Quota exhausted
    - No more profiles
+   - Error threshold exceeded
 
-## Key Environment Variables
+## Environment Variables
+
 ```bash
-# Primary Configuration
+# Core Configuration
 ENABLE_CUA=1
-CUA_PROVIDER=openai  # or anthropic
-CUA_API_KEY=sk-...
+CUA_PROVIDER=anthropic  # or openai
+CUA_API_KEY=sk-ant-...
 
-# Fallback Option
+# Decision Configuration
+DECISION_MODE=advisor  # or rubric or hybrid
+THRESHOLD=0.72         # for rubric/hybrid
+ALPHA=0.30            # for hybrid only
+STRICT_RULES=1        # enforce hard requirements
+
+# Fallback
 ENABLE_PLAYWRIGHT_FALLBACK=1
 
 # Quotas and Pacing
@@ -130,10 +176,13 @@ YC_MATCH_URL=https://www.startupschool.org/cofounder-matching
 - ❌ **"Paste candidate profile" panel** - NEVER USE
 - ❌ **Manual profile entry** - Fully autonomous only
 - ❌ **Playwright as primary** - It's fallback only
+- ❌ **Fixed scoring rules** - Now have 3 flexible modes
 
-## Critical Reminders
-- **CUA is PRIMARY**: OpenAI/Anthropic CUA does the work
-- **Playwright is FALLBACK**: Only when CUA unavailable
-- **3 inputs only**: Profile, Criteria, Template
-- **Fully autonomous**: No manual intervention
-- **Event-driven**: Everything logged to JSONL
+## Critical UI Rules
+- **NO manual paste workflow** - Everything autonomous
+- **Mode selector always visible** - User chooses decision approach
+- **Thresholds only for Rubric/Hybrid** - Hidden in Advisor mode
+- **HIL queue only in Advisor** - Other modes auto-send
+- **Provider status always shown** - User knows what's running
+- **Quota always visible** - Prevent surprise stops
+- **Event stream always live** - Full transparency
