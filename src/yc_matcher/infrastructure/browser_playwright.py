@@ -4,10 +4,10 @@ from collections.abc import Iterable
 import os
 
 try:
-    from playwright.sync_api import Page, sync_playwright  # type: ignore
+    from playwright.sync_api import Page, sync_playwright
 except Exception:  # pragma: no cover
-    Page = object  # type: ignore
-    sync_playwright = None  # type: ignore
+    Page = object  # type: ignore[misc,assignment]
+    sync_playwright = None  # type: ignore[assignment]
 
 
 class PlaywrightBrowser:
@@ -25,9 +25,10 @@ class PlaywrightBrowser:
             return self._page
         if sync_playwright is None:  # pragma: no cover
             raise RuntimeError("Playwright not available; install with `python -m playwright install chromium`")
-        self._pl = sync_playwright().start()
+        pl = sync_playwright()
+        self._pl = pl
         headless = os.getenv("PLAYWRIGHT_HEADLESS", "0") in {"1", "true", "True"}
-        browser = self._pl.chromium.launch(headless=headless)
+        browser = pl.start().chromium.launch(headless=headless)
         ctx = browser.new_context(viewport={"width": 1280, "height": 800})
         self._page = ctx.new_page()
         return self._page
@@ -79,10 +80,12 @@ class PlaywrightBrowser:
             # Prefer main content region if available
             main = page.get_by_role("main")
             if main.count() > 0:
-                return main.inner_text()
+                txt: str = main.inner_text()
+                return txt
         except Exception:
             pass
-        return page.inner_text("body")
+        body_txt: str = page.inner_text("body")
+        return body_txt
 
     def focus_message_box(self) -> None:
         page = self._ensure_page()
@@ -120,13 +123,14 @@ class PlaywrightBrowser:
         try:
             tb = page.get_by_role("textbox")
             if tb.count() > 0:
-                val = tb.first.input_value()
+                val: str = tb.first.input_value()
                 return val.strip() == ""
         except Exception:
             pass
         try:
             toast = page.get_by_text("Message sent")
-            return toast.count() > 0
+            ok: bool = toast.count() > 0
+            return ok
         except Exception:
             return False
 
@@ -144,8 +148,8 @@ class PlaywrightBrowser:
             self._pl = None
             self._page = None
 
-    def __enter__(self):  # pragma: no cover
+    def __enter__(self) -> "PlaywrightBrowser":  # pragma: no cover
         return self
 
-    def __exit__(self, *_):  # pragma: no cover
+    def __exit__(self, *_: object) -> None:  # pragma: no cover
         self.close()
