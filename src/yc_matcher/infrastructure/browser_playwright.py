@@ -6,8 +6,10 @@ import os
 try:
     from playwright.sync_api import Page, sync_playwright
 except Exception:  # pragma: no cover
-    Page = object  # type: ignore[misc,assignment]
-    sync_playwright = None  # type: ignore[assignment]
+    class _Stub:  # minimal stub types to satisfy annotations
+        pass
+    Page = _Stub
+    sync_playwright = None
 
 
 class PlaywrightBrowser:
