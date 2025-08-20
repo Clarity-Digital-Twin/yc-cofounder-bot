@@ -51,7 +51,7 @@ yc-cofounder-bot/
 │       │   ├── use_cases.py    # Evaluate, ProcessCandidate, Send
 │       │   └── __init__.py
 │       ├── infrastructure/     # adapters (IO, SDKs)
-│       │   ├── openai_cua_browser.py   # PRIMARY: OpenAICUABrowser (Agents SDK)
+│       │   ├── openai_cua_browser.py   # PRIMARY: CUA planner (Responses API) + Playwright executor
 │       │   ├── browser_playwright.py   # FALLBACK: PlaywrightBrowser
 │       │   ├── openai_decision.py      # OpenAI decision adapter
 │       │   ├── local_decision.py       # local/mock decision adapter
@@ -73,7 +73,7 @@ yc-cofounder-bot/
 │       │   ├── web/
 │       │   │   └── ui_streamlit.py     # 3-input control panel (CUA-first)
 │       │   ├── cli/
-│       │   │   ├── check_cua.py        # confirms Agents SDK + CUA model
+│       │   │   ├── check_cua.py        # confirms CUA model access/availability
 │       │   │   └── run.py              # CLI runner (optional)
 │       │   └── __init__.py
 │       └── config.py           # configuration loading
@@ -112,13 +112,9 @@ yc-cofounder-bot/
 
 ### Primary Adapter
 
-**`openai_cua_browser.py`** → `OpenAICUABrowser` (imports **Agents SDK**):
+**`openai_cua_browser.py`** → `OpenAICUABrowser` (CUA planner + Playwright executor):
 
-```python
-from agents import Agent, ComputerTool, Session  # package: openai-agents
-```
-
-Reads `CUA_MODEL` from env; drives navigation/reading/typing/clicks; returns truthy `verify_sent()`.
+Uses OpenAI Responses API with the `computer_use` tool to plan actions from screenshots; executes actions locally with Playwright; chains turns via `previous_response_id` and `computer_call_output`.
 
 ### Fallback Adapter
 
@@ -132,7 +128,7 @@ Reads `CUA_MODEL` from env; drives navigation/reading/typing/clicks; returns tru
 - `OpenAICUABrowser` if `ENABLE_CUA=1`
 - else `PlaywrightBrowser` if `ENABLE_PLAYWRIGHT=1`
 - else a null browser (safe no-op)
-- If CUA errors and `ENABLE_PLAYWRIGHT_FALLBACK=1`, fall back to Playwright **for that run**
+- If CUA errors and `ENABLE_PLAYWRIGHT_FALLBACK=1`, fall back to Playwright-only **for that run**
 
 **Streamlit UI (`interface/web/ui_streamlit.py`)** exposes exactly three inputs (profile, criteria, template), plus controls:
 - **Run / STOP** toggle, **Decision Mode**, **Threshold**, **Shadow Mode**
@@ -161,7 +157,7 @@ ALPHA=0.50
 
 # Runtime & Pacing
 YC_MATCH_URL=https://www.startupschool.org/cofounder-matching
-SEND_DELAY_MS=5000
+PACE_MIN_SECONDS=45
 DAILY_QUOTA=25
 WEEKLY_QUOTA=120
 SHADOW_MODE=0
@@ -211,7 +207,7 @@ tests/
 ## Conventions
 
 - **Naming:** `snake_case` files, `CapWords` classes, `lower_snake` env keys in code
-- **Imports:** CUA **always** `from agents import Agent, ComputerTool, Session` (**package name**: `openai-agents`)
+- **Imports:** Prefer Responses API directly for CUA; Agents Runner (`from agents import ...`) is optional
 - **Logging:** only via JSONL logger; no `print` in adapters/use-cases
 - **Type hints & docstrings:** required in `domain/` and `application/`
 

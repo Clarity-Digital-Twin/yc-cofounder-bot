@@ -25,8 +25,8 @@
 - STOP flag behavior, quotas, pacing
 
 ### Contract Tests (ports)
-- `ComputerUsePort` (CUA primary) — stub `agents` package
-- `BrowserPort` (Playwright fallback) — stub Playwright
+- `ComputerUsePort` (CUA planner) — stub Responses API `computer_call`/`computer_call_output` and assert Playwright execution
+- `BrowserPort` (Playwright-only fallback) — stub Playwright
 - `DecisionPort` — advisor/hybrid expectations with deterministic prompts
 - LoggerPort emits structured JSON events; schema sanity
 
@@ -102,10 +102,10 @@ MPLCONFIGDIR=.mplconfig
 - For integration tests (no network): listing page with tiles, profile page with message box
 - Located in `tests/fixtures/` or generated dynamically
 
-### Agents SDK Stubs
+### CUA/Agents Stubs
 For contract tests:
-- Monkeypatch `from agents import Agent, ComputerTool, Session` objects with in-memory fakes
-- Ensure `.run()` returns deterministic strings for "read" / "sent confirmation"
+- Prefer stubbing the Responses API and providing deterministic `computer_call` actions
+- If using Agents Runner, monkeypatch `from agents import Agent, ComputerTool, Session` with in-memory fakes
 
 ### Ephemeral State
 For tests:

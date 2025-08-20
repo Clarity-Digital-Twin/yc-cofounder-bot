@@ -4,7 +4,7 @@
 **Owner:** YC Matcher Team  
 **Related:** [02-scope-and-requirements.md] · [04-implementation-plan.md] · [10-ui-reference.md]
 
-Primary automation uses **OpenAI Computer Use (CUA) via the Agents SDK**. **Playwright** is a *fallback* adapter when CUA is unavailable or explicitly disabled.
+Primary automation uses **OpenAI Computer Use (CUA) via the Responses API (computer_use tool)** with **Playwright** executing actions locally. A Playwright-only adapter is used as a fallback when CUA is unavailable or explicitly disabled.
 
 ## Operational Invariants
 
@@ -37,7 +37,7 @@ ALPHA=0.50
 # Safety & Pacing
 DAILY_QUOTA=25
 WEEKLY_QUOTA=120
-SEND_DELAY_MS=5000                    # milliseconds between sends
+PACE_MIN_SECONDS=45                   # minimum seconds between sends
 SHADOW_MODE=0                         # 1 = evaluate-only, never send
 YC_MATCH_URL=https://www.startupschool.org/cofounder-matching
 ```
@@ -59,7 +59,7 @@ YC_MATCH_URL=https://www.startupschool.org/cofounder-matching
 - **Storage**: `.runs/quota.sqlite`
 
 ### Pacing and Rate Limiting
-- **Send Delay**: SEND_DELAY_MS between successful sends (default 5000ms)
+- **Send Delay**: PACE_MIN_SECONDS minimum between successful sends (default 45s)
 - **Action Delay**: 500-2000ms between CUA actions (human-like)
 - **Profile Processing**: Minimum 10s per profile (no rushing)
 - **Error Backoff**: Exponential backoff on failures (1s, 2s, 4s, 8s)

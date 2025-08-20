@@ -4,7 +4,7 @@
 **Owner:** Product / Eng  
 **Related:** [02-scope-and-requirements.md] · [03-architecture.md] · [04-implementation-plan.md]
 
-**Product North Star:** One-click, **hands-off matcher**. You paste **(1) Your Profile**, **(2) Match Criteria**, **(3) Message Template** — the system **autonomously** browses YC Cofounder Matching via **OpenAI Computer Use (CUA, Agents SDK)**, evaluates profiles, and **sends** messages when appropriate. **Playwright** runs only as a **fallback**.
+**Product North Star:** One-click, **hands-off matcher**. You paste **(1) Your Profile**, **(2) Match Criteria**, **(3) Message Template** — the system **autonomously** browses YC Cofounder Matching via **OpenAI Computer Use (CUA, Responses API)** planning actions from screenshots while **Playwright** executes them locally; Playwright-only runs as a **fallback** if CUA is unavailable.
 
 **Traceability:** Roadmap gates map to requirements in **02 — Scope & Requirements** (FR-xx, NFR-xx, AC-xx) and design in **03 — Architecture**.
 
@@ -27,14 +27,12 @@
 - FR/NFR coverage references wired in test names
 
 ### M1 — CUA Foundation (PRIMARY Path) — Week 1
-**Goal:** **OpenAI Computer Use** is the default browser engine.
+**Goal:** **OpenAI Computer Use** planning loop is the default, with Playwright executing actions.
 
 **Work:**
-- Adapter: `OpenAICUABrowser` using **Agents SDK**
-  - **Package:** `openai-agents`
-  - **Import:** `from agents import Agent, ComputerTool, Session`
+- Adapter: `OpenAICUABrowser` using Responses API `computer_use` tool + Playwright executor
 - Env/config: `ENABLE_CUA=1`, `CUA_MODEL=<your-computer-use-model>`, `OPENAI_API_KEY`
-- CLI probe: `make check-cua` (lists models, initializes agent)
+- CLI probe: `make check-cua` (verifies model availability)
 - Contract tests for `ComputerUsePort`
 
 **Exit Criteria (Gates):**
@@ -63,7 +61,7 @@
 **Work:**
 - Seen db (`.runs/seen.sqlite`) and quota db (`.runs/quota.sqlite`)
 - STOP flag (`.runs/stop.flag`) respected before any action
-- Pacing (`SEND_DELAY_MS`) between sends
+- Pacing (`PACE_MIN_SECONDS`) between sends
 - Verify-send logic with ≤1 retry (FR-13)
 
 **Exit Criteria (Gates):**
@@ -171,7 +169,7 @@ ALPHA=0.50
 
 # Runtime
 YC_MATCH_URL=https://www.startupschool.org/cofounder-matching
-SEND_DELAY_MS=5000
+PACE_MIN_SECONDS=45
 DAILY_QUOTA=25
 WEEKLY_QUOTA=120
 SHADOW_MODE=0                                # 1 = evaluate-only

@@ -37,7 +37,7 @@ This plan maps directly to the SSOT: CUA+Playwright work together (CUA analyzes,
 - [ ] STOP flag checks before navigation and before send; state preservation
 - [ ] Quotas (SQLite): daily/weekly caps; decrement on verified `sent`
 - [ ] Deduplication (SQLite): profile hash check pre-evaluation
-- [ ] Pacing (`SEND_DELAY_MS`) and exponential backoff
+- [ ] Pacing (`PACE_MIN_SECONDS`) and exponential backoff
 - [ ] Shadow Mode (evaluate-only) and optional HIL (`REQUIRE_APPROVAL=1`)
 - [ ] Cost tracking and token caps; provider status indicator
 
@@ -100,7 +100,7 @@ YC_MATCH_URL="https://www.startupschool.org/cofounder-matching"
 # Safety & Limits
 DAILY_QUOTA=25
 WEEKLY_QUOTA=120
-SEND_DELAY_MS=5000
+PACE_MIN_SECONDS=45
 SHADOW_MODE=0                       # 1 = evaluate-only, never send
 
 # Repo-scoped caches
@@ -185,10 +185,10 @@ make run
 - **Rollback**: flip `CUA_MODEL`/`OPENAI_DECISION_MODEL` envs; retain Playwright fallback
 
 ## Tech Notes
-- Primary engine: OpenAI Computer Use via Agents SDK (CUA model from env)
-- Screenshot handling: Computer Use tool handles capture automatically
-- Action execution: `Agent.run()` with `ComputerTool` for click, type, etc.
-- Fallback: Playwright adapter only when CUA unavailable
+- Primary engine: OpenAI Computer Use via Responses API (computer_use tool) with Playwright executing actions
+- Screenshot handling: Playwright captures screenshots each loop turn
+- Action execution: Execute `computer_call` locally (click/type/scroll), then send `computer_call_output` with `previous_response_id`
+- Fallback: Playwright adapter (DOM selectors) only when CUA unavailable
 - Env flags respected: `DECISION_MODE`, `THRESHOLD`, `ALPHA`, `STRICT_RULES`, repo-scoped caches
 
 ## Safety & Pacing
@@ -197,7 +197,7 @@ make run
 - STOP toggle in UI writes `.runs/stop.flag`
 - Shadow mode = **never send**, only log decisions
 - Event log is append-only JSONL with versioned schema
-- Pacing delays between sends (`SEND_DELAY_MS`)
+- Pacing delays between sends (`PACE_MIN_SECONDS`)
 
 ## Risk & Mitigation
 - **CUA access not enabled** → Mitigation: `make check-cua`; switch to `ENABLE_PLAYWRIGHT_FALLBACK=1`

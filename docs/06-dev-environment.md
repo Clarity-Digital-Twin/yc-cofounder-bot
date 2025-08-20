@@ -7,25 +7,22 @@
 ## Baseline Requirements
 - Python: 3.12+
 - Package manager: `uv` (recommended) or `pip`
-- Browser automation: Playwright (Chromium) as fallback
-- AI SDK: OpenAI Agents SDK for Computer Use
+- Browser automation: Playwright (Chromium) — always used (executor)
+- OpenAI API: Responses API with Computer Use tool; Agents SDK optional wrapper
 
 ## Core Dependencies
 
 ### Runtime
-- `openai>=1.*`                 # OpenAI base SDK
-- `openai-agents>=0.2.8`        # Agents SDK providing Computer Use (import as `agents`)
-- `playwright`                  # Fallback browser automation
+- `openai>=1.*`                 # OpenAI base SDK (Responses API)
+- `playwright`                  # Browser control (executor)
+- `openai-agents`               # Optional: Agents Runner wrapper (imports as `agents`)
 - `streamlit`                   # Web UI dashboard
 - `python-dotenv`               # Environment configuration
 - `pydantic>=2.0.0`            # Data validation
 - `sqlite3`                     # Built-in, for quotas and deduplication
 
 ### Import Surface (IMPORTANT)
-Package installs as `openai-agents` but is imported as:
-```python
-from agents import Agent, ComputerTool, Session
-```
+Prefer Responses API directly for CUA; if you use Agents Runner, the package installs as `openai-agents` and imports as `agents`.
 
 ### Development
 - `pytest` - Testing framework
@@ -57,7 +54,7 @@ ALPHA=0.50                           # Hybrid weighting for Advisor
 
 # Run-time & Safety
 YC_MATCH_URL=https://www.startupschool.org/cofounder-matching
-SEND_DELAY_MS=5000                   # Milliseconds between sends
+PACE_MIN_SECONDS=45                  # Minimum seconds between sends
 DAILY_QUOTA=25
 WEEKLY_QUOTA=120
 SHADOW_MODE=0                        # 1 = evaluate-only (never send)
@@ -116,19 +113,15 @@ mkdir -p .uv_cache .cache .ms-playwright .mplconfig .runs .home
 ```
 
 ### Quick CUA Check
-Verify the Agents SDK and Computer Use wiring without a full run:
+Verify CUA model visibility without a full run:
 ```bash
 uv run python - <<'PY'
 import os
-try:
-    from agents import Agent, ComputerTool
-    print("✓ agents import found")
-    model = os.getenv("CUA_MODEL", "set-a-valid-model")
-    print(f"CUA_MODEL={model}")
-    if model == "set-a-valid-model":
-        print("⚠ Set CUA_MODEL in .env to your Computer Use model")
-except Exception as e:
-    print("✗ ERROR:", e)
+from openai import OpenAI
+client = OpenAI()
+model = os.getenv("CUA_MODEL")
+print("CUA_MODEL=", model or "<unset>")
+print("✓ OpenAI client initialized; ensure model supports computer_use and truncation='auto'")
 PY
 ```
 
@@ -337,8 +330,8 @@ which python  # Should show .venv/bin/python
 uv sync --all-extras --refresh
 ```
 
-### Agents SDK Import Issues
-If `from agents import ...` fails:
+### Agents SDK Import Issues (Optional)
+If using Agents Runner and `from agents import ...` fails:
 ```bash
 # Verify package installed
 uv pip list | grep openai-agents

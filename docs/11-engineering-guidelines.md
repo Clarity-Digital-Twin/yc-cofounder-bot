@@ -13,7 +13,7 @@ The system takes exactly **three user inputs**:
 2. **Match Criteria** (what you're looking for)
 3. **Message Template** (how to introduce yourself)
 
-Then **OpenAI Computer Use (CUA)** autonomously browses YC Cofounder Matching, evaluates profiles, and sends messages based on the selected decision mode. **Playwright is fallback only**.
+Then **OpenAI Computer Use (CUA)** plans actions from screenshots and we execute them locally with **Playwright**. Playwright-only is used as fallback when CUA is unavailable.
 
 ## Architecture Principles
 
@@ -41,9 +41,11 @@ Define contracts as abstract ports; swap implementations without touching busine
 
 ### Import Conventions
 ```python
-# OpenAI Computer Use (Agents SDK)
-# CRITICAL: Package name is 'openai-agents' but imports as 'agents'
-from agents import Agent, ComputerTool, Session  # package: openai-agents
+# OpenAI Computer Use (Responses API)
+from openai import OpenAI
+client = OpenAI()
+
+# Use Responses API with computer_use tool; execute actions with Playwright
 
 # Standard library
 import os
@@ -120,26 +122,26 @@ class BrowserPort(Protocol):
         """Clean up resources"""
 ```
 
-### OpenAICUABrowser Implementation
+### OpenAICUABrowser Implementation (planner + executor)
 ```python
-from agents import Agent, ComputerTool, Session  # package: openai-agents
+from openai import OpenAI
 
 class OpenAICUABrowser:
     def __init__(self):
-        self.model = os.getenv("CUA_MODEL")  # Never hardcode model names
-        self.agent = Agent(
-            tools=[ComputerTool()],
+        self.client = OpenAI()
+        self.model = os.getenv("CUA_MODEL")
+        # Playwright page initialized elsewhere; used to execute actions and take screenshots
+
+    async def plan_and_act(self, instruction: str) -> None:
+        resp = self.client.responses.create(
             model=self.model,
-            api_key=os.getenv("OPENAI_API_KEY")
+            input=[{"role": "user", "content": instruction}],
+            tools=[{"type": "computer_use_preview", "display_width": 1280, "display_height": 800}],
+            truncation="auto",
+            previous_response_id=self.prev_id,
         )
-        self.session = Session()
-    
-    async def read_profile_text(self) -> str:
-        result = await self.session.run(
-            self.agent,
-            "Read all visible text from the profile on screen"
-        )
-        return result.content
+        # If resp includes a computer_call, execute via Playwright, take a screenshot,
+        # then send computer_call_output and loop until done.
 ```
 
 ## Environment Configuration
@@ -164,7 +166,7 @@ ALPHA=0.50
 
 # Runtime & Safety
 YC_MATCH_URL=https://www.startupschool.org/cofounder-matching
-SEND_DELAY_MS=5000                     # Pacing between sends
+PACE_MIN_SECONDS=45                    # Minimum seconds between sends
 DAILY_QUOTA=25
 WEEKLY_QUOTA=120
 SHADOW_MODE=0                          # 1 = evaluate-only
@@ -334,17 +336,8 @@ export SHADOW_MODE=1
 
 ## Common Pitfalls
 
-### Wrong Import Pattern
-```python
-# WRONG - this will fail
-from openai_agents import Agent  
-
-# WRONG - this will fail  
-from openai-agents import Agent
-
-# CORRECT - package 'openai-agents' exports as 'agents'
-from agents import Agent, ComputerTool, Session
-```
+### Notes on Agents Runner (optional)
+If you use the Agents SDK Runner, the package is `openai-agents` but imports as `agents`. This project prefers the Responses API directly for the CUA loop; use the Runner only if it simplifies your integration.
 
 ### Hardcoded Models
 ```python

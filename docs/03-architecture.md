@@ -2,9 +2,9 @@ Architecture
 
 ## Principles
 - **3-input control**: Your Profile + Match Criteria + Message Template
-- **CUA+Playwright architecture**: CUA analyzes/plans, Playwright executes actions (they work TOGETHER)
+- **CUA + Playwright together**: CUA plans via Responses API (computer_use tool), Playwright executes; Playwright-only fallback when CUA unavailable
 - **Flexible decisions**: Three interchangeable modes (Advisor/Rubric/Hybrid)
-- **OpenAI Computer Use**: Via Responses API - YOU provide browser via Playwright
+- **OpenAI Computer Use**: Responses API loop (`computer_call` ↔ `computer_call_output`, `previous_response_id`, `truncation="auto"`)
 - **Clean DDD layers**: Ports define contracts, adapters implement them
 - **Event-driven**: Every action logged as JSONL event stream
 
@@ -92,8 +92,8 @@ evaluate(profile_text: str, criteria: Criteria) -> DecisionResult
 ## Adapters (Implementations)
 
 ### CUA Adapter (PRIMARY)
-- **OpenAICUABrowser**: Computer Use tool via Agents SDK (env: `CUA_MODEL`)
-  - Navigates YC, reads profile text from screen, clicks, types, verifies send
+- **OpenAICUABrowser**: CUA planner via Responses API (env: `CUA_MODEL`) + Playwright executor
+  - Loop: Playwright screenshot → CUA `computer_call` → Playwright executes → send `computer_call_output` (with `previous_response_id`) → repeat
 
 ### Browser Adapter (FALLBACK)
 - **PlaywrightBrowserAdapter**: Selector-based fallback (gated by `ENABLE_PLAYWRIGHT_FALLBACK=1`)
@@ -134,7 +134,7 @@ evaluate(profile_text: str, criteria: Criteria) -> DecisionResult
                    logger.log_event("sent", {"ok": true, "mode": "auto"})
                    quota_port.decrement()
                    seen_repo.mark_seen(profile.hash)
-                   sleep(SEND_DELAY_MS)
+                   sleep(PACE_MIN_SECONDS)
    ```
 
 3. **Termination**:
@@ -224,11 +224,23 @@ def create_decision_adapter(mode, config):
 
 ## Implementation Notes
 
-### Correct Import Pattern
+### CUA Integration Pattern
 ```python
-# Package name: openai-agents (pip install openai-agents)
-# Import as: agents
-from agents import Agent, ComputerTool, Session
+from openai import OpenAI
+
+client = OpenAI()
+
+# 1) Start/continue a CUA turn
+resp = client.responses.create(
+    model=os.getenv("CUA_MODEL"),
+    input=[{"role": "user", "content": "Open YC list and read first profile"}],
+    tools=[{"type": "computer_use_preview", "display_width": 1280, "display_height": 800}],
+    truncation="auto",
+    previous_response_id=prev_id,
+)
+
+# 2) If a computer_call is present, execute it locally with Playwright,
+#    take a screenshot, then send computer_call_output and repeat until done.
 ```
 
 ### Environment Configuration
@@ -250,7 +262,7 @@ ALPHA=0.30  # Hybrid weighting (0..1)
 # Safety & Limits
 DAILY_QUOTA=25
 WEEKLY_QUOTA=120
-SEND_DELAY_MS=5000
+PACE_MIN_SECONDS=45
 SHADOW_MODE=0  # 1 = evaluate-only
 
 # Paths
@@ -272,4 +284,4 @@ EVENTS_FILE=events.jsonl
 - Never send if `seen` already contains candidate key
 - Never exceed daily/weekly quotas
 - Always log `decision` before any `sent`
-- CUA is primary; Playwright only if CUA disabled or fails and fallback enabled
+- CUA plans and Playwright executes; use Playwright-only fallback if CUA is disabled/unavailable and fallback is enabled

@@ -35,13 +35,13 @@
 **Safety**
 - **Shadow Mode**: checkbox (evaluate only, never send)
 - **STOP**: toggle button (creates/removes `.runs/stop.flag`)
-- **Pacing**: shows `SEND_DELAY_MS` value (read-only)
+- **Pacing**: shows `PACE_MIN_SECONDS` value (read-only)
 - **Quotas**: shows `DAILY_QUOTA` / `WEEKLY_QUOTA` remaining (from `.runs/quota.sqlite`)
 
 **Provider**
 - **Status**: 
-  - **OpenAI Computer Use (Agents SDK)** — 🟢 Connected | 🔴 Unavailable
-  - **Fallback: Playwright** — Ready (if `ENABLE_PLAYWRIGHT_FALLBACK=1`) | Disabled
+  - **OpenAI Computer Use (Responses API)** — 🟢 Connected | 🔴 Unavailable
+  - **Executor: Playwright** — Always used; Playwright-only fallback when `ENABLE_PLAYWRIGHT_FALLBACK=1`
 - **Model**: `CUA_MODEL` (read-only), Decision LLM: `OPENAI_DECISION_MODEL` (read-only)
 
 ### Main Panel
@@ -149,7 +149,7 @@ ALPHA=0.50
 
 # Runtime
 YC_MATCH_URL=https://www.startupschool.org/cofounder-matching
-SEND_DELAY_MS=5000
+PACE_MIN_SECONDS=45
 DAILY_QUOTA=25
 WEEKLY_QUOTA=120
 SHADOW_MODE=0
@@ -181,7 +181,7 @@ uv run streamlit run -m yc_matcher.interface.web.ui_streamlit
 
 - Buttons: **Analyze**, **Run**, **Stop**, **Approve & Send**
 - Toggles: **Shadow Mode**, **STOP**
-- Status: **OpenAI Computer Use (Agents SDK)**, **Fallback: Playwright**
+- Status: **OpenAI Computer Use (Responses API)**, **Executor: Playwright**
 - Fields: **Your Profile**, **Match Criteria**, **Message Template**
 - Modes: **Advisor**, **Rubric**, **Hybrid**
 

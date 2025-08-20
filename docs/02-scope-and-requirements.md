@@ -11,7 +11,7 @@
 Define exactly **what the product must do** and the **acceptance criteria** to prove it.
 Target outcome: a **hands‑off matcher** that, given *your profile*, *your match criteria*, and a *message template*, **autonomously** browses YC Cofounder Matching, evaluates profiles, and **sends messages** when appropriate.
 
-Primary automation engine: **OpenAI Computer Use (CUA) via the Agents SDK**.
+Primary automation engine: **OpenAI Computer Use (CUA) via Responses API (computer_use tool) with local Playwright execution**. Agents SDK may be used as a wrapper, but you must run the browser and execute actions locally.
 Fallback engine: **Playwright (Chromium)**, used only if CUA is unavailable.
 
 ---
@@ -138,7 +138,7 @@ ALPHA=0.50                           # weight for Advisor in Hybrid
 
 # Run-time
 YC_MATCH_URL=https://www.startupschool.org/cofounder-matching
-SEND_DELAY_MS=5000
+PACE_MIN_SECONDS=45
 DAILY_QUOTA=25
 WEEKLY_QUOTA=120
 SHADOW_MODE=0                        # 1 = never send
@@ -166,7 +166,7 @@ SHADOW_MODE=0                        # 1 = never send
 
 ## 9) Safety, compliance, and rate limits
 
-* Respect site ToS. Keep human‑like pacing (`SEND_DELAY_MS`) and quotas.
+* Respect site ToS. Keep human‑like pacing (`PACE_MIN_SECONDS`) and quotas.
 * **STOP** halts new actions immediately; running actions complete or fail fast.
 * Dry‑run mode prevents sends entirely.
 * Only per‑profile ephemeral processing; do not export/republish data.
@@ -215,7 +215,7 @@ SHADOW_MODE=0                        # 1 = never send
 
 ## 13) Glossary
 
-* **CUA**: Computer Use (OpenAI Agents SDK Computer Use tool).
+* **CUA**: Computer Use (OpenAI Responses API computer_use tool; Playwright executes actions).
 * **HIL**: Human‑in‑the‑loop.
 * **Advisor**: LLM‑only recommendation mode.
 * **Rubric**: Deterministic, rule‑based scoring.

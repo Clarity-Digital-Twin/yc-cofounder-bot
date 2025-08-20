@@ -5,7 +5,7 @@ An autonomous matching agent that uses a Computer Use Agent (CUA) to browse YC c
 
 ## Key Concept
 - **3 inputs**: Your Profile, Match Criteria, Message Template
-- **CUA primary**: OpenAI Computer Use via Agents SDK
+- **CUA+Playwright**: OpenAI Computer Use via Responses API plans actions; Playwright executes locally
 - **Playwright fallback**: Only when CUA is unavailable
 - **Decision modes**: Advisor (LLM-only), Rubric (deterministic), Hybrid (combined)
 - **Safety**: STOP flag, quotas, pacing, dedupe, JSONL audit
@@ -33,7 +33,7 @@ An autonomous matching agent that uses a Computer Use Agent (CUA) to browse YC c
 
 ## Events & Safety
 - Emits JSONL: `decision`, `sent`, `stopped`, `model_usage` (with `prompt_ver`, `rubric_ver`, `criteria_hash`).
-- Enforces hard limits: `DAILY_LIMIT`, `WEEKLY_LIMIT`, `SEND_DELAY_MS`.
+- Enforces hard limits: `DAILY_LIMIT`, `WEEKLY_LIMIT`, `PACE_MIN_SECONDS`.
 - Dedupes by profile hash; verifies send success before logging `sent{ok:true,mode}`.
 
 ## Stack

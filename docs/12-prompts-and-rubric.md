@@ -7,7 +7,7 @@
 ## Goals
 
 1. Define **exact prompts** for:
-   - **OpenAI CUA Navigation** (Computer Use via Agents SDK)
+   - **OpenAI CUA Navigation** (Computer Use via Responses API `computer_use` tool)
    - **Decision Modes**: Advisor (LLM-only), Rubric (deterministic), Hybrid (weighted)
 2. Specify **JSON contracts** (stable, testable)
 3. Lock **rubric weights**, **thresholding**, **safety gates**, and **observability**
@@ -126,7 +126,7 @@ On successful send, emit:
 
 ## OpenAI CUA System Prompt
 
-Used with OpenAI Computer Use (Agents SDK) as the system instructions:
+Used with OpenAI Computer Use (Responses API) as the system instructions:
 
 ```
 ROLE: system
@@ -325,7 +325,7 @@ ALPHA=0.50
 
 # Runtime & Safety
 YC_MATCH_URL=https://www.startupschool.org/cofounder-matching
-SEND_DELAY_MS=5000                       # Milliseconds between sends
+PACE_MIN_SECONDS=45                      # Minimum seconds between sends
 DAILY_QUOTA=25
 WEEKLY_QUOTA=120
 SHADOW_MODE=0
@@ -336,24 +336,20 @@ SHADOW_MODE=0
 ## Integration with OpenAI CUA
 
 ```python
-from agents import Agent, ComputerTool, Session  # package: openai-agents
+from openai import OpenAI
 
-class CUANavigator:
-    def __init__(self):
-        self.agent = Agent(
-            tools=[ComputerTool()],
-            model=os.getenv("CUA_MODEL"),  # Never hardcode
-            api_key=os.getenv("OPENAI_API_KEY"),
-            temperature=float(os.getenv("CUA_TEMPERATURE", "0.3"))
-        )
-        self.session = Session()
-    
-    async def extract_profile(self):
-        result = await self.session.run(
-            self.agent,
-            EXTRACT_FIELDS_PROMPT
-        )
-        return parse_cua_response(result.content)
+client = OpenAI()
+
+# Start/continue a CUA turn
+resp = client.responses.create(
+    model=os.getenv("CUA_MODEL"),
+    input=[{"role": "user", "content": "Open YC list and read first profile"}],
+    tools=[{"type": "computer_use_preview", "display_width": 1280, "display_height": 800}],
+    truncation="auto",
+    previous_response_id=prev_id,
+)
+
+# If a computer_call is present, execute via Playwright, then send computer_call_output with screenshot and loop
 ```
 
 ---
@@ -366,13 +362,13 @@ class CUANavigator:
 4. No `$HOME` writes; all caches under repo
 5. No storing credentials or full screenshots
 6. Models from environment variables only (never hardcoded)
-7. Use `SEND_DELAY_MS` for pacing (not PACE_MIN_SECONDS)
+7. Use `PACE_MIN_SECONDS` for pacing (not SEND_DELAY_MS)
 
 ---
 
 ## Version History
 
-- v0.3 (2025-08-20): Fixed env vars, added acceptance criteria, detailed schemas
+- v0.3 (2025-08-20): Switched to Responses API CUA loop, fixed env vars, added acceptance criteria, detailed schemas
 - v0.2 (2025-08-20): Added OpenAI CUA integration, removed Anthropic references
 - v0.1 (2025-08-19): Initial draft
 
@@ -382,6 +378,6 @@ class CUANavigator:
 - ✅ Added structured JSON contracts and acceptance criteria
 - ✅ Added ready-to-use CUA tasklets
 - ✅ Detailed rubric weights and scoring functions
-- ❌ Fixed WRONG env var (PACE_MIN_SECONDS → SEND_DELAY_MS)
+- ❌ Fixed WRONG env var (SEND_DELAY_MS → PACE_MIN_SECONDS)
 - ❌ Kept as Draft (not "Final v1.0")
 - ✅ Added actual code integration example
