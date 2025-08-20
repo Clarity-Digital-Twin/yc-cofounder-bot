@@ -7,7 +7,7 @@ Overview
 
 Defaults
 - Computer Use: `CUA_MODEL=<your account's computer-use model>`
-- Decision LLM: `DECISION_MODEL` must be set to the strongest model you have access to (account/tier dependent).
+- Decision LLM: `OPENAI_DECISION_MODEL` must be set to the strongest model you have access to (account/tier dependent).
 
 Guidelines
 - Do not hardcode model names in code. Read them from env/config.
