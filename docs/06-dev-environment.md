@@ -40,6 +40,7 @@ MAX_CONTEXT_MESSAGES=10            # Context window size
 
 # Decision Configuration
 DECISION_MODE=advisor           # advisor|rubric|hybrid
+DECISION_MODEL=<set-best-llm>   # Reasoning model for Advisor/Hybrid
 THRESHOLD=0.72                  # Score threshold for auto-send
 ALPHA=0.30                      # Hybrid mode weight (0-1)
 STRICT_RULES=1                  # Enforce hard requirements

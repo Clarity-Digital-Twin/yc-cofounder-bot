@@ -25,17 +25,24 @@ from typing import List, Dict, Any
 import base64
 from PIL import Image
 import io
+import os
 
 class OpenAICUAAdapter:
     def __init__(self, api_key: str):
         self.client = OpenAI(api_key=api_key)
-        self.model = "computer-use-preview"
+        # Configure via env to allow easy upgrades
+        self.model = os.getenv("CUA_MODEL", "computer-use-preview")
         self.session_context = []
         
     def initialize_session(self):
         """Start a new CUA session"""
         self.session_context = []
         return self
+
+### Model Selection
+- Computer Use model is configured via `CUA_MODEL` (default `computer-use-preview`).
+- Decision/reasoning model is configured separately via `DECISION_MODEL` and is used for Advisor/Hybrid mode prompts.
+- Keep model names out of code; read from env/config to simplify upgrades (e.g., switching to a newer Computer Use model when available).
 ```
 
 ## 2. Screenshot Handling
@@ -442,6 +449,13 @@ CUA_MAX_TOKENS=1000
 SCREENSHOT_QUALITY=85
 MAX_CONTEXT_MESSAGES=10
 ```
+
+## Model Upgrade Checklist
+- Verify the new Computer Use model is available to your account and supports Computer Use (per official OpenAI docs).
+- Update environment variables: `CUA_MODEL` (and optionally `DECISION_MODEL`).
+- Run contract tests for `ComputerUsePort` and end-to-end smoke tests.
+- Canary test on a small batch; compare success rate, latency, and cost.
+- If regressions occur, revert env vars to previous models.
 
 ## Performance Metrics
 

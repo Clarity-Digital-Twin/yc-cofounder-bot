@@ -201,7 +201,7 @@ def create_browser_adapter(config):
         from infrastructure.cua.openai import OpenAICUAAdapter
         return OpenAICUAAdapter(
             api_key=config.OPENAI_API_KEY,
-            model="computer-use-preview",
+            model=config.CUA_MODEL,  # read from env/config
             temperature=0.3
         )
     
