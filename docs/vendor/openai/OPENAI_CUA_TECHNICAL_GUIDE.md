@@ -31,7 +31,7 @@ import os
 class OpenAICUAAdapter:
     def __init__(self):
         # Use Computer-Using Agent model via env
-        self.model = os.getenv("CUA_MODEL", "computer-use-preview")
+        self.model = os.getenv("CUA_MODEL")  # From your Models endpoint
         
         # Initialize agent with Computer Use tool
         self.agent = Agent(
@@ -167,7 +167,7 @@ class OpenAICUAAdapter:
     """OpenAI Computer Use adapter for YC Matcher"""
     
     def __init__(self):
-        self.model = os.getenv("CUA_MODEL", "computer-use-preview")
+        self.model = os.getenv("CUA_MODEL")  # From your Models endpoint
         self.agent = Agent(
             model=self.model,
             tools=[ComputerTool()],
@@ -336,7 +336,7 @@ def test_full_cua_flow():
 # OpenAI Computer Use
 ENABLE_CUA=1
 CUA_PROVIDER=openai
-CUA_MODEL=computer-use-preview  # From Models endpoint
+CUA_MODEL=<your account's computer-use model>  # From Models endpoint
 OPENAI_API_KEY=sk-...
 
 # Decision Engine

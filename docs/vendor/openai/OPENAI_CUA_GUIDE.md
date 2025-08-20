@@ -48,7 +48,7 @@ import os
 
 # Initialize agent with Computer Use tool
 agent = Agent(
-    model=os.getenv("CUA_MODEL", "computer-use-preview"),
+    model=os.getenv("CUA_MODEL"),  # Set via env from your Models endpoint
     tools=[ComputerTool()],
     temperature=0.3  # Low for determinism
 )
@@ -77,7 +77,7 @@ class OpenAICUAAdapter:
     def __init__(self):
         from agents import Agent, ComputerTool
         self.agent = Agent(
-            model=os.getenv("CUA_MODEL", "computer-use-preview"),
+            model=os.getenv("CUA_MODEL"),  # Set via env from your Models endpoint
             tools=[ComputerTool()],
             temperature=0.3
         )
@@ -106,7 +106,7 @@ class OpenAICUAAdapter:
 # Core Settings
 ENABLE_CUA=1
 CUA_PROVIDER=openai
-CUA_MODEL=computer-use-preview  # Or latest from Models endpoint
+CUA_MODEL=<your account's computer-use model>  # From Models endpoint
 OPENAI_API_KEY=sk-...
 
 # Decision Engine (separate from CUA)
@@ -126,7 +126,7 @@ ENABLE_PLAYWRIGHT_FALLBACK=1
 ## Model Selection
 - **CUA Model**: Set `CUA_MODEL` to your account's computer-use model
   - Check https://platform.openai.com/account/models
-  - Default: `computer-use-preview`
+  - Check your Models endpoint at platform.openai.com/account/models
   - Future: Update when newer models available (e.g., GPT-5 CUA)
 - **Decision Model**: Set `DECISION_MODEL` for reasoning/evaluation
   - Separate from CUA - handles Advisor/Hybrid logic
