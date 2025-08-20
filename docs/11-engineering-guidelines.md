@@ -1,52 +1,391 @@
-Engineering Guidelines (DDD, Clean Code, TDD)
+# 11 — Engineering Guidelines
 
-Principles
-- DDD: Separate domain, application, infrastructure, and interface layers; keep domain pure.
-- SOLID/DRY/Clean: Small, cohesive modules; explicit dependencies; no duplication.
-- TDD: Write failing unit tests first for domain/application; iterate to green; refactor.
-- Ports & Adapters: Define clear contracts; swap implementations (CUA/Playwright, decision modes) without touching orchestrators.
+**Status:** Draft v0.3 (2025-08-20)  
+**Owner:** Engineering Team  
+**Related:** [03-architecture.md] · [07-project-structure.md] · [08-testing-quality.md]
 
-Layering
-- Domain: entities/value objects (UserProfile, MatchCriteria, Decision), domain services (scoring/extraction), framework‑agnostic.
-- Application: use cases/orchestrators (DiscoverProfiles, EvaluateAndMessage, ProcessBatch); ports (interfaces) that infra implements.
-- Infrastructure: adapters/clients (OpenAI CUA, Playwright fallback, SQLite repos, JSONL logger, decision adapters, message renderer).
-- Interface: Streamlit UI and CLI; DI container/factories to compose the app per env.
+## Product Truth (The North Star)
 
-Dependencies
-- Domain → none
-- Application → Domain
-- Infrastructure → Application + Domain (implements ports)
-- Interface → Application (invokes use cases)
+**3 inputs → CUA-first autonomy → safe fallback → auditable events**
 
-Ports (Interfaces)
-- ComputerUsePort: `open(url)`, `find_click(locator|text|role)`, `read_text(selector|region)`, `fill(selector,text)`, `press_send()`, `verify_sent()`, `close()`
-- DecisionPort: `evaluate(profile_text, criteria) -> DecisionResult`
-- QuotaPort: `check_remaining() -> int`, `decrement()`, `reset()`
-- SeenRepo: `is_duplicate(hash) -> bool`, `mark_seen(hash)`
-- LoggerPort: `log_event(event_type, data)`
-- StopController: `should_stop() -> bool`
+The system takes exactly **three user inputs**:
+1. **Your Profile** (who you are, what you bring)
+2. **Match Criteria** (what you're looking for)
+3. **Message Template** (how to introduce yourself)
 
-Adapters
-- CUA (PRIMARY): `OpenAICUAAdapter` via Agents SDK with Computer Use tool.
-- Browser (FALLBACK): `PlaywrightBrowserAdapter` if CUA unavailable.
-- Decision: Advisor (LLM-only), Rubric (deterministic), Hybrid (combined α).
-- Storage: SQLite quota/seen; JSONL logger.
-- Messaging: template renderer with safety clamps and length limits.
+Then **OpenAI Computer Use (CUA)** autonomously browses YC Cofounder Matching, evaluates profiles, and sends messages based on the selected decision mode. **Playwright is fallback only**.
 
-Testing Strategy
-- Unit: decision math, hard rules, template rendering, STOP/quotas/pacing/dedupe.
-- Contract: fake `ComputerUsePort` and assert call sequences and invariants.
-- Integration: optional local replayer and Playwright fallback smoke tests; no external network in CI.
+## Architecture Principles
 
-Config & DI
-- All flags via `.env` and UI: `DECISION_MODE`, `THRESHOLD`, `ALPHA`, `STRICT_RULES`, `ENABLE_CUA`, `CUA_PROVIDER`, `ENABLE_PLAYWRIGHT_FALLBACK`.
-- Repo‑scoped caches only (`UV_CACHE_DIR`, `XDG_CACHE_HOME`, `PLAYWRIGHT_BROWSERS_PATH`).
-- Compose adapters based on config; keep constructors small and explicit.
+### Domain-Driven Design (DDD)
+- **Domain Layer**: Pure business logic, no external dependencies
+- **Application Layer**: Use cases orchestrating domain + ports
+- **Infrastructure Layer**: Adapters implementing ports (CUA, Playwright, OpenAI, SQLite)
+- **Interface Layer**: Entry points (Streamlit UI, CLI) with dependency injection
 
-Logging & Versioning
-- JSONL events: `decision`, `sent`, `stopped`, `model_usage` with `prompt_ver`, `rubric_ver`, `criteria_hash`.
-- Refuse to send unless `verify_sent()` succeeds; log `sent{ok:true,mode}` only on verification.
+### Clean Architecture Flow
+```
+Interface → Application → Domain
+    ↓           ↓
+Infrastructure ←┘
+```
 
-Refactoring Policy
-- Prefer small, surgical patches; keep public contracts stable.
-- Avoid cross‑cutting refactors; upgrade modules incrementally under tests.
+### Ports & Adapters (Hexagonal)
+Define contracts as abstract ports; swap implementations without touching business logic:
+- **BrowserPort**: Implemented by `OpenAICUABrowser` (primary) or `PlaywrightBrowser` (fallback)
+- **DecisionPort**: Implemented by Advisor/Rubric/Hybrid modes
+- **LoggerPort**: Implemented by JSONL logger
+- **QuotaPort/SeenRepo**: Implemented by SQLite repositories
+
+## Coding Standards
+
+### Import Conventions
+```python
+# OpenAI Computer Use (Agents SDK)
+# CRITICAL: Package name is 'openai-agents' but imports as 'agents'
+from agents import Agent, ComputerTool, Session  # package: openai-agents
+
+# Standard library
+import os
+from typing import Optional, Dict, Any
+
+# Domain imports (relative within layer)
+from ..domain.entities import Profile, Decision
+from ..application.ports import BrowserPort
+```
+
+### Type Hints & Documentation
+- **Required** in domain/ and application/ layers
+- Use pydantic for DTOs and external data validation
+- Docstrings for public methods with examples
+
+### Error Handling
+```python
+# Explicit about failures
+try:
+    result = await browser.send_message(text)
+    if not result.verified:
+        raise MessageNotSentError(f"Verification failed: {result.reason}")
+except CUAUnavailableError:
+    # Fallback to Playwright if enabled
+    if self.enable_playwright_fallback:
+        result = await self.playwright_browser.send_message(text)
+```
+
+### No Global State
+- Pass dependencies explicitly via constructors
+- Use dependency injection container in interface layer
+- Environment variables only read in config module
+
+## Repo-Scoped Execution (No $HOME Writes)
+
+**Critical invariant**: Nothing writes to `$HOME` or system directories.
+
+```bash
+# Enforced in Makefile
+export UV_CACHE_DIR=.uv_cache
+export XDG_CACHE_HOME=.cache
+export PLAYWRIGHT_BROWSERS_PATH=.ms-playwright
+export MPLCONFIGDIR=.mplconfig
+export UV_LINK_MODE=copy
+
+# Streamlit sandboxing
+export HOME="$PWD/.home"
+```
+
+## Port Definitions
+
+### BrowserPort (Primary Contract)
+```python
+class BrowserPort(Protocol):
+    async def open(self, url: str) -> None:
+        """Navigate to URL"""
+    
+    async def read_profile_text(self) -> str:
+        """Extract visible profile text"""
+    
+    async def focus_message_box(self) -> None:
+        """Focus the message input area"""
+    
+    async def fill_message(self, text: str) -> None:
+        """Type message into focused area"""
+    
+    async def click_send(self) -> None:
+        """Click the send button"""
+    
+    async def verify_sent(self) -> bool:
+        """Verify message was sent successfully"""
+    
+    async def close(self) -> None:
+        """Clean up resources"""
+```
+
+### OpenAICUABrowser Implementation
+```python
+from agents import Agent, ComputerTool, Session  # package: openai-agents
+
+class OpenAICUABrowser:
+    def __init__(self):
+        self.model = os.getenv("CUA_MODEL")  # Never hardcode model names
+        self.agent = Agent(
+            tools=[ComputerTool()],
+            model=self.model,
+            api_key=os.getenv("OPENAI_API_KEY")
+        )
+        self.session = Session()
+    
+    async def read_profile_text(self) -> str:
+        result = await self.session.run(
+            self.agent,
+            "Read all visible text from the profile on screen"
+        )
+        return result.content
+```
+
+## Environment Configuration
+
+```env
+# Engines
+ENABLE_CUA=1                           # Use OpenAI Computer Use (primary)
+ENABLE_PLAYWRIGHT_FALLBACK=1           # Auto-fallback if CUA fails
+ENABLE_PLAYWRIGHT=0                    # Force Playwright (debugging only)
+
+# OpenAI
+OPENAI_API_KEY=sk-...
+CUA_MODEL=<your-computer-use-model>   # From your Models endpoint
+CUA_TEMPERATURE=0.3
+CUA_MAX_TOKENS=1200
+
+# Decision Engine  
+DECISION_MODE=hybrid                   # advisor|rubric|hybrid
+OPENAI_DECISION_MODEL=<your-best-llm>  # For Advisor/Hybrid
+THRESHOLD=0.72
+ALPHA=0.50
+
+# Runtime & Safety
+YC_MATCH_URL=https://www.startupschool.org/cofounder-matching
+SEND_DELAY_MS=5000                     # Pacing between sends
+DAILY_QUOTA=25
+WEEKLY_QUOTA=120
+SHADOW_MODE=0                          # 1 = evaluate-only
+```
+
+## Events & Logging
+
+### Schema (Canonical)
+```json
+// Decision event
+{"event": "decision", "mode": "hybrid", "advisor_conf": 0.85, "rubric_score": 0.70, 
+ "final_score": 0.775, "threshold": 0.72, "pass": true, "rationale": "Strong ML match"}
+
+// Sent event (SUCCESS)
+{"event": "sent", "ok": true, "mode": "auto", "verified": true, "chars": 312}
+
+// Quota event
+{"event": "quota", "day_count": 15, "week_count": 67, "allowed": true}
+
+// Stop event  
+{"event": "stop", "reason": "user_requested"}
+
+// Model usage
+{"event": "model_usage", "provider": "openai", "model": "<model>", 
+ "tokens_in": 1200, "tokens_out": 150, "cost_est": 0.042}
+```
+
+### Logging Policy
+- Use `LoggerPort` abstraction, never print() in business logic
+- Log at boundaries (entry/exit of use cases)
+- Include correlation IDs for request tracing
+- Sensitive data (API keys) never logged
+
+## Testing Strategy
+
+### Test Pyramid
+```
+         /\
+        /E2E\       ← Manual HIL only
+       /━━━━\
+      / INT  \      ← Headless, fixtures
+     /━━━━━━━\
+    / CONTRACT\     ← Port behavior
+   /━━━━━━━━━━\
+  /    UNIT    \    ← Pure logic, fast
+ /━━━━━━━━━━━━━\
+```
+
+### Coverage Requirements
+- Domain layer: ≥90% line coverage
+- Application layer: ≥85% line coverage  
+- Adapters: Contract tests required
+- No test writes to $HOME (use tmp_path fixtures)
+
+### Test Markers
+```python
+@pytest.mark.unit          # Fast, no IO
+@pytest.mark.contract      # Port contract validation
+@pytest.mark.integration   # May use Playwright (skipped if unavailable)
+@pytest.mark.hil           # Requires manual setup
+```
+
+## Safety Invariants
+
+### Never Send Without Verification
+```python
+# BAD
+await browser.click_send()
+logger.log({"event": "sent", "ok": true})
+
+# GOOD
+await browser.click_send()
+if await browser.verify_sent():
+    logger.log({"event": "sent", "ok": true, "verified": true})
+else:
+    logger.log({"event": "sent", "ok": false, "reason": "verification_failed"})
+```
+
+### STOP Flag Precedence
+Before ANY action:
+```python
+if stop_controller.should_stop():
+    logger.log({"event": "stop", "reason": "flag_detected"})
+    return
+```
+
+### Quota Enforcement
+```python
+if not quota_port.check_allowed():
+    logger.log({"event": "quota_exceeded"})
+    return  # Never proceed
+```
+
+### Shadow Mode
+```python
+if config.shadow_mode:
+    # Evaluate and log decision
+    logger.log({"event": "decision", ...})
+    # BUT NEVER SEND
+    return
+```
+
+## Make Targets
+
+```makefile
+# Development
+make doctor         # Check environment (must show repo-local paths)
+make verify         # ruff + mypy + unit tests
+make test-int       # Integration tests (headless)
+make check-cua      # Verify OpenAI CUA availability
+
+# Setup
+make setup          # Install dependencies + browsers
+make browsers       # Install Playwright browsers to .ms-playwright/
+
+# Running
+make run            # Start Streamlit UI (repo-scoped HOME)
+make run-cli        # Show CLI options
+
+# Maintenance  
+make clean          # Remove caches and temp files
+make clean-pyc      # Remove Python cache files
+```
+
+## Operations (Smallest Patch Rule)
+
+### Model Upgrades
+Change environment variable only:
+```bash
+# Before
+CUA_MODEL=old-model
+
+# After  
+CUA_MODEL=new-model
+
+# No code changes required
+```
+
+### Adding a Feature
+1. Write failing test at appropriate level
+2. Implement in correct layer (domain → application → infrastructure)
+3. Wire in interface layer via DI
+4. Update relevant documentation
+5. Run `make verify` before committing
+
+### Rollback Strategy
+```bash
+# Quick disable CUA (forces Playwright fallback)
+export ENABLE_CUA=0
+export ENABLE_PLAYWRIGHT=1
+
+# Or use shadow mode to stop all sends
+export SHADOW_MODE=1
+```
+
+## Code Review Checklist
+
+- [ ] No hardcoded model names or API endpoints
+- [ ] All environment variables documented in .env.example
+- [ ] Tests pass without network access
+- [ ] No writes to $HOME or system directories
+- [ ] Ports used for external dependencies
+- [ ] Error handling at adapter boundaries
+- [ ] Events logged with correct schema
+- [ ] Safety invariants preserved (STOP, quota, shadow)
+- [ ] Documentation updated if behavior changed
+
+## Common Pitfalls
+
+### Wrong Import Pattern
+```python
+# WRONG - this will fail
+from openai_agents import Agent  
+
+# WRONG - this will fail  
+from openai-agents import Agent
+
+# CORRECT - package 'openai-agents' exports as 'agents'
+from agents import Agent, ComputerTool, Session
+```
+
+### Hardcoded Models
+```python
+# WRONG
+agent = Agent(model="computer-use-preview", ...)
+
+# CORRECT
+agent = Agent(model=os.getenv("CUA_MODEL"), ...)
+```
+
+### Mixing Layers
+```python
+# WRONG - domain importing infrastructure
+# domain/services.py
+from ..infrastructure.openai_cua_browser import OpenAICUABrowser
+
+# CORRECT - domain defines interface, infrastructure implements
+# domain/services.py
+from ..application.ports import BrowserPort
+```
+
+### Synchronous Blocking
+```python
+# WRONG - blocks event loop
+time.sleep(5)
+
+# CORRECT - async sleep
+await asyncio.sleep(5)
+```
+
+## Definition of Done
+
+- [ ] Tests written and passing (appropriate level)
+- [ ] Type hints on public interfaces
+- [ ] No linting or type errors (`make verify` green)
+- [ ] Documentation updated
+- [ ] Events logged appropriately
+- [ ] Runs with repo-scoped caches only
+- [ ] PR reviewed by another engineer
+- [ ] Deployed behind feature flag if risky
+
+---
+
+**Remember**: We're building an autonomous system that respects user control. Every line of code should support the pattern of **3 inputs → autonomous browsing → safe decisions → auditable actions**.

@@ -1,4 +1,46 @@
-Operations and Safety
+# 05 — Operations & Safety
+
+**Status:** Draft v0.2 (2025-08-20)  
+**Owner:** YC Matcher Team  
+**Related:** [02-scope-and-requirements.md] · [04-implementation-plan.md] · [10-ui-reference.md]
+
+Primary automation uses **OpenAI Computer Use (CUA) via the Agents SDK**. **Playwright** is a *fallback* adapter when CUA is unavailable or explicitly disabled.
+
+## Operational Invariants
+
+- **No writes to $HOME**. All caches/logs live under repo:
+  - `UV_CACHE_DIR=.uv_cache`
+  - `XDG_CACHE_HOME=.cache`
+  - `PLAYWRIGHT_BROWSERS_PATH=.ms-playwright`
+  - `MPLCONFIGDIR=.mplconfig`
+- **State files (repo-local)**:
+  - Audit log: `events.jsonl` (append-only newline JSON)
+  - Dedupe DB: `.runs/seen.sqlite`
+  - Quota DB: `.runs/quota.sqlite`
+  - Kill switch: `.runs/stop.flag`
+
+## Configuration (Ops)
+
+```bash
+# Core
+OPENAI_API_KEY=sk-...
+ENABLE_CUA=1
+CUA_MODEL=<your-computer-use-model>   # from Models endpoint
+ENABLE_PLAYWRIGHT_FALLBACK=1          # use Playwright only if CUA fails/unavailable
+
+# Decision Engine
+DECISION_MODE=advisor|rubric|hybrid
+OPENAI_DECISION_MODEL=<your-best-llm> # for Advisor/Hybrid prompts
+THRESHOLD=0.72
+ALPHA=0.50
+
+# Safety & Pacing
+DAILY_QUOTA=25
+WEEKLY_QUOTA=120
+SEND_DELAY_MS=5000                    # milliseconds between sends
+SHADOW_MODE=0                         # 1 = evaluate-only, never send
+YC_MATCH_URL=https://www.startupschool.org/cofounder-matching
+```
 
 ## Safety Mechanisms
 
@@ -9,11 +51,12 @@ Operations and Safety
 - **State Preservation**: Saves progress for resume capability
 
 ### Quota Management
-- **Daily Limit**: Hard stop at DAILY_LIMIT (default 20)
-- **Weekly Limit**: Hard stop at WEEKLY_LIMIT (default 60)
-- **Display**: Always visible in UI: "16/20 remaining today"
+- **Daily Limit**: Hard stop at DAILY_QUOTA (default 25)
+- **Weekly Limit**: Hard stop at WEEKLY_QUOTA (default 120)
+- **Display**: Always visible in UI: "16/25 remaining today"
 - **Enforcement**: Checked BEFORE each send attempt
 - **Reset**: Daily at midnight UTC, weekly on Sunday
+- **Storage**: `.runs/quota.sqlite`
 
 ### Pacing and Rate Limiting
 - **Send Delay**: SEND_DELAY_MS between successful sends (default 5000ms)
@@ -22,8 +65,8 @@ Operations and Safety
 - **Error Backoff**: Exponential backoff on failures (1s, 2s, 4s, 8s)
 
 ### Deduplication
-- **Method**: SHA256 hash of normalized profile ID
-- **Storage**: SQLite with (hash, timestamp, sent_flag)
+- **Method**: SHA256 hash of (profile URL + name)
+- **Storage**: `.runs/seen.sqlite` with (hash, timestamp, sent_flag)
 - **Check**: Before evaluation to save costs
 - **Scope**: Permanent (never re-message)
 
@@ -41,9 +84,9 @@ Operations and Safety
 - **Dry Run**: Test with Shadow Mode first
 
 ### Hybrid Mode
-- **Dual Validation**: Both rubric and AI must agree
-- **Weighted Safety**: Lower alpha = more conservative
-- **Red Flag Override**: Any red flag blocks send
+- **Dual Validation**: Combined scoring via α weighting
+- **Weighted Safety**: Lower alpha = more conservative (more rubric weight)
+- **Red Flag Override**: Any hard rule failure blocks send
 
 ## Shadow Mode
 - **Purpose**: Evaluate without sending (calibration)
@@ -55,61 +98,118 @@ Operations and Safety
   - Training rubric weights
   - Cost estimation
 
-## Human-in-the-Loop (HIL)
-- **Advisor Mode**: Always requires approval
-- **Optional for Others**: HIL_REQUIRED=1 forces approval
-- **Approval UI**: Shows profile summary, decision, draft message
-- **Actions**: Approve & Send | Edit & Send | Skip | Block
+## Standard Runbooks
 
-## Platform Respect
-- **ToS Compliance**: Respect rate limits and usage policies
-- **CAPTCHA Policy**: Stop and alert user (no bypass attempts)
-- **Login**: Manual only (no credential automation)
-- **Batch Size**: Small batches (10-20 per session)
-- **Hours**: Avoid peak times when possible
+### SR-1: Normal Run (repo-scoped)
+1) From repo root:
+   ```bash
+   mkdir -p .uv_cache .cache .ms-playwright .mplconfig .runs
+   make doctor
+   make verify
+   ```
+   Expect `make doctor` to print only repo-local paths (no `$HOME`), and `make verify` green.
 
-## Privacy and Security
-- **API Keys**: Only in .env, never in code/logs
-- **No Credential Storage**: User logs in manually
-- **Screenshot Handling**: Auto-delete after processing
-- **PII Redaction**: Optional mode to redact emails/phones
-- **Isolated Sessions**: Each run in new browser context
+2) Optional headless smoke (no network pages):
+   ```bash
+   PLAYWRIGHT_HEADLESS=1 make test-int
+   ```
 
-## Event Logging
-Every action produces JSONL events:
+3) Headful HIL run:
+   ```bash
+   export ENABLE_CUA=1
+   uv run streamlit run -m yc_matcher.interface.web.ui_streamlit --server.port 8502
+   ```
 
+4) In the browser: manually log in to YC, paste **Your Profile**, **Match Criteria**, **Message Template**, choose Decision Mode, click **Run** (or **Analyze** → **Approve & Send** in Advisor mode).
+
+### SR-2: Immediate STOP
+- **UI**: Toggle **STOP** button
+- **CLI**: `touch .runs/stop.flag` (create) → system halts before any new action
+- **Clear**: `rm -f .runs/stop.flag`
+
+### SR-3: Quota Reached
+- **Symptom**: No sends; logs show `{"event":"quota","allowed":false}`
+- **Action**: Adjust `DAILY_QUOTA` / `WEEKLY_QUOTA`, or wait for window reset
+- **Check**: `sqlite3 .runs/quota.sqlite "SELECT * FROM quotas;"`
+
+### SR-4: Login Required
+- **Symptom**: CUA reports auth wall / Playwright fails to click message box
+- **Action**: Perform manual login in the visible window; resume
+- **Note**: Credentials are **never** stored by the app
+
+### SR-5: CUA Unavailable → Fallback
+- **Symptom**: CUA init/action error
+- **Action**: Ensure `ENABLE_PLAYWRIGHT_FALLBACK=1`; re-run
+- **Behavior**: Adapter swaps to Playwright automatically
+
+### SR-6: Selector Drift on YC (Playwright path)
+- **Symptom**: Button not found (e.g., "View profile", "Send")
+- **Action**: Add a **targeted fallback** text/role selector for the specific label observed
+- **Location**: Update selectors in `infrastructure/playwright_browser.py`
+
+## Privacy & Data Retention
+
+- **No screenshots persisted**: Only derived minimal text required for decision
+- **PII minimization**: Redact/shorten raw excerpts in `events.jsonl`
+- **Retention**: Rotate `events.jsonl` weekly; vacuum SQLite monthly
+- **No credential storage**: All authentication is manual HIL
+- **ToS compliance**: Human-like pacing; no CAPTCHA breaking or bulk scraping/export
+
+## Observability
+
+### Event Schema
+`events.jsonl`: every step logged. Canonical sent event (after verify):
 ```json
-{"event": "start", "mode": "hybrid", "shadow": false, "quotas": {"daily": 20, "weekly": 60}}
-{"event": "decision", "profile_id": "abc", "mode": "hybrid", "decision": "YES", "scores": {...}}
-{"event": "sent", "profile_id": "abc", "ok": true, "mode": "auto", "verified": true}
-{"event": "quota_check", "daily_remaining": 15, "weekly_remaining": 45}
-{"event": "stopped", "reason": "quota_exceeded"}
-{"event": "model_usage", "tokens_in": 1500, "tokens_out": 200, "cost_est": 0.0051}
+{"event":"sent","ok":true,"mode":"auto","verified":true,"chars":312}
 ```
 
-## Cost Controls
-- **Token Limits**: Max 2000 per decision, 1000 per message
-- **Model Selection**: Use smaller models when possible
-- **Caching**: Cache extracted fields for 1 hour
-- **Early Exit**: Skip obviously unmatched profiles
-- **Cost Display**: Real-time estimate in UI
+Additional events:
+- `start`: `{"event":"start","run_id":"...","mode":"hybrid","shadow":false}`
+- `profile_read`: `{"event":"profile_read","url":"...","excerpt_len":1234}`
+- `decision`: `{"event":"decision","mode":"hybrid","decision":"YES","scores":{...}}`
+- `model_usage`: `{"event":"model_usage","provider":"openai","model":"...","tokens_in":1500,"tokens_out":200,"cost_est":0.0051}`
+- `quota`: `{"event":"quota","day_count":5,"week_count":15,"allowed":true}`
+- `stop`: `{"event":"stopped","reason":"user_requested"}`
+- `error`: `{"event":"error","where":"send","message":"...","retryable":true}`
+
+### Monitoring Dashboard
+Real-time metrics displayed:
+- Profiles/hour rate
+- Success/failure ratio
+- Cost accumulator
+- Quota burndown (daily/weekly)
+- Decision distribution
+- Average scores by mode
+- Last action timestamp
 
 ## Pre-Flight Checks
+
 ```bash
 # 1. Verify CUA access
 make check-cua
 
-# 2. Test browser automation
-make test-browser
+# 2. Install browsers (if using Playwright fallback)
+make browsers
 
-# 3. Validate configuration
-make validate-config
+# 3. Run integration tests
+PLAYWRIGHT_HEADLESS=1 make test-int
 
 # 4. Dry run (Shadow Mode)
 SHADOW_MODE=1 make run
 ```
 
-## Operational Runbook
+## Readiness & Acceptance Checks
+
+- `make doctor` shows repo-local caches only (no `/home/*`, no `~/.cache/*`)
+- `make verify` green (ruff=0, mypy=0, unit tests pass)
+- `PLAYWRIGHT_HEADLESS=1 make test-int` passes (adapter validated)
+- Optional HIL smoke: `ENABLE_CUA=1` run; verify:
+  - `events.jsonl` contains expected events
+  - `.runs/seen.sqlite` updates after profile reads
+  - `.runs/quota.sqlite` tracks usage
+  - `.runs/stop.flag` halts when created
+
+## Operational Best Practices
 
 ### First Run
 1. Configure .env with API keys
@@ -140,11 +240,9 @@ SHADOW_MODE=1 make run
 - **State Preservation**: Always save progress
 - **No Silent Failures**: All errors logged and surfaced
 
-## Monitoring Dashboard
-Real-time metrics displayed:
-- Profiles/hour rate
-- Success/failure ratio
-- Cost accumulator
-- Quota burndown
-- Decision distribution
-- Average scores by mode
+## Cost Controls
+- **Token Limits**: Max 2000 per decision, 1000 per message
+- **Model Selection**: Use appropriate models for each task
+- **Caching**: Cache extracted fields for 1 hour
+- **Early Exit**: Skip obviously unmatched profiles
+- **Cost Display**: Real-time estimate in UI

@@ -1,108 +1,91 @@
-UI Reference
+# 10 — UI Reference
+
+**Status:** Draft v0.2 (2025-08-20)  
+**Owner:** UI/UX Team  
+**Related:** [02-scope-and-requirements.md] · [03-architecture.md] · [05-operations-and-safety.md]
 
 ## Streamlit Dashboard - Single Page with 3 Core Inputs
 
-### Section 1: Core Inputs
+### Sidebar
 
-#### INPUT 1: Your Profile
-- **What**: Dr. Jung's background, skills, vision, what you bring
-- **Source**: Loads from CURRENT_COFOUNDER_PROFILE.MD
-- **Format**: Multi-line text area (markdown supported)
-- **Required**: YES - this defines who YOU are
+**Inputs (3)**
+- **Your Profile** (markdown textarea)
+  - Loads from CURRENT_COFOUNDER_PROFILE.MD
+  - Dr. Jung's background, skills, vision, what you bring
+  - Required: YES
 
-#### INPUT 2: Match Criteria
-- **Format Options**:
-  - **Free Text Mode**: "Looking for a technical cofounder with ML experience..."
-  - **Structured Mode** (Advanced):
-    - Technical skills checkboxes
-    - Domain/industry selectors
-    - Location requirements
-    - Commitment level (full-time, part-time)
-    - Stage preference (idea, MVP, revenue)
-- **Required**: YES - defines your ideal match
+- **Match Criteria** (markdown textarea)
+  - Include must-have/should-have/disqualifiers
+  - Free text or structured format
+  - Required: YES
 
-#### INPUT 3: Message Template
-- **What**: Your personalized outreach message
-- **Source**: Loads from MATCH_MESSAGE_TEMPLATE.MD
-- **Variables Available**:
-  - `{name}` - Candidate's name
-  - `{tech}` - Matching technical skills
-  - `{hook}` - Personalized connection point
-  - `{city}` - Their location
-  - `{why_match}` - Reason for reaching out
-- **Preview**: Shows rendered example with sample data
+- **Message Template** (markdown textarea)
+  - Supports `{first_name}`, `{why_match}`, `{my_context}`, `{their_highlight}`, `{cta}`
+  - Loads from MATCH_MESSAGE_TEMPLATE.MD
+  - Shows preview with sample data
 
-### Section 2: Decision Controls
+**Decision**
+- **Mode**: `Advisor | Rubric | Hybrid`
+  - Advisor: LLM-only, requires HIL approval
+  - Rubric: Deterministic scoring
+  - Hybrid: Combined approach
+- **Threshold**: slider 0.50–0.95 (default 0.72)
+- **Alpha (Hybrid)**: slider 0.0–1.0 (default 0.50; weight on Advisor)
 
-#### Mode Selector (Radio Buttons)
-- **Advisor Mode** 🤔
-  - Pure AI evaluation ("Is this a good fit?")
-  - No auto-send, requires manual approval
-  - Best for: Cautious exploration
+**Safety**
+- **Shadow Mode**: checkbox (evaluate only, never send)
+- **STOP**: toggle button (creates/removes `.runs/stop.flag`)
+- **Pacing**: shows `SEND_DELAY_MS` value (read-only)
+- **Quotas**: shows `DAILY_QUOTA` / `WEEKLY_QUOTA` remaining (from `.runs/quota.sqlite`)
 
-- **Rubric Mode** 📊
-  - Deterministic scoring based on criteria
-  - Auto-sends if score > threshold
-  - Best for: Clear, quantifiable requirements
+**Provider**
+- **Status**: 
+  - **OpenAI Computer Use (Agents SDK)** — 🟢 Connected | 🔴 Unavailable
+  - **Fallback: Playwright** — Ready (if `ENABLE_PLAYWRIGHT_FALLBACK=1`) | Disabled
+- **Model**: `CUA_MODEL` (read-only), Decision LLM: `OPENAI_DECISION_MODEL` (read-only)
 
-- **Hybrid Mode** 🔄
-  - Combines AI judgment with rubric scoring
-  - Weighted blend (configurable alpha)
-  - Best for: Balanced approach
+### Main Panel
 
-#### Mode-Specific Controls
+**Run Controls**
+- **Analyze**: Runs one profile (if showing a single opened profile) or starts the autonomous loop on listing pages
+- **Run**: Starts the autonomous browse → read → decide → send loop (CUA primary)
+- **Stop**: Same as STOP toggle; halts within ≤ 2 seconds
 
-**For Rubric & Hybrid Modes:**
-- **Threshold Slider**: 0.0 to 1.0 (default 0.72)
-  - Label: "Auto-send if score ≥ [value]"
+**Decision Results**
+- Card showing:
+  - **Mode**: Advisor | Rubric | Hybrid
+  - **Scores**: advisor_conf, rubric_score, final_score (hybrid)
+  - **Threshold**: current value
+  - **Decision**: **YES** / **NO**
+  - **Rationale**: ≤ 120 chars (Advisor mode or hybrid summary)
+- **Approve & Send** button:
+  - **Visible only when**: Mode = Advisor and Decision = YES, Shadow Mode = off
+  - **Action**: Calls the currently bound **`BrowserPort`** (CUA if available; otherwise Playwright when `ENABLE_PLAYWRIGHT_FALLBACK=1`) to focus → fill → click send → verify
 
-**For Hybrid Mode Only:**
-- **Alpha Slider**: 0.0 to 1.0 (default 0.30)
-  - Label: "AI weight: [α]% AI, [1-α]% Rubric"
+**Live Log**
+- Tail of `events.jsonl` with filters: `decision | sent | error | quota | stop | model_usage`
+- Download button for the current `events.jsonl`
+- Real-time examples:
+  ```
+  [12:34:56] decision  | Profile: John Doe | Mode: hybrid | YES | Score: 0.76 | "Strong ML match"
+  [12:34:58] sent      | Profile: John Doe | ok: true | mode: auto | 312 chars
+  [12:35:02] decision  | Profile: Jane Smith | Mode: hybrid | NO | Score: 0.41 | "Different domain"
+  [12:35:15] stopped   | Reason: quota_exceeded
+  ```
 
-**For All Modes:**
-- **Strict Rules Toggle**: ☑️ "Hard rules must pass"
-  - When enabled, certain criteria are mandatory
+**Counters**
+- **Seen / Dedupe**: count from `.runs/seen.sqlite` (unique profiles this repo has messaged)
+- **Quota**: day/week remaining; turns red at limit, blocks sending
+- **Session Statistics**:
+  ```
+  Profiles Evaluated: 23
+  Matches Found:      8 (34.8%)
+  Messages Sent:      5
+  Pending Approval:   3 (Advisor mode)
+  Total Cost:         $0.42
+  ```
 
-### Section 3: Execution Controls
-
-#### Main Controls
-- **RUN Button** ▶️: Start autonomous session
-- **STOP Button** ⏹️: Immediate halt (sets stop flag)
-- **Shadow Mode Toggle** 👻: "Evaluate only (no sends)"
-
-#### Provider Selection
-- **Status**: OpenAI Computer Use (via Agents SDK)
-  - Playwright Fallback (auto-activates if CUA fails)
-- **Status Indicator**: 🟢 Connected | 🔴 Unavailable
-
-#### Quota Display
-```
-Daily:   [████████░░] 16/20 remaining
-Weekly:  [██████░░░░] 42/60 remaining
-```
-
-### Section 4: Live Monitoring
-
-#### Event Stream Panel
-Real-time tail of JSONL events:
-```
-[12:34:56] decision  | Profile: John Doe | Mode: hybrid | YES | Score: 0.76 | "Strong ML match"
-[12:34:58] sent      | Profile: John Doe | ok: true | mode: auto | 312 chars
-[12:35:02] decision  | Profile: Jane Smith | Mode: hybrid | NO | Score: 0.41 | "Different domain"
-[12:35:15] stopped   | Reason: quota_exceeded
-```
-
-#### Session Statistics
-```
-Profiles Evaluated: 23
-Matches Found:      8 (34.8%)
-Messages Sent:      5
-Pending Approval:   3 (Advisor mode)
-Total Cost:         $0.42
-```
-
-### Section 5: HIL Approval Queue (Advisor Mode Only)
+### HIL Approval Queue (Advisor Mode Only)
 
 When in Advisor mode, YES decisions appear here:
 ```
@@ -144,39 +127,73 @@ When in Advisor mode, YES decisions appear here:
    - No more profiles
    - Error threshold exceeded
 
-## Environment Variables
+## Environment & Launch
 
-```bash
-# Core Configuration
+```env
+# Engines
 ENABLE_CUA=1
-# OpenAI Computer Use via Agents SDK
+ENABLE_PLAYWRIGHT_FALLBACK=1      # only used if CUA fails/unavailable
+ENABLE_PLAYWRIGHT=0               # force Playwright (optional, for testing)
+
+# OpenAI
 OPENAI_API_KEY=sk-...
+CUA_MODEL=<your-computer-use-model>     # from your Models endpoint
+CUA_TEMPERATURE=0.3
+CUA_MAX_TOKENS=1200
 
-# Decision Configuration
-DECISION_MODE=advisor  # or rubric or hybrid
-THRESHOLD=0.72         # for rubric/hybrid
-ALPHA=0.30            # for hybrid only
-STRICT_RULES=1        # enforce hard requirements
+# Decision Engine
+DECISION_MODE=hybrid
+OPENAI_DECISION_MODEL=<your-best-llm>
+THRESHOLD=0.72
+ALPHA=0.50
 
-# Fallback
-ENABLE_PLAYWRIGHT_FALLBACK=1
-
-# Quotas and Pacing
-DAILY_LIMIT=20
-WEEKLY_LIMIT=60
-SEND_DELAY_MS=5000
-
-# Target
+# Runtime
 YC_MATCH_URL=https://www.startupschool.org/cofounder-matching
+SEND_DELAY_MS=5000
+DAILY_QUOTA=25
+WEEKLY_QUOTA=120
+SHADOW_MODE=0
 ```
 
+```bash
+# Run (repo root; caches are repo-scoped)
+uv run streamlit run -m yc_matcher.interface.web.ui_streamlit
+```
+
+## Events & Acceptance
+
+**Event Schema (subset)**
+- `decision`: `{mode, advisor_conf?, rubric_score?, final_score?, threshold, pass: bool, rationale}`
+- `sent`: `{"event":"sent","ok":true,"mode":"auto","verified":true,"chars":<int>,"retry"?:1}`
+- `quota`: `{day_count, week_count, allowed: bool}`
+- `stop`: `{reason}`
+- `error`: `{where, message, retryable: bool}`
+- `model_usage`: `{provider:"openai", model, tokens_in, tokens_out, cost_est}`
+
+**UI Acceptance Checks**
+- Switching **Mode/Threshold/Alpha** immediately affects new decisions
+- **Shadow Mode** prevents **Approve & Send** visibility and any send actions
+- **STOP** halts within ≤ 2 seconds (no new profile opens or sends)
+- When CUA is **unavailable**, the UI marks status 🔴 and automatically uses **Playwright** if `ENABLE_PLAYWRIGHT_FALLBACK=1`
+- A successful send yields a `sent` event with `ok=true` and `verified=true`
+
+## UI Copy (Canonical Labels)
+
+- Buttons: **Analyze**, **Run**, **Stop**, **Approve & Send**
+- Toggles: **Shadow Mode**, **STOP**
+- Status: **OpenAI Computer Use (Agents SDK)**, **Fallback: Playwright**
+- Fields: **Your Profile**, **Match Criteria**, **Message Template**
+- Modes: **Advisor**, **Rubric**, **Hybrid**
+
 ## REMOVED Features (OLD/BROKEN)
+
 - ❌ **"Paste candidate profile" panel** - NEVER USE
 - ❌ **Manual profile entry** - Fully autonomous only
 - ❌ **Playwright as primary** - It's fallback only
 - ❌ **Fixed scoring rules** - Now have 3 flexible modes
 
 ## Critical UI Rules
+
 - **NO manual paste workflow** - Everything autonomous
 - **Mode selector always visible** - User chooses decision approach
 - **Thresholds only for Rubric/Hybrid** - Hidden in Advisor mode
@@ -184,3 +201,4 @@ YC_MATCH_URL=https://www.startupschool.org/cofounder-matching
 - **Provider status always shown** - User knows what's running
 - **Quota always visible** - Prevent surprise stops
 - **Event stream always live** - Full transparency
+- **Approve & Send uses current BrowserPort** - CUA first, Playwright fallback
