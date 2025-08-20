@@ -19,7 +19,8 @@
       "Bash(PYTHONPATH=src ENABLE_PLAYWRIGHT=1 YC_MATCH_URL=\"https://www.startupschool.org/cofounder-matching\" uv run streamlit run src/yc_matcher/interface/web/ui_streamlit.py --server.headless true --server.port 8502)",
       "Bash(rm:*)",
       "Bash(chmod:*)",
-      "Bash(/mnt/c/Users/JJ/Desktop/Clarity-Digital-Twin/yc-cofounder-bot/scripts/fetch_vendor_docs.sh)"
+      "Bash(/mnt/c/Users/JJ/Desktop/Clarity-Digital-Twin/yc-cofounder-bot/scripts/fetch_vendor_docs.sh)",
+      "WebFetch(domain:platform.openai.com)"
     ],
     "deny": [],
     "ask": []
