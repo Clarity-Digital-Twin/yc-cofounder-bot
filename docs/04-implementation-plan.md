@@ -37,7 +37,7 @@ This plan maps directly to the SSOT: CUA primary, Playwright fallback, three dec
 - [ ] STOP flag checks before navigation and before send; state preservation
 - [ ] Quotas (SQLite): daily/weekly caps; decrement on verified `sent`
 - [ ] Deduplication (SQLite): profile hash check pre-evaluation
-- [ ] Pacing (`PACE_MIN_SECONDS`) and exponential backoff
+- [ ] Pacing (`SEND_DELAY_MS`) and exponential backoff
 - [ ] Shadow Mode (evaluate-only) and optional HIL (`REQUIRE_APPROVAL=1`)
 - [ ] Cost tracking and token caps; provider status indicator
 
@@ -100,7 +100,7 @@ YC_MATCH_URL="https://www.startupschool.org/cofounder-matching"
 # Safety & Limits
 DAILY_QUOTA=25
 WEEKLY_QUOTA=120
-PACE_MIN_SECONDS=45
+SEND_DELAY_MS=5000
 SHADOW_MODE=0                       # 1 = evaluate-only, never send
 
 # Repo-scoped caches
@@ -197,7 +197,7 @@ make run
 - STOP toggle in UI writes `.runs/stop.flag`
 - Shadow mode = **never send**, only log decisions
 - Event log is append-only JSONL with versioned schema
-- Pacing delays between sends (`PACE_MIN_SECONDS`)
+- Pacing delays between sends (`SEND_DELAY_MS`)
 
 ## Risk & Mitigation
 - **CUA access not enabled** → Mitigation: `make check-cua`; switch to `ENABLE_PLAYWRIGHT_FALLBACK=1`

@@ -138,7 +138,7 @@ ALPHA=0.50                           # weight for Advisor in Hybrid
 
 # Run-time
 YC_MATCH_URL=https://www.startupschool.org/cofounder-matching
-PACE_MIN_SECONDS=45
+SEND_DELAY_MS=5000
 DAILY_QUOTA=25
 WEEKLY_QUOTA=120
 SHADOW_MODE=0                        # 1 = never send
@@ -166,7 +166,7 @@ SHADOW_MODE=0                        # 1 = never send
 
 ## 9) Safety, compliance, and rate limits
 
-* Respect site ToS. Keep human‑like pacing (`PACE_MIN_SECONDS`) and quotas.
+* Respect site ToS. Keep human‑like pacing (`SEND_DELAY_MS`) and quotas.
 * **STOP** halts new actions immediately; running actions complete or fail fast.
 * Dry‑run mode prevents sends entirely.
 * Only per‑profile ephemeral processing; do not export/republish data.

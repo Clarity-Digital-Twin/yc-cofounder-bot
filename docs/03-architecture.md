@@ -250,7 +250,7 @@ ALPHA=0.30  # Hybrid weighting (0..1)
 # Safety & Limits
 DAILY_QUOTA=25
 WEEKLY_QUOTA=120
-PACE_MIN_SECONDS=45
+SEND_DELAY_MS=5000
 SHADOW_MODE=0  # 1 = evaluate-only
 
 # Paths
