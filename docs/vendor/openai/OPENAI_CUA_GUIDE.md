@@ -98,3 +98,11 @@ OPENAI_API_KEY=sk-...
 - Not production-ready for high-stakes tasks
 - Requires screenshot capability in your environment
 - Best with 1280x800 or similar resolution
+## Choosing Models
+- Computer Use requires a Computer Use–enabled model. We recommend configuring the model name via an environment variable rather than hardcoding.
+- Default: set `CUA_MODEL=computer-use-preview` (or the latest Computer Use model listed in OpenAI docs for your account).
+- Decision LLM (separate from Computer Use): set `DECISION_MODEL` to your best reasoning model available in your tier (e.g., a GPT‑4.x or o-series model). This runs evaluations and rubric logic; it does not perform clicks.
+
+Notes
+- If a newer Computer Use model (e.g., a GPT‑5 variant with Computer Use) appears in your account, switch by updating `CUA_MODEL` only. No code changes required.
+- Always validate upgrades using the Model Upgrade Checklist in the technical guide.

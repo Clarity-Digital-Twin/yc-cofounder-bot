@@ -186,7 +186,7 @@ evaluate(profile_text: str, criteria: Criteria) -> DecisionResult
 {
   "event": "model_usage",
   "provider": "openai",
-  "model": "claude-3-opus",
+  "model": "computer-use-preview",
   "tokens_in": 1500,
   "tokens_out": 200,
   "cost_est": 0.0051
