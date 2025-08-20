@@ -18,7 +18,7 @@ When a New Model Arrives (e.g., GPT‑5 with Computer Use)
 1. Confirm availability in your account and that it explicitly supports Computer Use.
 2. Update `.env`:
    - `CUA_MODEL=<new-computer-use-model>`
-   - Optionally update `DECISION_MODEL=<new-reasoning-model>`
+   - Optionally update `OPENAI_DECISION_MODEL=<new-reasoning-model>`
 3. Run checks:
    - `make verify` (lint, types, tests)
    - Contract tests for `ComputerUsePort`
