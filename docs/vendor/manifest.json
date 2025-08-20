@@ -1,0 +1,8 @@
+{
+  "generated_at": "2025-08-20T01:37:37Z",
+  "items": [
+    {"url":"https://platform.openai.com/docs/guides/computer-use","path":"docs/vendor/openai/computer-use.html","fetched_at":"2025-08-20T01:37:37Z","status":"failed"},
+    {"url":"https://platform.openai.com/docs/guides/agents","path":"docs/vendor/openai/agents.html","fetched_at":"2025-08-20T01:37:37Z","status":"failed"},
+    {"url":"https://platform.openai.com/docs/guides/responses","path":"docs/vendor/openai/responses.html","fetched_at":"2025-08-20T01:37:37Z","status":"failed"}
+  ]
+}
