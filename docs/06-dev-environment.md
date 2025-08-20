@@ -27,41 +27,41 @@ Developer Environment
 
 ## Environment Variables
 
-### Required Configuration
+### Canonical Environment Configuration
 ```bash
-# Core Settings
-ENABLE_CUA=1                    # Enable Computer Use automation
-# OpenAI CUA Configuration
+# Core toggles
+ENABLE_CUA=1
+ENABLE_PLAYWRIGHT_FALLBACK=1
+DECISION_MODE=hybrid           # advisor|rubric|hybrid
+THRESHOLD=0.72                 # auto-send threshold
+ALPHA=0.65                     # hybrid weight
+STRICT_RULES=0                 # rubric strictness
+
+# OpenAI (Computer Use + reasoning)
 OPENAI_API_KEY=sk-...
-CUA_MODEL=<check-models-endpoint>  # OpenAI CUA model from your account
-CUA_TEMPERATURE=0.3                # Lower = more deterministic
-CUA_MAX_TOKENS=1000                # Per request limit
-SCREENSHOT_QUALITY=85              # JPEG compression (1-100)
-MAX_CONTEXT_MESSAGES=10            # Context window size
+CUA_MODEL=<your account's computer-use model>   # read from env, not hardcoded
+DECISION_MODEL=<your best reasoning model>      # used by Advisor/Hybrid
+CUA_TEMPERATURE=0.3
+CUA_MAX_TOKENS=1000
 
-# Decision Configuration
-DECISION_MODE=advisor           # advisor|rubric|hybrid
-DECISION_MODEL=<set-best-llm>   # Reasoning model for Advisor/Hybrid
-THRESHOLD=0.72                  # Score threshold for auto-send
-ALPHA=0.30                      # Hybrid mode weight (0-1)
-STRICT_RULES=1                  # Enforce hard requirements
-
-# Fallback Settings
-ENABLE_PLAYWRIGHT_FALLBACK=1    # Use Playwright if CUA fails
-PLAYWRIGHT_HEADLESS=0           # 0=visible browser, 1=headless
-
-# Target Configuration
-YC_MATCH_URL=https://www.startupschool.org/cofounder-matching
+# Repo-scoped caches (no $HOME)
+UV_LINK_MODE=copy
+UV_CACHE_DIR=.uv_cache
+XDG_CACHE_HOME=.cache
+PLAYWRIGHT_BROWSERS_PATH=.ms-playwright
+MPLCONFIGDIR=.mplconfig
 
 # Quotas and Limits
 DAILY_LIMIT=20                  # Max sends per day
 WEEKLY_LIMIT=60                 # Max sends per week
 SEND_DELAY_MS=5000              # Delay between sends (ms)
 
+# Target
+YC_MATCH_URL=https://www.startupschool.org/cofounder-matching
+
 # Optional Features
 SHADOW_MODE=0                   # 1=evaluate only, no sends
 HIL_REQUIRED=0                  # 1=force manual approval
-PII_REDACTION=0                 # 1=redact PII in logs
 ```
 
 ### Development Settings

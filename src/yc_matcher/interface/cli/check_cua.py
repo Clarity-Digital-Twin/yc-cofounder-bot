@@ -63,7 +63,11 @@ def main() -> int:
 
     # Step 3: Try to initialize Computer Use
     try:
-        cua_model = os.getenv("CUA_MODEL", "computer-use-preview")
+        cua_model = os.getenv("CUA_MODEL")
+        if not cua_model:
+            _print("WARNING: CUA_MODEL not set. Check your Models endpoint.")
+            _print("Visit: https://platform.openai.com/account/models")
+            return 1
         
         agent = Agent(
             model=cua_model,

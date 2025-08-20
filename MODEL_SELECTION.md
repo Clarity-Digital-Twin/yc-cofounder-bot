@@ -6,7 +6,7 @@ Overview
   - Decision model: performs reasoning for Advisor/Hybrid modes (text-only prompts), independent from Computer Use.
 
 Defaults
-- Computer Use: `CUA_MODEL=computer-use-preview`
+- Computer Use: `CUA_MODEL=<your account's computer-use model>`
 - Decision LLM: `DECISION_MODEL` must be set to the strongest model you have access to (account/tier dependent).
 
 Guidelines

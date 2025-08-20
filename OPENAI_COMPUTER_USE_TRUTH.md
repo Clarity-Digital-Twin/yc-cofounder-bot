@@ -13,10 +13,11 @@
 ```python
 # CORRECT imports
 from agents import Agent, ComputerTool, Session
+import os
 
 # Initialize agent with Computer Use
 agent = Agent(
-    model="computer-use-preview",  # Or from env: os.getenv("CUA_MODEL")
+    model=os.getenv("CUA_MODEL"),  # ALWAYS from env, never hardcoded
     tools=[ComputerTool()],
     temperature=0.3
 )
@@ -40,7 +41,7 @@ pip install openai          # Base OpenAI SDK
 ### Environment Variables:
 ```bash
 OPENAI_API_KEY=sk-...                    # Your OpenAI API key
-CUA_MODEL=computer-use-preview           # The Computer Use model
+CUA_MODEL=<your account's computer-use model>    # From Models endpoint
 ENABLE_CUA=1                             # Enable Computer Use
 ENABLE_PLAYWRIGHT_FALLBACK=1             # Fallback option
 ```
@@ -116,7 +117,7 @@ from agents import Agent, ComputerTool, Session
 print("✅ Imports successful!")
 
 # Test initialization
-agent = Agent(model="computer-use-preview", tools=[ComputerTool()])
+agent = Agent(model=os.getenv("CUA_MODEL"), tools=[ComputerTool()])
 print("✅ Agent created!")
 ```
 

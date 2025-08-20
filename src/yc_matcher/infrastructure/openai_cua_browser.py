@@ -30,7 +30,12 @@ class OpenAICUABrowser:
             )
         
         # Get model from env (check Models endpoint for your account)
-        self.model = os.getenv("CUA_MODEL", "computer-use-preview")
+        self.model = os.getenv("CUA_MODEL")
+        if not self.model:
+            raise ValueError(
+                "CUA_MODEL environment variable not set. "
+                "Check your Models endpoint at platform.openai.com/account/models"
+            )
         
         # Initialize agent with Computer Use tool
         self.agent = Agent(
