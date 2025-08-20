@@ -23,7 +23,9 @@
       "WebFetch(domain:platform.openai.com)",
       "Bash(python:*)",
       "Bash(uv run:*)",
-      "Bash(uv pip:*)"
+      "Bash(uv pip:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)"
     ],
     "deny": [],
     "ask": []
