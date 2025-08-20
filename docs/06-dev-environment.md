@@ -8,11 +8,13 @@ Developer Environment
 
 ## Core Dependencies
 ### Runtime
-- `openai` - For OpenAI CUA via Responses API
+- `openai>=1.12.0` - For OpenAI CUA via Responses API
+- `pillow>=10.0.0` - Screenshot processing and compression
+- `pyautogui>=0.9.54` - Screen capture and action execution
 - `playwright` - Fallback browser automation
 - `streamlit` - Web UI dashboard
 - `python-dotenv` - Environment configuration
-- `pydantic` - Data validation
+- `pydantic>=2.0.0` - Data validation
 - `sqlite3` - Built-in, for quotas and deduplication
 
 ### Development
@@ -30,6 +32,11 @@ Developer Environment
 ENABLE_CUA=1                    # Enable Computer Use automation
 # OpenAI CUA Configuration
 OPENAI_API_KEY=sk-...
+CUA_MODEL=computer-use-preview     # OpenAI model for CUA
+CUA_TEMPERATURE=0.3                # Lower = more deterministic
+CUA_MAX_TOKENS=1000                # Per request limit
+SCREENSHOT_QUALITY=85              # JPEG compression (1-100)
+MAX_CONTEXT_MESSAGES=10            # Context window size
 
 # Decision Configuration
 DECISION_MODE=advisor           # advisor|rubric|hybrid

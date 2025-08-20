@@ -6,7 +6,9 @@ This plan maps directly to the SSOT: CUA primary, Playwright fallback, three dec
 
 ### M1 — Core CUA + Modes + Fallback (Week 1)
 - [ ] Define ports (contracts): `ComputerUsePort`, `DecisionPort`, `QuotaPort`, `SeenRepo`, `LoggerPort`, `StopController`.
-- [ ] Implement OpenAI CUA adapter (primary) for `ComputerUsePort`.
+- [ ] Implement OpenAI CUA adapter using Responses API with computer-use-preview model.
+- [ ] Add screenshot capture/encoding (base64 PNG, 1280x800).
+- [ ] Implement computer_calls execution (click, type, scroll).
 - [ ] Wire Playwright adapter (fallback) behind feature flag (`ENABLE_PLAYWRIGHT_FALLBACK=1`).
 - [ ] Implement decision modes: Advisor, Rubric, Hybrid (shared `DecisionResult` schema).
 - [ ] Streamlit single-page UI: 3 inputs, mode selector, threshold/alpha, strict-rules toggle, provider selector, RUN/STOP, quotas, live events.
@@ -20,10 +22,12 @@ This plan maps directly to the SSOT: CUA primary, Playwright fallback, three dec
 - [ ] Shadow Mode (evaluate-only) and optional HIL (`HIL_REQUIRED=1`).
 - [ ] Cost tracking and token caps; provider status indicator.
 
-### M3 — OpenAI CUA Adapter (Week 3)
-- [ ] Implement `OpenAICUAAdapter` for `ComputerUsePort` (Responses API, when available).
-- [ ] OpenAI CUA configuration and testing.
-- [ ] Contract tests for CUA adapter.
+### M3 — CUA Enhancement & Testing (Week 3)
+- [ ] Add session management and context tracking.
+- [ ] Implement retry logic with exponential backoff.
+- [ ] Add token optimization (screenshot compression, context truncation).
+- [ ] Full integration testing with YC site.
+- [ ] Contract tests for all CUA methods.
 
 ### M4 — Ranking, Analytics, and UX Polish (Week 4)
 - [ ] Ranking view and decision distribution charts.
@@ -57,7 +61,9 @@ This plan maps directly to the SSOT: CUA primary, Playwright fallback, three dec
 - Gates: `make verify` runs ruff+mypy+pytest; keep green.
 
 ## Tech Notes
-- Primary engine: OpenAI CUA via Responses API.
+- Primary engine: OpenAI CUA via Responses API (computer-use-preview model).
+- Screenshot handling: pyautogui + PIL for capture, base64 encoding.
+- Action execution: computer_calls with click(x,y), type(text), etc.
 - Fallback: Playwright adapter only when CUA unavailable.
 - Env flags respected: `DECISION_MODE`, `THRESHOLD`, `ALPHA`, `STRICT_RULES`, repo-scoped caches.
 

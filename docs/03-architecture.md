@@ -13,12 +13,12 @@ Architecture
 ### ComputerUsePort
 ```python
 open(url: str) -> None
-find_click(locator: str) -> None
-read_text(target: str) -> str
-fill(selector: str, text: str) -> None
-press_send() -> None
-verify_sent() -> bool
-screenshot() -> bytes
+find_click(locator: str) -> None  # Uses CUA to find and click
+read_text(target: str) -> str      # Extracts text via CUA
+fill(selector: str, text: str) -> None  # Fills forms
+press_send() -> None                # Clicks send button
+verify_sent() -> bool               # Confirms success
+screenshot() -> bytes               # Returns base64 encoded PNG
 close() -> None
 ```
 
@@ -198,7 +198,12 @@ evaluate(profile_text: str, criteria: Criteria) -> DecisionResult
 ```python
 def create_browser_adapter(config):
     if config.ENABLE_CUA:
-        return OpenAICUAAdapter(api_key=config.OPENAI_API_KEY)
+        from infrastructure.cua.openai import OpenAICUAAdapter
+        return OpenAICUAAdapter(
+            api_key=config.OPENAI_API_KEY,
+            model="computer-use-preview",
+            temperature=0.3
+        )
     
     if config.ENABLE_PLAYWRIGHT_FALLBACK:
         return PlaywrightBrowserAdapter()
