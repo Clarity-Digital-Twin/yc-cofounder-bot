@@ -4,13 +4,14 @@ Developer Environment
 - Python: 3.12+
 - Package manager: `uv` (recommended) or `pip`
 - Browser automation: Playwright (Chromium) as fallback
-- AI SDK: OpenAI SDK for CUA via Responses API
+- AI SDK: OpenAI Agents SDK for Computer Use
 
 ## Core Dependencies
 ### Runtime
-- `openai>=1.12.0` - For OpenAI CUA via Responses API
-- `pillow>=10.0.0` - Screenshot processing and compression
-- `pyautogui>=0.9.54` - Screen capture and action execution
+- `openai-agents` - For OpenAI Computer Use tool
+- `openai>=1.12.0` - OpenAI base SDK
+- `pillow>=10.0.0` - Screenshot processing (if needed)
+- `pyautogui>=0.9.54` - Screen capture (handled by Computer Use tool)
 - `playwright` - Fallback browser automation
 - `streamlit` - Web UI dashboard
 - `python-dotenv` - Environment configuration
@@ -32,7 +33,7 @@ Developer Environment
 ENABLE_CUA=1                    # Enable Computer Use automation
 # OpenAI CUA Configuration
 OPENAI_API_KEY=sk-...
-CUA_MODEL=computer-use-preview     # OpenAI model for CUA
+CUA_MODEL=<check-models-endpoint>  # OpenAI CUA model from your account
 CUA_TEMPERATURE=0.3                # Lower = more deterministic
 CUA_MAX_TOKENS=1000                # Per request limit
 SCREENSHOT_QUALITY=85              # JPEG compression (1-100)
@@ -206,7 +207,7 @@ yc-cofounder-bot/
 ### Common Issues
 
 **CUA API Access Denied**
-- Verify you have tier 3-5 access for OpenAI Responses API
+- Verify you have tier 3-5 access for OpenAI Computer Use
 - Check API key is correctly set in .env
 - Ensure sufficient API credits
 

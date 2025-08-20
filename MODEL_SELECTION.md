@@ -2,7 +2,7 @@ Model Selection and Upgrades
 
 Overview
 - This project uses two model roles:
-  - Computer Use model: drives on-screen actions via the Responses API Computer Use capability.
+  - Computer Use model: drives on-screen actions via OpenAI's Computer Use tool in the Agents SDK.
   - Decision model: performs reasoning for Advisor/Hybrid modes (text-only prompts), independent from Computer Use.
 
 Defaults

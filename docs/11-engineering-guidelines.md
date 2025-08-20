@@ -27,7 +27,7 @@ Ports (Interfaces)
 - StopController: `should_stop() -> bool`
 
 Adapters
-- CUA (PRIMARY): `OpenAICUAAdapter` via Responses API.
+- CUA (PRIMARY): `OpenAICUAAdapter` via Agents SDK with Computer Use tool.
 - Browser (FALLBACK): `PlaywrightBrowserAdapter` if CUA unavailable.
 - Decision: Advisor (LLM-only), Rubric (deterministic), Hybrid (combined α).
 - Storage: SQLite quota/seen; JSONL logger.

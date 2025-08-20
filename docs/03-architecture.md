@@ -4,7 +4,7 @@ Architecture
 - **3-input control**: Your Profile + Match Criteria + Message Template
 - **CUA-first architecture**: OpenAI CUA primary, Playwright fallback
 - **Flexible decisions**: Three interchangeable modes (Advisor/Rubric/Hybrid)
-- **OpenAI CUA**: Direct integration with Responses API
+- **OpenAI Computer Use**: Direct integration via Agents SDK
 - **Clean DDD layers**: Ports define contracts, adapters implement them
 - **Event-driven**: Every action logged as JSONL event stream
 
@@ -92,7 +92,7 @@ evaluate(profile_text: str, criteria: Criteria) -> DecisionResult
 ## Adapters (Implementations)
 
 ### CUA Adapter (PRIMARY)
-- **OpenAICUAAdapter**: Responses API with computer-use-preview model
+- **OpenAICUAAdapter**: Computer Use tool via Agents SDK with CUA model
 
 ### Browser Adapter (FALLBACK)
 - **PlaywrightBrowserAdapter**: Selector-based automation when CUA unavailable
@@ -186,7 +186,7 @@ evaluate(profile_text: str, criteria: Criteria) -> DecisionResult
 {
   "event": "model_usage",
   "provider": "openai",
-  "model": "computer-use-preview",
+  "model": "<CUA_MODEL from env>",
   "tokens_in": 1500,
   "tokens_out": 200,
   "cost_est": 0.0051

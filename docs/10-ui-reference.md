@@ -72,7 +72,7 @@ UI Reference
 - **Shadow Mode Toggle** 👻: "Evaluate only (no sends)"
 
 #### Provider Selection
-- **Status**: OpenAI CUA (via Responses API)
+- **Status**: OpenAI Computer Use (via Agents SDK)
   - Playwright Fallback (auto-activates if CUA fails)
 - **Status Indicator**: 🟢 Connected | 🔴 Unavailable
 
@@ -149,8 +149,8 @@ When in Advisor mode, YES decisions appear here:
 ```bash
 # Core Configuration
 ENABLE_CUA=1
-# OpenAI CUA via Responses API
-CUA_API_KEY=sk-ant-...
+# OpenAI Computer Use via Agents SDK
+OPENAI_API_KEY=sk-...
 
 # Decision Configuration
 DECISION_MODE=advisor  # or rubric or hybrid

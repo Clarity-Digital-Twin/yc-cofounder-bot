@@ -83,7 +83,7 @@ def build_services(
     # Quota: calendar-aware (daily/weekly) if enabled, else simple file counter
     quota = SQLiteDailyWeeklyQuota(Path(".runs/quota.sqlite")) if os.getenv("ENABLE_CALENDAR_QUOTA", "0") in {"1", "true", "True"} else FileQuota()
 
-    # Send use case needs a BrowserPort; allow Playwright behind a flag
+    # Send use case needs a BrowserPort; CUA primary, Playwright fallback
     class _NullBrowser:
         def focus_message_box(self) -> None: ...
         def fill_message(self, text: str) -> None: ...
@@ -96,8 +96,21 @@ def build_services(
         def close(self) -> None: ...
 
     browser: BrowserPort
-    if os.getenv("ENABLE_PLAYWRIGHT", "0") in {"1", "true", "True"}:
-        # Import lazily to avoid mypy/import issues when playwright is unavailable
+    
+    # PRIMARY: OpenAI CUA via Agents SDK
+    if os.getenv("ENABLE_CUA", "0") in {"1", "true", "True"}:
+        try:
+            from ..infrastructure.openai_cua_browser import OpenAICUABrowser
+            browser = cast(BrowserPort, OpenAICUABrowser())
+        except Exception as e:
+            # Fallback to Playwright if CUA fails
+            if os.getenv("ENABLE_PLAYWRIGHT_FALLBACK", "0") in {"1", "true", "True"}:
+                from ..infrastructure.browser_playwright import PlaywrightBrowser
+                browser = cast(BrowserPort, PlaywrightBrowser())
+            else:
+                browser = cast(BrowserPort, _NullBrowser())
+    # FALLBACK: Playwright when CUA not enabled
+    elif os.getenv("ENABLE_PLAYWRIGHT", "0") in {"1", "true", "True"}:
         from ..infrastructure.browser_playwright import PlaywrightBrowser
         browser = cast(BrowserPort, PlaywrightBrowser())
     else:

@@ -91,7 +91,7 @@ class CUABrowserPort(Protocol):
 class OpenAICUABrowser:
     def __init__(self, api_key: str):
         self.client = OpenAI(api_key=api_key)
-        self.model = "computer-use-preview"
+        self.model = os.getenv("CUA_MODEL", "computer-use-preview")
     
     async def navigate_and_extract(self, url: str) -> Profile:
         # Use CUA to browse and extract

@@ -6,9 +6,9 @@ Working Name: YC Co-Founder Autonomous Matching Agent
 A 3-input control panel (Your Profile, Match Criteria, Message Template) that deploys CUA to autonomously browse YC profiles, evaluates via configurable decision modes (Advisor/Rubric/Hybrid), and auto-sends invites with quota safeguards.
 
 ## Why now
-- OpenAI CUA (March 2025) available NOW via Responses API
-- $3/1M input tokens for autonomous browser control via screenshots
-- No complex scripting - CUA sees and clicks like a human
+- OpenAI Computer Use (2025) available NOW via Agents SDK
+- $3/1M input tokens for autonomous browser control via Computer Use tool
+- No complex scripting - CUA model sees and clicks like a human
 - Flexible decision modes: from pure AI judgment to deterministic scoring
 
 ## Goals
@@ -49,7 +49,7 @@ A 3-input control panel (Your Profile, Match Criteria, Message Template) that de
 - Cost < $0.50 per 20-profile session
 
 ## Technical Approach
-- **Primary**: OpenAI CUA via Responses API
+- **Primary**: OpenAI Computer Use via Agents SDK
 - **Fallback**: Playwright ONLY when CUA unavailable (ENABLE_PLAYWRIGHT_FALLBACK=1)
 - **Decision Engine**: Mode-configurable (Advisor/Rubric/Hybrid)
 - **UI**: Streamlit with 3 inputs + mode selector + control panel
@@ -85,6 +85,6 @@ A 3-input control panel (Your Profile, Match Criteria, Message Template) that de
 ## Key Differentiators
 - **Three decision modes**: Flexible from pure AI to pure rules
 - **Truly autonomous**: CUA browses WITHOUT any manual input
-- **OpenAI CUA**: Direct integration with Responses API
+- **OpenAI Computer Use**: Direct integration via Agents SDK
 - **Fallback ready**: Playwright kicks in if CUA fails
 - **Audit complete**: Every decision and send logged with versioning

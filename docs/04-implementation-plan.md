@@ -6,7 +6,7 @@ This plan maps directly to the SSOT: CUA primary, Playwright fallback, three dec
 
 ### M1 — Core CUA + Modes + Fallback (Week 1)
 - [ ] Define ports (contracts): `ComputerUsePort`, `DecisionPort`, `QuotaPort`, `SeenRepo`, `LoggerPort`, `StopController`.
-- [ ] Implement OpenAI CUA adapter using Responses API with computer-use-preview model.
+- [ ] Implement OpenAI CUA adapter using Agents SDK with Computer Use tool.
 - [ ] Add screenshot capture/encoding (base64 PNG, 1280x800).
 - [ ] Implement computer_calls execution (click, type, scroll).
 - [ ] Wire Playwright adapter (fallback) behind feature flag (`ENABLE_PLAYWRIGHT_FALLBACK=1`).
@@ -61,9 +61,9 @@ This plan maps directly to the SSOT: CUA primary, Playwright fallback, three dec
 - Gates: `make verify` runs ruff+mypy+pytest; keep green.
 
 ## Tech Notes
-- Primary engine: OpenAI CUA via Responses API (computer-use-preview model).
-- Screenshot handling: pyautogui + PIL for capture, base64 encoding.
-- Action execution: computer_calls with click(x,y), type(text), etc.
+- Primary engine: OpenAI Computer Use via Agents SDK (CUA model from env).
+- Screenshot handling: Computer Use tool handles capture automatically.
+- Action execution: Agent.run() with ComputerTool for click, type, etc.
 - Fallback: Playwright adapter only when CUA unavailable.
 - Env flags respected: `DECISION_MODE`, `THRESHOLD`, `ALPHA`, `STRICT_RULES`, repo-scoped caches.
 

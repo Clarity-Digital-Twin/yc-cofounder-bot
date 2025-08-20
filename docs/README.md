@@ -5,7 +5,7 @@ An autonomous matching agent that uses a Computer Use Agent (CUA) to browse YC c
 
 ## Key Concept
 - **3 inputs**: Your Profile, Match Criteria, Message Template
-- **CUA primary**: OpenAI CUA via Responses API
+- **CUA primary**: OpenAI Computer Use via Agents SDK
 - **Playwright fallback**: Only when CUA is unavailable
 - **Decision modes**: Advisor (LLM-only), Rubric (deterministic), Hybrid (combined)
 - **Safety**: STOP flag, quotas, pacing, dedupe, JSONL audit

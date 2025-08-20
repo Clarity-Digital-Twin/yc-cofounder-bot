@@ -10,7 +10,7 @@ Scope and Requirements
   - Open YC site → iterate profiles → read each → evaluate
   - No manual intervention required
   - Screenshot-based perception and action
-  - OpenAI CUA via Responses API (computer-use-preview model)
+  - OpenAI Computer Use via Agents SDK (CUA model)
 
 - **Three Decision Modes**:
   1. **Advisor**: LLM-only evaluation, HIL approval required
@@ -80,7 +80,7 @@ Scope and Requirements
 
 ### Browser Automation
 - **Primary (CUA)**:
-  - OpenAI Responses API with computer-use-preview model
+  - OpenAI Computer Use tool via Agents SDK
   - Screenshot → reasoning → action cycle
 
 - **Fallback (Playwright)**:
