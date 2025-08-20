@@ -16,7 +16,8 @@
       "Bash(curl:*)",
       "Bash(git restore:*)",
       "Bash(git add:*)",
-      "Bash(PYTHONPATH=src ENABLE_PLAYWRIGHT=1 YC_MATCH_URL=\"https://www.startupschool.org/cofounder-matching\" uv run streamlit run src/yc_matcher/interface/web/ui_streamlit.py --server.headless true --server.port 8502)"
+      "Bash(PYTHONPATH=src ENABLE_PLAYWRIGHT=1 YC_MATCH_URL=\"https://www.startupschool.org/cofounder-matching\" uv run streamlit run src/yc_matcher/interface/web/ui_streamlit.py --server.headless true --server.port 8502)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []

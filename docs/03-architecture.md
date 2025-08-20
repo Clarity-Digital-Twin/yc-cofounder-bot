@@ -2,9 +2,9 @@ Architecture
 
 ## Principles
 - **3-input control**: Your Profile + Match Criteria + Message Template
-- **CUA-first architecture**: Anthropic CUA primary, OpenAI when available, Playwright fallback
+- **CUA-first architecture**: OpenAI CUA primary, Playwright fallback
 - **Flexible decisions**: Three interchangeable modes (Advisor/Rubric/Hybrid)
-- **Provider agnostic**: Switch between Anthropic/OpenAI CUA via config
+- **OpenAI CUA**: Direct integration with Responses API
 - **Clean DDD layers**: Ports define contracts, adapters implement them
 - **Event-driven**: Every action logged as JSONL event stream
 
@@ -91,9 +91,8 @@ evaluate(profile_text: str, criteria: Criteria) -> DecisionResult
 
 ## Adapters (Implementations)
 
-### CUA Adapters (PRIMARY)
-- **AnthropicCUAAdapter**: Claude Computer Use API (available now)
-- **OpenAICUAAdapter**: Responses API with computer-use-preview (when available)
+### CUA Adapter (PRIMARY)
+- **OpenAICUAAdapter**: Responses API with computer-use-preview model
 
 ### Browser Adapter (FALLBACK)
 - **PlaywrightBrowserAdapter**: Selector-based automation when CUA unavailable
@@ -186,7 +185,7 @@ evaluate(profile_text: str, criteria: Criteria) -> DecisionResult
 // model_usage event
 {
   "event": "model_usage",
-  "provider": "anthropic",
+  "provider": "openai",
   "model": "claude-3-opus",
   "tokens_in": 1500,
   "tokens_out": 200,
@@ -199,10 +198,7 @@ evaluate(profile_text: str, criteria: Criteria) -> DecisionResult
 ```python
 def create_browser_adapter(config):
     if config.ENABLE_CUA:
-        if config.CUA_PROVIDER == "anthropic":
-            return AnthropicCUAAdapter(api_key=config.CUA_API_KEY)
-        elif config.CUA_PROVIDER == "openai":
-            return OpenAICUAAdapter(api_key=config.CUA_API_KEY)
+        return OpenAICUAAdapter(api_key=config.OPENAI_API_KEY)
     
     if config.ENABLE_PLAYWRIGHT_FALLBACK:
         return PlaywrightBrowserAdapter()

@@ -1,7 +1,7 @@
 Roadmap
 
 M1 — Core CUA + Modes + Fallback (Week 1)
-- Anthropic CUA adapter (primary) and ports in place
+- OpenAI CUA adapter (primary) and ports in place
 - Decision modes (Advisor, Rubric, Hybrid) with shared schema
 - Streamlit UI (3 inputs, controls, events)
 - JSONL events wired; Playwright fallback behind flag

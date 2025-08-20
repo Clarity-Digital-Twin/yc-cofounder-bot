@@ -5,7 +5,7 @@ An autonomous matching agent that uses a Computer Use Agent (CUA) to browse YC c
 
 ## Key Concept
 - **3 inputs**: Your Profile, Match Criteria, Message Template
-- **CUA primary**: Anthropic Computer Use API today; OpenAI CUA when available
+- **CUA primary**: OpenAI CUA via Responses API
 - **Playwright fallback**: Only when CUA is unavailable
 - **Decision modes**: Advisor (LLM-only), Rubric (deterministic), Hybrid (combined)
 - **Safety**: STOP flag, quotas, pacing, dedupe, JSONL audit
@@ -26,7 +26,7 @@ An autonomous matching agent that uses a Computer Use Agent (CUA) to browse YC c
 
 ## Quick Start
 1. Create `.env` from `.env.example` and set `CUA_API_KEY`.
-2. Choose provider and mode: `CUA_PROVIDER=anthropic` (default), `DECISION_MODE=advisor`.
+2. Choose mode: `DECISION_MODE=advisor` (default).
 3. Start UI: `make run` (or `streamlit run src/app/interface/web/ui_streamlit.py`).
 4. Fill 3 inputs. Select mode. Optionally enable Shadow Mode.
 5. Click RUN. Monitor events. Use STOP anytime. Approve sends in Advisor mode.
@@ -37,7 +37,7 @@ An autonomous matching agent that uses a Computer Use Agent (CUA) to browse YC c
 - Dedupes by profile hash; verifies send success before logging `sent{ok:true,mode}`.
 
 ## Stack
-- **Automation**: Anthropic CUA (primary), OpenAI CUA (when available), Playwright fallback
+- **Automation**: OpenAI CUA (primary), Playwright fallback
 - **UI**: Streamlit
 - **Storage**: SQLite (quota/dedupe), JSONL logs
 - **Lang**: Python 3.12+

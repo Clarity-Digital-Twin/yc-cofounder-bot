@@ -6,7 +6,7 @@ This plan maps directly to the SSOT: CUA primary, Playwright fallback, three dec
 
 ### M1 — Core CUA + Modes + Fallback (Week 1)
 - [ ] Define ports (contracts): `ComputerUsePort`, `DecisionPort`, `QuotaPort`, `SeenRepo`, `LoggerPort`, `StopController`.
-- [ ] Implement Anthropic CUA adapter (primary) for `ComputerUsePort`.
+- [ ] Implement OpenAI CUA adapter (primary) for `ComputerUsePort`.
 - [ ] Wire Playwright adapter (fallback) behind feature flag (`ENABLE_PLAYWRIGHT_FALLBACK=1`).
 - [ ] Implement decision modes: Advisor, Rubric, Hybrid (shared `DecisionResult` schema).
 - [ ] Streamlit single-page UI: 3 inputs, mode selector, threshold/alpha, strict-rules toggle, provider selector, RUN/STOP, quotas, live events.
@@ -22,8 +22,8 @@ This plan maps directly to the SSOT: CUA primary, Playwright fallback, three dec
 
 ### M3 — OpenAI CUA Adapter (Week 3)
 - [ ] Implement `OpenAICUAAdapter` for `ComputerUsePort` (Responses API, when available).
-- [ ] Provider switching via `CUA_PROVIDER=anthropic|openai`.
-- [ ] Contract tests to ensure parity with Anthropic adapter.
+- [ ] OpenAI CUA configuration and testing.
+- [ ] Contract tests for CUA adapter.
 
 ### M4 — Ranking, Analytics, and UX Polish (Week 4)
 - [ ] Ranking view and decision distribution charts.
@@ -57,7 +57,7 @@ This plan maps directly to the SSOT: CUA primary, Playwright fallback, three dec
 - Gates: `make verify` runs ruff+mypy+pytest; keep green.
 
 ## Tech Notes
-- Primary engine: Anthropic CUA; OpenAI CUA when available.
+- Primary engine: OpenAI CUA via Responses API.
 - Fallback: Playwright adapter only when CUA unavailable.
 - Env flags respected: `DECISION_MODE`, `THRESHOLD`, `ALPHA`, `STRICT_RULES`, repo-scoped caches.
 

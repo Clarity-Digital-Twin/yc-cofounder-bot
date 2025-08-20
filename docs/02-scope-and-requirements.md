@@ -10,7 +10,7 @@ Scope and Requirements
   - Open YC site → iterate profiles → read each → evaluate
   - No manual intervention required
   - Screenshot-based perception and action
-  - Provider switch: CUA_PROVIDER=anthropic|openai
+  - OpenAI CUA via Responses API (computer-use-preview model)
 
 - **Three Decision Modes**:
   1. **Advisor**: LLM-only evaluation, HIL approval required
@@ -80,8 +80,7 @@ Scope and Requirements
 
 ### Browser Automation
 - **Primary (CUA)**:
-  - Anthropic Computer Use API (available now)
-  - OpenAI Responses API (when available)
+  - OpenAI Responses API with computer-use-preview model
   - Screenshot → reasoning → action cycle
 
 - **Fallback (Playwright)**:
@@ -113,7 +112,7 @@ Scope and Requirements
 ### Provider Configuration
 ```bash
 ENABLE_CUA=1
-CUA_PROVIDER=anthropic  # or openai
+# OpenAI CUA Configuration
 CUA_API_KEY=...
 ENABLE_PLAYWRIGHT_FALLBACK=1
 DECISION_MODE=advisor  # or rubric or hybrid
@@ -129,7 +128,7 @@ STRICT_RULES=1
 - **Daily Quota**: DAILY_LIMIT=20
 - **Weekly Quota**: WEEKLY_LIMIT=60
 - **Pacing**: SEND_DELAY_MS=5000
-- **Provider**: CUA_PROVIDER=anthropic
+- **Provider**: OpenAI CUA (default)
 
 ## Acceptance Criteria
 - **Dry Run**: Shadow Mode shows decision events without sending

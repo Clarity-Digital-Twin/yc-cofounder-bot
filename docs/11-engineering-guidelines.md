@@ -9,7 +9,7 @@ Principles
 Layering
 - Domain: entities/value objects (UserProfile, MatchCriteria, Decision), domain services (scoring/extraction), framework‑agnostic.
 - Application: use cases/orchestrators (DiscoverProfiles, EvaluateAndMessage, ProcessBatch); ports (interfaces) that infra implements.
-- Infrastructure: adapters/clients (Anthropic/OpenAI CUA, Playwright fallback, SQLite repos, JSONL logger, decision adapters, message renderer).
+- Infrastructure: adapters/clients (OpenAI CUA, Playwright fallback, SQLite repos, JSONL logger, decision adapters, message renderer).
 - Interface: Streamlit UI and CLI; DI container/factories to compose the app per env.
 
 Dependencies
@@ -27,7 +27,7 @@ Ports (Interfaces)
 - StopController: `should_stop() -> bool`
 
 Adapters
-- CUA (PRIMARY): `AnthropicCUAAdapter` now; `OpenAICUAAdapter` when available.
+- CUA (PRIMARY): `OpenAICUAAdapter` via Responses API.
 - Browser (FALLBACK): `PlaywrightBrowserAdapter` if CUA unavailable.
 - Decision: Advisor (LLM-only), Rubric (deterministic), Hybrid (combined α).
 - Storage: SQLite quota/seen; JSONL logger.

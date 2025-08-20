@@ -72,9 +72,7 @@ UI Reference
 - **Shadow Mode Toggle** 👻: "Evaluate only (no sends)"
 
 #### Provider Selection
-- **Dropdown**: CUA Provider
-  - Anthropic (available now)
-  - OpenAI (coming soon)
+- **Status**: OpenAI CUA (via Responses API)
   - Playwright Fallback (auto-activates if CUA fails)
 - **Status Indicator**: 🟢 Connected | 🔴 Unavailable
 
@@ -151,7 +149,7 @@ When in Advisor mode, YES decisions appear here:
 ```bash
 # Core Configuration
 ENABLE_CUA=1
-CUA_PROVIDER=anthropic  # or openai
+# OpenAI CUA via Responses API
 CUA_API_KEY=sk-ant-...
 
 # Decision Configuration

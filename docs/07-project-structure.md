@@ -22,8 +22,7 @@ yc-cofounder-bot/
       infrastructure/
         __init__.py
         cua/
-          anthropic.py     # AnthropicCUAAdapter (PRIMARY)
-          openai.py        # OpenAICUAAdapter (when available)
+          openai.py        # OpenAICUAAdapter (PRIMARY)
         browser/
           playwright.py    # PlaywrightBrowserAdapter (FALLBACK)
         storage/

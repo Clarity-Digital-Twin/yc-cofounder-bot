@@ -4,12 +4,11 @@ Developer Environment
 - Python: 3.12+
 - Package manager: `uv` (recommended) or `pip`
 - Browser automation: Playwright (Chromium) as fallback
-- AI SDKs: Anthropic SDK and/or OpenAI SDK
+- AI SDK: OpenAI SDK for CUA via Responses API
 
 ## Core Dependencies
 ### Runtime
-- `anthropic` - For Claude Computer Use API
-- `openai` - For OpenAI CUA (when available)
+- `openai` - For OpenAI CUA via Responses API
 - `playwright` - Fallback browser automation
 - `streamlit` - Web UI dashboard
 - `python-dotenv` - Environment configuration
@@ -29,8 +28,8 @@ Developer Environment
 ```bash
 # Core Settings
 ENABLE_CUA=1                    # Enable Computer Use automation
-CUA_PROVIDER=anthropic          # or 'openai' when available
-CUA_API_KEY=sk-ant-...         # Anthropic or OpenAI key
+# OpenAI CUA Configuration
+OPENAI_API_KEY=sk-...
 
 # Decision Configuration
 DECISION_MODE=advisor           # advisor|rubric|hybrid
@@ -157,7 +156,7 @@ yc-cofounder-bot/
 │   │   └── messaging/       # Template rendering
 │   │
 │   ├── infrastructure/      # External adapters
-│   │   ├── cua/            # AnthropicCUA, OpenAICUA adapters
+│   │   ├── cua/            # OpenAICUA adapter
 │   │   ├── browser/        # Playwright fallback
 │   │   └── storage/        # SQLite repos, JSONL logger
 │   │
@@ -199,7 +198,7 @@ yc-cofounder-bot/
 ### Common Issues
 
 **CUA API Access Denied**
-- Verify you have tier 3-5 access (Anthropic or OpenAI)
+- Verify you have tier 3-5 access for OpenAI Responses API
 - Check API key is correctly set in .env
 - Ensure sufficient API credits
 
