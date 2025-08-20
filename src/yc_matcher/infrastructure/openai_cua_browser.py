@@ -7,7 +7,7 @@ import time
 from typing import Dict, List, Optional
 
 try:
-    from openai_agents import Agent, ComputerTool, Session
+    from agents import Agent, ComputerTool, Session
 except ImportError:
     # Fallback for when SDK not installed
     Agent = None
@@ -26,7 +26,7 @@ class OpenAICUABrowser:
         """Initialize OpenAI CUA browser adapter."""
         if Agent is None:
             raise RuntimeError(
-                "OpenAI Agents SDK not installed. Run: pip install openai-agents"
+                "Agents SDK not installed. Run: pip install openai-agents"
             )
         
         # Get model from env (check Models endpoint for your account)

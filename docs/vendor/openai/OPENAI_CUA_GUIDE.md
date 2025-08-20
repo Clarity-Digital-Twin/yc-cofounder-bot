@@ -43,7 +43,7 @@ pip install openai-agents
 
 ### 2. Initialize Agent with Computer Use
 ```python
-from openai_agents import Agent, ComputerTool
+from agents import Agent, ComputerTool
 import os
 
 # Initialize agent with Computer Use tool
@@ -75,7 +75,7 @@ class OpenAICUAAdapter:
     """Adapter implementing ComputerUsePort via OpenAI Agents SDK."""
     
     def __init__(self):
-        from openai_agents import Agent, ComputerTool
+        from agents import Agent, ComputerTool
         self.agent = Agent(
             model=os.getenv("CUA_MODEL", "computer-use-preview"),
             tools=[ComputerTool()],

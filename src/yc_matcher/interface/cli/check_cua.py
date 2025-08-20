@@ -54,10 +54,10 @@ def main() -> int:
 
     # Step 2: Check Agents SDK availability
     try:
-        from openai_agents import Agent, ComputerTool
-        _print("SUCCESS: OpenAI Agents SDK is installed.")
+        from agents import Agent, ComputerTool
+        _print("SUCCESS: Agents SDK (openai-agents package) is installed.")
     except ImportError:
-        _print("ERROR: OpenAI Agents SDK not installed.")
+        _print("ERROR: Agents SDK not installed.")
         _print("Run: pip install openai-agents")
         return 2
 

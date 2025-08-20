@@ -20,7 +20,10 @@
       "Bash(rm:*)",
       "Bash(chmod:*)",
       "Bash(/mnt/c/Users/JJ/Desktop/Clarity-Digital-Twin/yc-cofounder-bot/scripts/fetch_vendor_docs.sh)",
-      "WebFetch(domain:platform.openai.com)"
+      "WebFetch(domain:platform.openai.com)",
+      "Bash(python:*)",
+      "Bash(uv run:*)",
+      "Bash(uv pip:*)"
     ],
     "deny": [],
     "ask": []

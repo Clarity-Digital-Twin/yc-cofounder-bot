@@ -25,7 +25,7 @@ pip install openai-agents pillow pyautogui
 
 ### Initialize OpenAI Agents
 ```python
-from openai_agents import Agent, ComputerTool, Session
+from agents import Agent, ComputerTool, Session
 import os
 
 class OpenAICUAAdapter:
@@ -158,7 +158,7 @@ class BrowserEnvironment:
 
 ### Full OpenAICUAAdapter
 ```python
-from openai_agents import Agent, ComputerTool, Session
+from agents import Agent, ComputerTool, Session
 from typing import Dict, Optional
 import os
 import time
