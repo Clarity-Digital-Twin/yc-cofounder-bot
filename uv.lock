@@ -1295,6 +1295,11 @@ dev = [
     { name = "types-requests" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.10.0" },
@@ -1311,3 +1316,6 @@ requires-dist = [
     { name = "types-requests", marker = "extra == 'dev'", specifier = ">=2.32.0.20240712" },
 ]
 provides-extras = ["dev"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8.4.1" }]

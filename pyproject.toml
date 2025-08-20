@@ -79,3 +79,8 @@ markers = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/yc_matcher"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+]
