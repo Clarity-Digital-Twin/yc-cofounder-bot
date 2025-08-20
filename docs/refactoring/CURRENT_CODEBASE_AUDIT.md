@@ -103,13 +103,14 @@ src/yc_matcher/
 - Deduplication tracking
 - Message validation
 
-### CUA Implementation ✅
+### CUA Implementation (To be refactored)
 ```python
 # src/yc_matcher/infrastructure/openai_cua_browser.py
 class OpenAICUABrowser:
     def __init__(self):
-        self.model = os.getenv("CUA_MODEL")  # Correct!
-        from agents import Agent, ComputerTool  # Correct import!
+        self.model = os.getenv("CUA_MODEL")  # Correct
+        # NOTE: Prefer Responses API for Computer Use (planner) + Playwright (executor)
+        # Agents Runner is optional; migrate to Responses API loop per SSOT
 ```
 
 ### Dependency Injection ✅

@@ -55,33 +55,29 @@ class OpenAICUABrowser:
             # CUA analyzes and suggests
             response = self.client.responses.create(
                 model=os.getenv("CUA_MODEL"),
-                messages=[{"role": "user", "content": instruction}],
-                tools=[{
-                    "type": "computer_use_preview",
-                    "display": {
-                        "screenshot": screenshot_b64,
-                        "width": 1920,
-                        "height": 1080
-                    }
-                }],
+                input=[{"role": "user", "content": instruction}],
+                tools=[{"type": "computer_use_preview", "display_width": 1920, "display_height": 1080}],
                 truncation="auto",
                 previous_response_id=prev_id if prev_id else None
             )
             
             # Parse CUA's suggestion
-            if response.output.get("computer_call"):
-                action = response.output["computer_call"]
+            if getattr(response, "computer_call", None):
+                action = response.computer_call
                 
                 # YOU execute with Playwright
-                if action["type"] == "click":
-                    await self.page.click(f'[data-pos="{action.x},{action.y}"]')
-                elif action["type"] == "type":
-                    await self.page.keyboard.type(action["text"])
-                elif action["type"] == "scroll":
-                    await self.page.mouse.wheel(0, action["delta"])
-                    
-                # Continue loop with computer_call_output
-                prev_id = response.id
+                await self._execute_action(action)
+                
+                # Continue loop with computer_call_output (include a fresh screenshot)
+                screenshot = await self.page.screenshot()
+                screenshot_b64 = base64.b64encode(screenshot).decode()
+                follow = self.client.responses.create(
+                    model=os.getenv("CUA_MODEL"),
+                    previous_response_id=response.id,
+                    computer_call_output={"call_id": action.id, "screenshot": screenshot_b64},
+                    truncation="auto",
+                )
+                prev_id = follow.id
             else:
                 done = True
 ```

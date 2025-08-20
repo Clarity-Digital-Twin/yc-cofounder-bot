@@ -250,7 +250,7 @@ DECISION_MODE=advisor|rubric|hybrid
 # Safety & Limits
 DAILY_QUOTA=25
 WEEKLY_QUOTA=120
-SEND_DELAY_MS=5000
+PACE_MIN_SECONDS=45
 THRESHOLD=0.72
 
 # Browser Settings (for YOUR Playwright)

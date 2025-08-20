@@ -142,7 +142,7 @@ class AutonomousFlow:
 
 ### Environment Variables:
 - `AUTO_BROWSE_LIMIT` - Max profiles to process
-- `SEND_DELAY_MS` - ✅ Already used (line 46)
+- `PACE_MIN_SECONDS` - Minimum seconds between messages (update code to replace `SEND_DELAY_MS`)
 - `YC_LISTING_URL` - Base URL for listing
 
 ### Effort Estimate:

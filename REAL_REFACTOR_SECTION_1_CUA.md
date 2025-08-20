@@ -43,6 +43,7 @@ class OpenAICUABrowser:
         self.playwright = None
         self.browser = None
         self.page = None
+        self.prev_id = None
         
     async def _ensure_browser(self):
         """Ensure Playwright browser is running"""
@@ -53,32 +54,34 @@ class OpenAICUABrowser:
             self.page = await self.browser.new_page()
         
     async def _cua_action(self, instruction: str):
-        """Core loop: Playwright executes, CUA analyzes"""
+        """Core loop: CUA plans; Playwright executes; send computer_call_output each turn"""
         await self._ensure_browser()
         
-        # Playwright takes screenshot
-        screenshot = await self.page.screenshot()
-        screenshot_b64 = base64.b64encode(screenshot).decode()
-        
-        # CUA analyzes YOUR screenshot
+        # Start or continue a CUA planning turn
         response = self.client.responses.create(
             model=self.model,
-            messages=[{"role": "user", "content": instruction}],
-            tools=[{
-                "type": "computer_use_preview",
-                "display": {
-                    "screenshot": screenshot_b64,
-                    "width": 1920,
-                    "height": 1080
-                }
-            }],
-            truncation="auto"  # REQUIRED!
+            input=[{"role": "user", "content": instruction}],
+            tools=[{"type": "computer_use_preview", "display_width": 1920, "display_height": 1080}],
+            truncation="auto",
+            previous_response_id=self.prev_id,
         )
         
-        # YOU execute CUA's suggestion
-        if response.tool_calls:
-            action = response.tool_calls[0]
+        # If model requests a computer_call, execute via Playwright, screenshot, then send output
+        if getattr(response, "computer_call", None):
+            action = response.computer_call
             await self._execute_action(action)
+            screenshot = await self.page.screenshot()
+            screenshot_b64 = base64.b64encode(screenshot).decode()
+            follow = self.client.responses.create(
+                model=self.model,
+                previous_response_id=response.id,
+                computer_call_output={
+                    "call_id": action.id,
+                    "screenshot": screenshot_b64,
+                },
+                truncation="auto",
+            )
+            self.prev_id = follow.id
 ```
 
 ### Test Coverage:

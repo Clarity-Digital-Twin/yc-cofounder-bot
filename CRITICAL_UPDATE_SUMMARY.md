@@ -23,24 +23,30 @@ The AI agent review revealed our docs were WRONG about CUA and Playwright being 
 ### How CUA + Playwright Work Together:
 
 ```python
-# THE LOOP:
-while not done:
-    # 1. PLAYWRIGHT takes screenshot
+# THE LOOP (planner + executor):
+# 1) Start/continue a CUA planning turn
+resp = openai_client.responses.create(
+    model=os.getenv("CUA_MODEL"),
+    input=[{"role": "user", "content": goal}],
+    tools=[{"type": "computer_use_preview", "display_width": 1280, "display_height": 800}],
+    truncation="auto",
+    previous_response_id=prev_id,
+)
+
+# 2) If a computer_call is present, Playwright executes it
+if getattr(resp, "computer_call", None):
+    act = resp.computer_call
+    await execute_with_playwright(act)
+    
+    # 3) Take a screenshot and send computer_call_output
     screenshot = await playwright_page.screenshot()
-    
-    # 2. CUA analyzes screenshot
-    response = openai_client.responses.create(
-        tools=[{"type": "computer_use_preview", "screenshot": screenshot}]
+    openai_client.responses.create(
+        model=os.getenv("CUA_MODEL"),
+        previous_response_id=resp.id,
+        computer_call_output={"call_id": act.id, "screenshot": b64(screenshot)},
+        truncation="auto",
     )
-    
-    # 3. CUA suggests action
-    action = response.output["computer_call"]
-    
-    # 4. PLAYWRIGHT executes action
-    if action["type"] == "click":
-        await playwright_page.click(action["coordinates"])
-    elif action["type"] == "type":
-        await playwright_page.keyboard.type(action["text"])
+    prev_id = resp.id
 ```
 
 ### What Each Component Does:

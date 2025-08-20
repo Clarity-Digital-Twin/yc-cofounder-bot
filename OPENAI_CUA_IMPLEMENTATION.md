@@ -19,38 +19,39 @@ playwright = await async_playwright().start()
 browser = await playwright.chromium.launch()
 page = await browser.new_page()
 
-# YOU take screenshot
-screenshot = await page.screenshot()
-screenshot_base64 = base64.b64encode(screenshot).decode()
-
-# CUA analyzes YOUR screenshot
+# Start/continue a CUA planning turn
 response = client.responses.create(
     model=os.getenv("CUA_MODEL"),  # From env, never hardcoded
-    messages=[
+    input=[
         {
             "role": "user",
             "content": f"Navigate to YC cofounder listing and find profiles matching: {criteria}"
         }
     ],
-    tools=[{
-        "type": "computer_use_preview",
-        "display": {
-            "screenshot": screenshot_base64,
-            "width": 1920,
-            "height": 1080
-        }
-    }],
+    tools=[{"type": "computer_use_preview", "display_width": 1920, "display_height": 1080}],
     truncation="auto"  # REQUIRED for Computer Use
 )
 
-# CUA suggests action, YOU execute it
-if response.tool_calls:
-    action = response.tool_calls[0]
+# If the model requests a computer_call, YOU execute it and reply with computer_call_output (including a screenshot)
+if getattr(response, "computer_call", None):
+    action = response.computer_call
     # YOU execute in YOUR browser
     if action.type == "click":
         await page.click(action.coordinates)
     elif action.type == "type":
         await page.type(action.selector, action.text)
+    # Take screenshot and send computer_call_output
+    screenshot = await page.screenshot()
+    screenshot_base64 = base64.b64encode(screenshot).decode()
+    client.responses.create(
+        model=os.getenv("CUA_MODEL"),
+        previous_response_id=response.id,
+        computer_call_output={
+            "call_id": action.id,
+            "screenshot": screenshot_base64,
+        },
+        truncation="auto"
+    )
 ```
 
 ## Environment Variables
@@ -68,7 +69,7 @@ USE_DECISION_MODES=false                      # Enable decision modes
 DEFAULT_DECISION_MODE=rubric                  # advisor|rubric|hybrid
 
 # Pacing
-SEND_DELAY_MS=5000                           # Delay between messages
+PACE_MIN_SECONDS=45                           # Minimum seconds between messages
 ```
 
 ## Implementation in This Project

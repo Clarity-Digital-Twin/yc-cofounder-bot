@@ -383,7 +383,7 @@ ALPHA=0.50
 # Safety & Limits
 DAILY_QUOTA=25
 WEEKLY_QUOTA=120
-SEND_DELAY_MS=5000
+PACE_MIN_SECONDS=45
 
 # Browser Settings (for YOUR Playwright)
 HEADLESS=1                           # Your browser visibility
