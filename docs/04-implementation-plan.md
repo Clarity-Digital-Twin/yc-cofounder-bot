@@ -1,4 +1,8 @@
-# Implementation Plan
+# 04 — Implementation Plan
+
+**Status:** Draft v0.2 (2025-08-20)  
+**Owner:** YC Matcher Team  
+**Related:** [01-product-brief.md] · [02-scope-and-requirements.md] · [03-architecture.md] · [10-ui-reference.md]
 
 This plan maps directly to the SSOT: CUA primary, Playwright fallback, three decision modes, STOP/quotas/dedupe, single-page UI.
 
@@ -160,6 +164,26 @@ make run
 - Apply the **smallest patch** (targeted selector or env fix)
 - Re-run the failing step
 
+## Test Matrix (maps to 02 & 03)
+
+| ID | What | How |
+|----|------|-----|
+| INT-NAV-CUA-01 | CUA open listing + open first profile | `PLAYWRIGHT_HEADLESS=1 make test-int` + CUA mock |
+| INT-FALLBACK-01 | Forced CUA failure → Playwright path | env flip + adapter smoke |
+| INT-MSG-01 | Template render + conditional send | shadow on/off, threshold gate |
+| INT-VERIFY-01 | Post-send verify + retry ≤1 | instrument DOM/visual confirm |
+| INT-QUOTA-01 | Daily/weekly limits enforced | set low quotas; assert `quota_exceeded` |
+| INT-STOP-01 | STOP halts within ≤2s | create `.runs/stop.flag` mid-run |
+| UNIT-DEC-01 | Advisor/Rubric/Hybrid math | deterministic fixtures |
+| UNIT-LOG-01 | `events.jsonl` schema | schema assertions |
+| INT-LOCAL-01 | No `$HOME` writes | run under temp HOME; audit paths |
+
+## Rollout Plan
+
+- **Canary**: 10 profiles, collect metrics (success rate, false-positive sends, avg latency, cost)
+- **Promote**: raise quotas if success rate/latency/cost OK
+- **Rollback**: flip `CUA_MODEL`/`OPENAI_DECISION_MODEL` envs; retain Playwright fallback
+
 ## Tech Notes
 - Primary engine: OpenAI Computer Use via Agents SDK (CUA model from env)
 - Screenshot handling: Computer Use tool handles capture automatically
@@ -168,14 +192,19 @@ make run
 - Env flags respected: `DECISION_MODE`, `THRESHOLD`, `ALPHA`, `STRICT_RULES`, repo-scoped caches
 
 ## Safety & Pacing
-- Quotas (daily/weekly) with SQLite; deny when exhausted
+- Quotas (daily/weekly) with SQLite (`.runs/quota.sqlite`); deny when exhausted
+- Dedupe (`.runs/seen.sqlite`) hashed by (profile URL + name)
 - STOP toggle in UI writes `.runs/stop.flag`
 - Shadow mode = **never send**, only log decisions
 - Event log is append-only JSONL with versioned schema
 - Pacing delays between sends (`PACE_MIN_SECONDS`)
 
 ## Risk & Mitigation
+- **CUA access not enabled** → Mitigation: `make check-cua`; switch to `ENABLE_PLAYWRIGHT_FALLBACK=1`
+- **DOM/visual drift** → Mitigation: CUA perception first; Playwright targeted selector fallbacks
+- **Rate limits / ToS** → Mitigation: quotas + pacing; no credential storage; HIL login
+- **Cost spikes** → Mitigation: `model_usage` events, canary before rollout, `SHADOW_MODE=1` dry-runs
+- **Data leakage** → Mitigation: no full screenshot retention; minimal derived text only; JSONL redaction
 - **Provider limits**: status indicator; graceful fallback; Shadow Mode
 - **Site changes**: resilient find/click strategies; Playwright fallback smoke tests
-- **Cost**: token caps, early exit, caching extracted fields for 1h
 - **Failures**: Log first 50 lines, apply minimal patch, retry
