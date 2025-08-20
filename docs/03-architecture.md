@@ -2,9 +2,9 @@ Architecture
 
 ## Principles
 - **3-input control**: Your Profile + Match Criteria + Message Template
-- **CUA-first architecture**: OpenAI CUA primary, Playwright fallback
+- **CUA+Playwright architecture**: CUA analyzes/plans, Playwright executes actions (they work TOGETHER)
 - **Flexible decisions**: Three interchangeable modes (Advisor/Rubric/Hybrid)
-- **OpenAI Computer Use**: Direct integration via Agents SDK
+- **OpenAI Computer Use**: Via Responses API - YOU provide browser via Playwright
 - **Clean DDD layers**: Ports define contracts, adapters implement them
 - **Event-driven**: Every action logged as JSONL event stream
 
@@ -13,12 +13,12 @@ Architecture
 ### ComputerUsePort
 ```python
 open(url: str) -> None
-find_click(locator: str) -> None  # Uses CUA to find and click
-read_text(target: str) -> str      # Extracts text via CUA
-fill(selector: str, text: str) -> None  # Fills forms
-press_send() -> None                # Clicks send button
-verify_sent() -> bool               # Confirms success
-screenshot() -> bytes               # Returns base64 encoded PNG
+find_click(locator: str) -> None  # CUA analyzes, Playwright clicks
+read_text(target: str) -> str      # CUA extracts from screenshot
+fill(selector: str, text: str) -> None  # CUA guides, Playwright types
+press_send() -> None                # CUA locates, Playwright clicks
+verify_sent() -> bool               # CUA analyzes result
+screenshot() -> bytes               # Playwright captures for CUA
 close() -> None
 ```
 
