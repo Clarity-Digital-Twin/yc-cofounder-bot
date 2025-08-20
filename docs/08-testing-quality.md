@@ -1,24 +1,36 @@
 Testing & Quality
 
 Philosophy
-- Start with targeted unit tests around tools and helpers; add lightweight integration tests for the Playwright adapter. Keep end‑to‑end manual and supervised initially.
- - Practice TDD for domain/application code: write failing tests for use cases and domain services, then implement.
+- TDD for domain/application: write failing unit tests first, iterate to green, then refactor.
+- Keep adapters behind ports; prefer contract tests with fakes over fragile E2E.
+- CI-local: no external network; integration is opt-in and uses a local replayer/test page.
 
-Tests (MVP)
-- Unit (Domain/Application): schema validation (strict); scoring weights/threshold; use cases (EvaluateProfile/SendMessage) against mocked ports; template clamps.
-- Integration (Infrastructure): OpenAI decision adapter via stubbed responses; Playwright adapter against a local test page; SQLite repo R/W; JSONL logger appends.
-- Manual E2E (Shadow Mode): decisions vs human labels; calibrate rubric before enabling sends.
+Test Suites
+- Unit (Domain/Application)
+  - Decision math: Advisor (LLM-only contract), Rubric (deterministic scoring), Hybrid (α·llm_confidence + (1−α)·rubric_score).
+  - Hard rules gates (STRICT_RULES=1): must_be_technical, commitment_available, location_acceptable.
+  - Template rendering: variables `{name},{tech},{hook},{city},{why_match}`; clamps and length limits.
+  - Controls: STOP flag behavior; quotas; pacing; dedupe pre-checks.
+- Contract (Ports)
+  - `ComputerUsePort` via fakes: open→find_click→read_text→fill→press_send→verify_sent; assert call order and invariants.
+  - LoggerPort emits structured JSON events; schema sanity.
+- Integration (Opt-in)
+  - Playwright fallback smoke against local static page (no real YC site).
+  - Adapter parity where feasible.
 
-Static Analysis
-- Lint: `ruff` (format + lint rules)
-- Types: `mypy` with strictness on internal modules
+Gates & Commands
+- Lint: `make lint` (ruff)
+- Format: `make format` (ruff)
+- Types: `make typecheck` (mypy strict)
+- Tests: `make test` (pytest)
+- All gates: `make verify` (lint + type + test)
 
-CI Hooks (optional initially)
-- `pre-commit` with ruff, mypy, and secret‑scan.
-- GitHub Actions to run lint + tests on PRs.
- - Test matrix: OSes (macOS/Windows/Linux) and Python versions (3.11/3.12) when stable.
+Data & Logs
+- JSONL events: `decision`, `sent`, `stopped`, `model_usage`; include `prompt_ver`, `rubric_ver`, `criteria_hash`.
+- Repo-scoped caches only; no writes to `$HOME`.
 
-Coding Standards
-- Small modules/functions; clear names; no secrets in logs.
-- Avoid brittle selectors; prefer visible text/positions supervised by the agent.
- - Fail closed on schema parse errors; surface actionable messages to user.
+Quality Policies
+- Small, surgical patches; avoid broad refactors.
+- Fail closed: if extraction uncertain or rules fail, do not send.
+- Deterministic unit tests; seeded randomness if any.
+- No secrets in logs; redact PII when `PII_REDACTION=1`.

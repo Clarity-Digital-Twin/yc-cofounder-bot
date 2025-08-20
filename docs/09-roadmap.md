@@ -1,16 +1,26 @@
-Roadmap (Post‑MVP)
+Roadmap
 
-Near‑Term
-- Streamlit UI with live screenshot feed and action log.
-- Per‑run history and cross‑run dedupe (SQLite).
-- Tunable message templates with A/B variants.
+M1 — Core CUA + Modes + Fallback (Week 1)
+- Anthropic CUA adapter (primary) and ports in place
+- Decision modes (Advisor, Rubric, Hybrid) with shared schema
+- Streamlit UI (3 inputs, controls, events)
+- JSONL events wired; Playwright fallback behind flag
 
-Mid‑Term
-- Scheduling small batches; pacing controls.
-- Export summaries to CSV/Sheets; contact enrichment hooks.
-- Better scoring (vector keywords, small rules engine).
+M2 — Robustness & Safety (Week 2)
+- STOP flag + state preservation; quotas + dedupe (SQLite)
+- Pacing and backoff; Shadow Mode; optional HIL
+- Cost tracking and token limits; provider status
 
-Longer‑Term (Evaluate)
-- Multi‑site adapters (only if ToS allows and truly needed).
-- Prompt/policy management UI for safe collaboration.
-- Advanced observability (sessions viewer, cost dashboard).
+M3 — OpenAI CUA Adapter (Week 3)
+- OpenAI CUA adapter; provider switching via config
+- Parity contract tests; docs and UI reflect provider choice
+
+M4 — Ranking & Analytics (Week 4)
+- Ranking view; decision distribution; quota burndown
+- Prompt/rubric versioning surfaced; criteria hash in UI
+- CSV export; basic cost analytics
+
+Later (Evaluate Carefully)
+- Multi-site adapters (only if ToS permits and needed)
+- Prompt/policy management UI for collaboration
+- Advanced observability (session timelines, screenshots on error)

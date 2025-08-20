@@ -1,98 +1,54 @@
 YC Co-Founder Autonomous Matching Agent — Documentation
 
 ## Purpose
-An autonomous matching agent that uses OpenAI's CUA (Computer Using Agent) to browse YC cofounder profiles, evaluate compatibility with YOUR criteria, and automatically send connection invites - all managed from a simple Streamlit dashboard.
+An autonomous matching agent that uses a Computer Use Agent (CUA) to browse YC cofounder profiles, evaluate compatibility against YOUR criteria, and (when approved) send connection invites — all from a single Streamlit dashboard with safety controls.
 
-## Key Innovation
-- **No manual browsing**: CUA autonomously navigates the YC site
-- **User-centric**: Enter YOUR profile once, let CUA find matches for you
-- **AI-powered matching**: Intelligent evaluation against your specific criteria
-- **Fully automated**: From discovery to message sending
+## Key Concept
+- **3 inputs**: Your Profile, Match Criteria, Message Template
+- **CUA primary**: Anthropic Computer Use API today; OpenAI CUA when available
+- **Playwright fallback**: Only when CUA is unavailable
+- **Decision modes**: Advisor (LLM-only), Rubric (deterministic), Hybrid (combined)
+- **Safety**: STOP flag, quotas, pacing, dedupe, JSONL audit
 
-## Documentation Structure
-
-### Core Documents (Updated for CUA)
-- `01-product-brief.md` — Autonomous matching vision and goals
-- `02-scope-and-requirements.md` — User-centric requirements
-- `03-architecture.md` — CUA-based system design
-- `04-implementation-plan.md` — 3-week CUA integration roadmap
-- `10-ui-reference.md` — Streamlit dashboard components
-
-### Supporting Documents
-- `05-operations-and-safety.md` — Safety, quotas, compliance
-- `06-dev-environment.md` — Development setup
-- `07-project-structure.md` — Code organization
-- `08-testing-quality.md` — Testing strategy
-- `09-roadmap.md` — Future enhancements
-- `11-engineering-guidelines.md` — Code standards
-- `12-prompts-and-rubric.md` — AI evaluation logic
-
-### User Configuration Files
-- `CURRENT_COFOUNDER_PROFILE.MD` — Your profile template
-- `MATCH_MESSAGE_TEMPLATE.MD` — Outreach message template
-- `WEBSITE_LINK.MD` — Target YC URL
+## Documentation Map
+- `01-product-brief.md` — 3-input system, CUA primary, modes
+- `02-scope-and-requirements.md` — In-scope/out-of-scope, functional/non-functional reqs
+- `03-architecture.md` — Ports/adapters, decision schema, events
+- `04-implementation-plan.md` — Milestones M1–M4 (CUA+modes, robustness, OpenAI adapter, analytics)
+- `05-operations-and-safety.md` — STOP, quotas, HIL, platform respect
+- `06-dev-environment.md` — Env flags, setup, Make targets, repo-scoped caches
+- `07-project-structure.md` — DDD layout, ports, adapters
+- `08-testing-quality.md` — TDD plan, gates, contract tests
+- `09-roadmap.md` — Milestones and later options
+- `10-ui-reference.md` — Single-page UI with mode selector and live events
+- `11-engineering-guidelines.md` — Clean code, ports, DI, logging
+- `12-prompts-and-rubric.md` — Prompts, scoring, hard rules, versioning
 
 ## Quick Start
+1. Create `.env` from `.env.example` and set `CUA_API_KEY`.
+2. Choose provider and mode: `CUA_PROVIDER=anthropic` (default), `DECISION_MODE=advisor`.
+3. Start UI: `make run` (or `streamlit run src/app/interface/web/ui_streamlit.py`).
+4. Fill 3 inputs. Select mode. Optionally enable Shadow Mode.
+5. Click RUN. Monitor events. Use STOP anytime. Approve sends in Advisor mode.
 
-1. **Setup Your Profile**:
-   - Edit `CURRENT_COFOUNDER_PROFILE.MD` with your background
-   - Define match criteria in the Streamlit UI
-   - Customize message template
+## Events & Safety
+- Emits JSONL: `decision`, `sent`, `stopped`, `model_usage` (with `prompt_ver`, `rubric_ver`, `criteria_hash`).
+- Enforces hard limits: `DAILY_LIMIT`, `WEEKLY_LIMIT`, `SEND_DELAY_MS`.
+- Dedupes by profile hash; verifies send success before logging `sent{ok:true,mode}`.
 
-2. **Configure API Access**:
-   - Get OpenAI API key (tier 3-5 for CUA)
-   - Add to `.env` file
-   - Verify CUA access with test script
-
-3. **Launch Dashboard**:
-   ```bash
-   streamlit run src/yc_matcher/interface/web/ui_streamlit.py
-   ```
-
-4. **Start Matching**:
-   - Click "Start Matching" button
-   - CUA opens browser and begins autonomous browsing
-   - Monitor progress in real-time event log
-   - Review matches and sent messages
-
-## Technical Stack
-
-- **Browser Automation**: OpenAI CUA via Responses API ($3/1M tokens)
-- **Matching Logic**: GPT-4 evaluation with structured output
-- **UI Framework**: Streamlit for dashboard
-- **Storage**: SQLite for deduplication, JSONL for logs
-- **Language**: Python 3.12+ with async support
+## Stack
+- **Automation**: Anthropic CUA (primary), OpenAI CUA (when available), Playwright fallback
+- **UI**: Streamlit
+- **Storage**: SQLite (quota/dedupe), JSONL logs
+- **Lang**: Python 3.12+
 
 ## Architecture Shift
+- Old: paste candidate profiles manually; Playwright as primary
+- New: single control panel with 3 inputs; CUA browses autonomously; backend evaluates per mode; CUA sends when approved
 
-### Old Approach (Manual)
-- User pastes candidate profiles one by one
-- Evaluates each manually
-- Uses Playwright for basic automation
+## Costs & Performance Targets
+- Decision: < 5s; message: < 3s; total/profile: < 30s
+- Tokens: decision < 2000; message < 1000
+- Session cost goal: <$0.50 per ~20 profiles
 
-### New Approach (Autonomous)
-- User enters their profile once
-- CUA browses all profiles automatically
-- AI evaluates and sends messages autonomously
-
-## Cost & Performance
-
-- **Cost**: ~$0.50 per 20-profile session
-- **Speed**: 30 seconds per profile
-- **Accuracy**: 87% browser task success (CUA benchmark)
-- **Tokens**: <1000 per profile evaluation
-
-## Safety Features
-
-- Hard quota limits (10 messages/session default)
-- Deduplication (never message same person twice)
-- Emergency stop button
-- Complete audit trail in JSONL
-- Rate limiting between actions
-
-## Next Steps
-
-See `04-implementation-plan.md` for detailed roadmap:
-1. Week 1: CUA integration and core matching
-2. Week 2: Autonomous browsing implementation
-3. Week 3: Safety features and testing
+See `04-implementation-plan.md` for milestones and `06-dev-environment.md` for configuration.

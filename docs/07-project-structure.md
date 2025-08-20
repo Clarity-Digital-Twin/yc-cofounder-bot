@@ -1,52 +1,58 @@
 Project Structure
 
 Packaging Strategy
-- Distribute as a Python package with a console script for the CLI and an optional Streamlit app. Keep internal modules small and single‑purpose.
+- Single repo with Streamlit UI and CLI entrypoint. Keep modules small and single‑purpose. Follow DDD with explicit ports/adapters.
 
 Proposed Layout (DDD-aligned)
 ```
-yc-matcher/
+yc-cofounder-bot/
   docs/
   src/
-    yc_matcher/
+    app/
       __init__.py
       domain/
         __init__.py
-        entities.py        # Criteria, Profile, Decision, Score (dataclasses)
-        services.py        # ScoringService (Strategy)
+        entities/          # UserProfile, MatchCriteria, Decision
+        services/          # Scoring, extraction, message rendering
       application/
         __init__.py
-        ports.py           # DecisionPort, MessagePort, QuotaPort, SeenRepo, LoggerPort, BrowserPort
-        use_cases.py       # EvaluateProfile, SendMessage, ProcessCandidate
-        schema.py          # Pydantic DTOs for model outputs
+        ports.py           # ComputerUsePort, DecisionPort, QuotaPort, SeenRepo, LoggerPort, StopController
+        use_cases.py       # DiscoverProfiles, EvaluateAndMessage, ProcessBatch
+        dto.py             # Pydantic DTOs for events/decisions
       infrastructure/
         __init__.py
-        openai_decision.py # OpenAIDecisionAdapter (Facade/Adapter)
-        sqlite_repo.py     # SQLiteSeenRepo
-        jsonl_logger.py    # JSONLLogger
-        playwright_browser.py # PlaywrightBrowserAdapter + click_by_text helpers
-        quota.py           # Quota implementation
-        templates.py       # TemplateRenderer with clamps/safety
+        cua/
+          anthropic.py     # AnthropicCUAAdapter (PRIMARY)
+          openai.py        # OpenAICUAAdapter (when available)
+        browser/
+          playwright.py    # PlaywrightBrowserAdapter (FALLBACK)
+        storage/
+          sqlite_quota.py  # SQLiteQuotaRepo
+          sqlite_seen.py   # SQLiteSeenRepo
+          jsonl_logger.py  # JSONLLogger
+        decision/
+          advisor.py       # AdvisorDecisionAdapter (LLM-only)
+          rubric.py        # RubricDecisionAdapter (deterministic)
+          hybrid.py        # HybridDecisionAdapter (combined)
+        messaging/
+          templates.py     # Template renderer with clamps/safety
       interface/
         __init__.py
-        ui_streamlit.py    # Streamlit UI
-        run_cli.py         # CLI entrypoint
-        di.py              # DI container/factories
-      # Transitional modules (existing)
-      decision.py          # (to be folded into domain/application)
-      templates.py         # (compat shim to infrastructure/templates)
-      storage.py           # (legacy JSON counter)
+        web/
+          ui_streamlit.py  # Streamlit dashboard
+        cli/
+          main.py          # CLI entrypoint
+        di.py              # DI factories (compose ports/adapters)
   tests/
     unit/
-      test_schema.py
-      test_scoring.py
-      test_use_cases.py
-    integration/
-      test_openai_decision.py
-      test_sqlite_repo.py
-      test_playwright_browser.py
-    e2e/
-      test_shadow_mode.md  # manual checklist
+      test_decision_math.py
+      test_hard_rules.py
+      test_template_render.py
+      test_stop_quota_dedupe.py
+    contract/
+      test_computer_use_port.py
+    integration/ (opt-in)
+      test_playwright_fallback.py
   pyproject.toml
   Makefile
   .env.example
@@ -55,10 +61,10 @@ yc-matcher/
 ```
 
 Entrypoints
-- Streamlit: `streamlit run -m yc_matcher.ui_streamlit`
-- CLI: `yc-matcher` (console_script) → `yc_matcher.run_cli:main`
+- Streamlit: `make run` (or `streamlit run src/app/interface/web/ui_streamlit.py`)
+- CLI: `python -m app.interface.cli.main`
 
 Configuration
-- `.env` for secrets + defaults; CLI flags override.
-- Keep all config typed/validated in `config.py` (Pydantic).
- - Adhere to dependency rules: interface→application→domain; infra implements application ports.
+- `.env` for flags and secrets; UI toggles mirror env.
+- Typed config via Pydantic; DI composes adapters per `CUA_PROVIDER` and `DECISION_MODE`.
+- Adhere to dependency rules: interface→application→domain; infra implements application ports.
