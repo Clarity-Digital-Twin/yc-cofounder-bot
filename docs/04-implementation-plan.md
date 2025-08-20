@@ -4,7 +4,7 @@
 **Owner:** YC Matcher Team  
 **Related:** [01-product-brief.md] · [02-scope-and-requirements.md] · [03-architecture.md] · [10-ui-reference.md]
 
-This plan maps directly to the SSOT: CUA primary, Playwright fallback, three decision modes, STOP/quotas/dedupe, single-page UI.
+This plan maps directly to the SSOT: CUA+Playwright work together (CUA analyzes, Playwright executes), three decision modes, STOP/quotas/dedupe, single-page UI.
 
 ## Milestones
 
@@ -19,10 +19,10 @@ This plan maps directly to the SSOT: CUA primary, Playwright fallback, three dec
 
 ### M1 — Core CUA + Modes + Fallback (Week 1)
 - [ ] Define ports (contracts): `ComputerUsePort`, `DecisionPort`, `QuotaPort`, `SeenRepo`, `LoggerPort`, `StopController`
-- [ ] Implement OpenAI CUA adapter using Agents SDK with Computer Use tool
-- [ ] Add screenshot capture/encoding (base64 PNG, handled by CUA)
-- [ ] Implement computer_calls execution (click, type, scroll)
-- [ ] Wire Playwright adapter (fallback) behind feature flag (`ENABLE_PLAYWRIGHT_FALLBACK=1`)
+- [ ] Implement OpenAI CUA adapter with integrated Playwright (CUA analyzes, Playwright executes)
+- [ ] Add screenshot loop: Playwright captures → CUA analyzes → suggests action → Playwright executes
+- [ ] Implement computer_call execution via Playwright (click, type, scroll based on CUA suggestions)
+- [ ] Wire Playwright-only mode (no CUA) as fallback behind flag (`ENABLE_PLAYWRIGHT_FALLBACK=1`)
 - [ ] Implement decision modes: Advisor, Rubric, Hybrid (shared `DecisionResult` schema)
 - [ ] Streamlit single-page UI: 3 inputs, mode selector, threshold/alpha, strict-rules toggle, provider selector, RUN/STOP, quotas, live events
 - [ ] Emit JSONL events: `decision`, `sent`, `stopped`, `model_usage`

@@ -5,13 +5,13 @@ Autonomous browser automation for YC/Startup School cofounder matching using Ope
 ## How It Works
 
 1. **You provide 3 inputs**: Your Profile, Match Criteria, Message Template
-2. **OpenAI CUA browses**: Autonomously navigates YC site via Computer Use API
+2. **CUA+Playwright browse together**: CUA analyzes screenshots, Playwright executes actions
 3. **Decisions made**: Using Advisor/Rubric/Hybrid modes per your configuration
 4. **Messages sent**: Automatically when thresholds met (with safety controls)
 
 ## Docs
 - See `docs/` for complete documentation
-- **CRITICAL**: Read `OPENAI_COMPUTER_USE_TRUTH.md` for how CUA actually works
+- **CRITICAL**: Read `CUA_PLAYWRIGHT_RELATIONSHIP.md` for how CUA+Playwright work together
 - For model selection: `MODEL_SELECTION.md`
 
 ## Quickstart
@@ -23,7 +23,7 @@ Autonomous browser automation for YC/Startup School cofounder matching using Ope
 3. Run: `make run`
 4. Enter your 3 inputs and click RUN
 
-**Note**: YOU provide the browser via Playwright. CUA analyzes screenshots and suggests actions.
+**Critical Understanding**: CUA and Playwright work TOGETHER - CUA analyzes/plans, Playwright executes. They are not alternatives!
 
 Development
 - Install deps: `make setup`

@@ -19,8 +19,9 @@
 
 ### What's WRONG:
 1. **WRONG API**: Uses Agents SDK instead of Responses API
-2. **No Screenshot Loop**: Doesn't show how YOU provide browser
-3. **Missing Methods**: No autonomous browsing capabilities
+2. **MISSING PLAYWRIGHT**: CUA can't work alone - needs Playwright to execute actions!
+3. **No Screenshot Loop**: Doesn't show Playwright→screenshot→CUA→action loop
+4. **Missing Methods**: No autonomous browsing capabilities
 
 ### How to FIX:
 
@@ -38,13 +39,24 @@ class OpenAICUABrowser:
     def __init__(self):
         self.client = OpenAI()
         self.model = os.getenv("CUA_MODEL")
-        # YOU provide browser
-        self.playwright = None  # Will be initialized
+        # CRITICAL: CUA needs Playwright to execute!
+        self.playwright = None
+        self.browser = None
         self.page = None
         
+    async def _ensure_browser(self):
+        """Ensure Playwright browser is running"""
+        if not self.playwright:
+            from playwright.async_api import async_playwright
+            self.playwright = await async_playwright().start()
+            self.browser = await self.playwright.chromium.launch()
+            self.page = await self.browser.new_page()
+        
     async def _cua_action(self, instruction: str):
-        """Core CUA loop - YOU provide browser, CUA analyzes"""
-        # YOU take screenshot
+        """Core loop: Playwright executes, CUA analyzes"""
+        await self._ensure_browser()
+        
+        # Playwright takes screenshot
         screenshot = await self.page.screenshot()
         screenshot_b64 = base64.b64encode(screenshot).decode()
         

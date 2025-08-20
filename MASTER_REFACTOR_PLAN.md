@@ -10,11 +10,12 @@ After deep audit of the ACTUAL codebase, we found:
 
 ## Files to Modify (NOT Create from Scratch)
 
-### 1. Fix CUA API Implementation
+### 1. Fix CUA Implementation (Must Include Playwright!)
 **File**: `src/yc_matcher/infrastructure/openai_cua_browser.py`
-- **Current**: Uses Agents SDK
-- **Fix**: Change to Responses API with `truncation="auto"`
-- **Effort**: 2-3 hours
+- **Current**: Uses Agents SDK (wrong) and missing Playwright integration
+- **Fix**: Use Responses API + integrate Playwright for execution
+- **Critical**: CUA analyzes screenshots, Playwright executes actions (they work TOGETHER)
+- **Effort**: 3-4 hours
 - **Details**: [REAL_REFACTOR_SECTION_1_CUA.md](./REAL_REFACTOR_SECTION_1_CUA.md)
 
 ### 2. Add 3-Input UI Mode
