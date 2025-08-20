@@ -92,10 +92,11 @@ evaluate(profile_text: str, criteria: Criteria) -> DecisionResult
 ## Adapters (Implementations)
 
 ### CUA Adapter (PRIMARY)
-- **OpenAICUAAdapter**: Computer Use tool via Agents SDK with CUA model
+- **OpenAICUABrowser**: Computer Use tool via Agents SDK (env: `CUA_MODEL`)
+  - Navigates YC, reads profile text from screen, clicks, types, verifies send
 
 ### Browser Adapter (FALLBACK)
-- **PlaywrightBrowserAdapter**: Selector-based automation when CUA unavailable
+- **PlaywrightBrowserAdapter**: Selector-based fallback (gated by `ENABLE_PLAYWRIGHT_FALLBACK=1`)
 
 ### Decision Adapters
 - **AdvisorDecisionAdapter**: LLM evaluation
@@ -198,10 +199,10 @@ evaluate(profile_text: str, criteria: Criteria) -> DecisionResult
 ```python
 def create_browser_adapter(config):
     if config.ENABLE_CUA:
-        from infrastructure.cua.openai import OpenAICUAAdapter
-        return OpenAICUAAdapter(
+        from infrastructure.openai_cua_browser import OpenAICUABrowser
+        return OpenAICUABrowser(
             api_key=config.OPENAI_API_KEY,
-            model=config.CUA_MODEL,  # read from env/config
+            model=config.CUA_MODEL or os.getenv("CUA_MODEL"),  # read from env/config
             temperature=0.3
         )
     
@@ -221,6 +222,42 @@ def create_decision_adapter(mode, config):
     raise ConfigError(f"Unknown decision mode: {mode}")
 ```
 
+## Implementation Notes
+
+### Correct Import Pattern
+```python
+# Package name: openai-agents (pip install openai-agents)
+# Import as: agents
+from agents import Agent, ComputerTool, Session
+```
+
+### Environment Configuration
+```bash
+# Core
+OPENAI_API_KEY=sk-...
+ENABLE_CUA=1
+CUA_MODEL=<your-computer-use-model>  # From Models endpoint
+
+# Fallback
+ENABLE_PLAYWRIGHT_FALLBACK=1
+
+# Decision Engine
+DECISION_MODE=advisor|rubric|hybrid
+OPENAI_DECISION_MODEL=<your-best-llm>  # For Advisor/Hybrid
+THRESHOLD=0.72
+ALPHA=0.30  # Hybrid weighting (0..1)
+
+# Safety & Limits
+DAILY_QUOTA=25
+WEEKLY_QUOTA=120
+PACE_MIN_SECONDS=45
+SHADOW_MODE=0  # 1 = evaluate-only
+
+# Paths
+RUNS_DIR=.runs
+EVENTS_FILE=events.jsonl
+```
+
 ## Safety Mechanisms
 - **STOP flag**: Check `.runs/stop.flag` before each action
 - **Quotas**: Hard limits enforced at adapter level
@@ -229,3 +266,10 @@ def create_decision_adapter(mode, config):
 - **Shadow Mode**: Evaluate-only, no sends
 - **HIL Mode**: Manual approval required (Advisor mode)
 - **Audit**: Complete JSONL trail with versioning
+
+## Invariants
+- If `STOP` flag exists → abort before any send
+- Never send if `seen` already contains candidate key
+- Never exceed daily/weekly quotas
+- Always log `decision` before any `sent`
+- CUA is primary; Playwright only if CUA disabled or fails and fallback enabled
