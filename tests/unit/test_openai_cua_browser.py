@@ -162,9 +162,11 @@ class TestOpenAICUABrowserResponsesAPI:
                 # Second call: computer_call_output with screenshot
                 second_call = mock_openai_client.responses.create.call_args_list[1]
                 assert second_call.kwargs["previous_response_id"] == "resp_123"
-                assert "computer_call_output" in second_call.kwargs
-                assert second_call.kwargs["computer_call_output"]["call_id"] == "call_456"
-                assert "screenshot" in second_call.kwargs["computer_call_output"]
+                assert "input" in second_call.kwargs
+                assert second_call.kwargs["input"][0]["type"] == "computer_call_output"
+                assert second_call.kwargs["input"][0]["call_id"] == "call_456"
+                assert "output" in second_call.kwargs["input"][0]
+                assert second_call.kwargs["input"][0]["output"]["type"] == "input_image"
 
     @pytest.mark.asyncio
     async def test_cua_executes_actions_with_playwright(
