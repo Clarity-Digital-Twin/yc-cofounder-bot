@@ -11,4 +11,3 @@ def test_progress_repo_roundtrip(tmp_path: Path):
     assert repo.get_last() == "abc123"
     repo.set_last("def456")
     assert repo.get_last() == "def456"
-

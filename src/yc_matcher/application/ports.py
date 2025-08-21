@@ -24,6 +24,7 @@ class QuotaPort(Protocol):
     def check_and_increment(self, limit: int) -> bool:  # True if another send allowed
         ...
 
+
 class CalendarQuotaPort(QuotaPort, Protocol):
     """Optional calendar-aware quota: enforces per-day/week caps."""
 

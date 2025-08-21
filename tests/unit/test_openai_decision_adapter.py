@@ -41,12 +41,15 @@ class LoggerList:
 def test_openai_decision_adapter_returns_schema_like_payload_and_logs_usage():
     client = FakeClient()
     log = LoggerList()
-    adapter = OpenAIDecisionAdapter(client=client, logger=log, model="gpt-test", prompt_ver="vX", rubric_ver="rY")
-    out = adapter.evaluate(Profile(raw_text="John Doe\nProjects..."), Criteria(text="python,fastapi"))
+    adapter = OpenAIDecisionAdapter(
+        client=client, logger=log, model="gpt-test", prompt_ver="vX", rubric_ver="rY"
+    )
+    out = adapter.evaluate(
+        Profile(raw_text="John Doe\nProjects..."), Criteria(text="python,fastapi")
+    )
     assert out["decision"] == "YES"
     assert out["draft"].startswith("Hello ")
     assert out.get("prompt_ver") == "vX"
     assert out.get("rubric_ver") == "rY"
     kinds = [e.get("event") for e in log.events]
     assert "model_usage" in kinds
-

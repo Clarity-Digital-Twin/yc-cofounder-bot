@@ -6,8 +6,10 @@ from collections.abc import Iterable
 try:
     from playwright.sync_api import Page, sync_playwright
 except Exception:  # pragma: no cover
+
     class _Stub:  # minimal stub types to satisfy annotations
         pass
+
     Page = _Stub
     sync_playwright = None
 
@@ -26,7 +28,9 @@ class PlaywrightBrowser:
         if self._page is not None:
             return self._page
         if sync_playwright is None:  # pragma: no cover
-            raise RuntimeError("Playwright not available; install with `python -m playwright install chromium`")
+            raise RuntimeError(
+                "Playwright not available; install with `python -m playwright install chromium`"
+            )
         pl = sync_playwright()
         self._pl = pl
         headless = os.getenv("PLAYWRIGHT_HEADLESS", "0") in {"1", "true", "True"}

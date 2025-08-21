@@ -21,4 +21,3 @@ class FileStopFlag(StopController):
             self.path.unlink()
         except FileNotFoundError:
             pass
-

@@ -43,20 +43,30 @@ def build_services(
     if os.getenv("ENABLE_OPENAI", "0") in {"1", "true", "True"}:
         try:
             from ..infrastructure.openai_decision import OpenAIDecisionAdapter
+
             # Lazy import of SDK done inside adapter by client you pass. Here we assume a client will be created by consumer;
             # For now, use a very lightweight placeholder that matches our FakeClient in tests if real client missing.
             try:
                 from openai import OpenAI
+
                 client: Any = OpenAI()
             except Exception:
+
                 class _Noop:
                     class responses:
                         @staticmethod
                         def create(**_: Any) -> Any:
-                            return type("R", (), {"output": {"decision": "NO", "rationale": "offline", "draft": ""}})()
+                            return type(
+                                "R",
+                                (),
+                                {"output": {"decision": "NO", "rationale": "offline", "draft": ""}},
+                            )()
+
                 client = _Noop()
             # logger is defined below; create a temporary base for decision stamping
-            decision = OpenAIDecisionAdapter(client=client, logger=None, prompt_ver=prompt_ver, rubric_ver=rubric_ver)
+            decision = OpenAIDecisionAdapter(
+                client=client, logger=None, prompt_ver=prompt_ver, rubric_ver=rubric_ver
+            )
         except Exception:
             # Fallback to local decision if adapter import fails
             decision = LocalDecisionAdapter()
@@ -75,43 +85,57 @@ def build_services(
     # If decision adapter exists without logger, attach the stamped logger now
     try:
         from ..infrastructure.openai_decision import OpenAIDecisionAdapter
+
         if isinstance(decision, OpenAIDecisionAdapter) and decision.logger is None:
             decision.logger = logger
     except Exception:
         pass
 
     # Quota: calendar-aware (daily/weekly) if enabled, else simple file counter
-    quota = SQLiteDailyWeeklyQuota(Path(".runs/quota.sqlite")) if os.getenv("ENABLE_CALENDAR_QUOTA", "0") in {"1", "true", "True"} else FileQuota()
+    quota = (
+        SQLiteDailyWeeklyQuota(Path(".runs/quota.sqlite"))
+        if os.getenv("ENABLE_CALENDAR_QUOTA", "0") in {"1", "true", "True"}
+        else FileQuota()
+    )
 
     # Send use case needs a BrowserPort; CUA primary, Playwright fallback
     class _NullBrowser:
         def focus_message_box(self) -> None: ...
         def fill_message(self, text: str) -> None: ...
         def send(self) -> None: ...
-        def verify_sent(self) -> bool: return True
+        def verify_sent(self) -> bool:
+            return True
+
         def open(self, url: str) -> None: ...
-        def click_view_profile(self) -> bool: return True
-        def read_profile_text(self) -> str: return ""
+        def click_view_profile(self) -> bool:
+            return True
+
+        def read_profile_text(self) -> str:
+            return ""
+
         def skip(self) -> None: ...
         def close(self) -> None: ...
 
     browser: BrowserPort
-    
+
     # PRIMARY: OpenAI CUA via Agents SDK
     if os.getenv("ENABLE_CUA", "0") in {"1", "true", "True"}:
         try:
             from ..infrastructure.openai_cua_browser import OpenAICUABrowser
+
             browser = cast(BrowserPort, OpenAICUABrowser())
-        except Exception as e:
+        except Exception:
             # Fallback to Playwright if CUA fails
             if os.getenv("ENABLE_PLAYWRIGHT_FALLBACK", "0") in {"1", "true", "True"}:
                 from ..infrastructure.browser_playwright import PlaywrightBrowser
+
                 browser = cast(BrowserPort, PlaywrightBrowser())
             else:
                 browser = cast(BrowserPort, _NullBrowser())
     # FALLBACK: Playwright when CUA not enabled
     elif os.getenv("ENABLE_PLAYWRIGHT", "0") in {"1", "true", "True"}:
         from ..infrastructure.browser_playwright import PlaywrightBrowser
+
         browser = cast(BrowserPort, PlaywrightBrowser())
     else:
         browser = cast(BrowserPort, _NullBrowser())

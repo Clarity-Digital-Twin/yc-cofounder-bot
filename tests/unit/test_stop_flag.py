@@ -11,4 +11,3 @@ def test_file_stop_flag_roundtrip(tmp_path: Path):
     assert f.is_stopped() is True
     f.clear()
     assert f.is_stopped() is False
-

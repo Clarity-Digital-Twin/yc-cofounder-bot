@@ -21,7 +21,7 @@ def main() -> int:
     """Check OpenAI Computer Use tool availability."""
     if _load_dotenv is not None:
         _load_dotenv()
-    
+
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         _print("ERROR: OPENAI_API_KEY not set. Add it to .env or your environment.")
@@ -40,10 +40,10 @@ def main() -> int:
     try:
         models = client.models.list()
         model_ids = {m.id for m in models.data}
-        
+
         # Look for computer-use models
         cua_models = [mid for mid in model_ids if "computer" in mid.lower() or "cua" in mid.lower()]
-        
+
         if cua_models:
             _print(f"Computer Use models found: {', '.join(cua_models)}")
         else:
@@ -55,6 +55,7 @@ def main() -> int:
     # Step 2: Check Agents SDK availability
     try:
         from agents import Agent, ComputerTool
+
         _print("SUCCESS: Agents SDK (openai-agents package) is installed.")
     except ImportError:
         _print("ERROR: Agents SDK not installed.")
@@ -68,31 +69,27 @@ def main() -> int:
             _print("WARNING: CUA_MODEL not set. Check your Models endpoint.")
             _print("Visit: https://platform.openai.com/account/models")
             return 1
-        
-        agent = Agent(
-            model=cua_model,
-            tools=[ComputerTool()],
-            temperature=0.3
-        )
-        
+
+        agent = Agent(model=cua_model, tools=[ComputerTool()], temperature=0.3)
+
         _print(f"SUCCESS: Computer Use agent initialized with model: {cua_model}")
         _print("Note: Full functionality requires a browser/VM environment.")
-        
+
         # Try a minimal test if possible
         try:
             # This may fail without proper environment setup
-            result = agent.run(
+            agent.run(
                 messages=[{"role": "user", "content": "Just confirm you're ready."}],
                 tools=[ComputerTool()],
-                max_tokens=50
+                max_tokens=50,
             )
             _print("SUCCESS: Agent responded. Computer Use is available.")
         except Exception as e:
             _print(f"INFO: Agent test failed (expected without browser environment): {e}")
             _print("This is normal - Computer Use needs a browser/VM to function fully.")
-        
+
         return 0
-        
+
     except Exception as e:
         _print(f"ERROR: Could not initialize Computer Use: {e}")
         _print("Check that:")

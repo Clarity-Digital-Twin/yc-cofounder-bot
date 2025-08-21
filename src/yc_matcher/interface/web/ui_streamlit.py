@@ -37,6 +37,7 @@ def main() -> None:
         st.caption("Shadow Mode on: evaluate only, do not send.")
         # STOP switch (.runs/stop.flag)
         from yc_matcher.infrastructure.stop_flag import FileStopFlag
+
         stop_flag = FileStopFlag(Path(".runs/stop.flag"))
         stopped = st.toggle("STOP (abort run)", value=stop_flag.is_stopped())
         if stopped:
@@ -93,7 +94,10 @@ def main() -> None:
                         settings = load_settings()
                         seen = SQLiteSeenRepo(db_path=Path(".runs/seen.sqlite"))
                         eval_use2, send_use2, logger2 = build_services(
-                            criteria_text=criteria_text, template_text=template_text, prompt_ver="v1", rubric_ver="v1"
+                            criteria_text=criteria_text,
+                            template_text=template_text,
+                            prompt_ver="v1",
+                            rubric_ver="v1",
                         )
                         browser = send_use2.browser
                         pc = ProcessCandidate(
@@ -106,7 +110,12 @@ def main() -> None:
                         url = getattr(settings, "yc_match_url", None) or os.getenv(
                             "YC_MATCH_URL", "https://www.startupschool.org/cofounder-matching"
                         )
-                        pc(url=str(url), criteria=Criteria(text=criteria_text), limit=int(quota), auto_send=True)
+                        pc(
+                            url=str(url),
+                            criteria=Criteria(text=criteria_text),
+                            limit=int(quota),
+                            auto_send=True,
+                        )
                         st.success("Sent (check logs for details).")
                     except Exception as e:
                         st.error(f"Send failed: {e}")

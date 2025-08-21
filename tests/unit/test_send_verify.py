@@ -79,4 +79,3 @@ def test_send_message_fails_after_retry():
     assert ok is False
     kinds = [e.get("event") for e in log.events]
     assert "send_failed" in kinds
-

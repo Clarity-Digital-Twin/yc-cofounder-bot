@@ -32,4 +32,3 @@ class SQLiteProgressRepo:
                 (ident,),
             )
             con.commit()
-

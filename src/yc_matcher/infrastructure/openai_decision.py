@@ -66,7 +66,13 @@ class OpenAIDecisionAdapter(DecisionPort):
             "Decide YES or NO and include a short rationale and a draft outreach using the template rules."
         )
         # Call the client in a library-agnostic way
-        resp = self.client.responses.create(model=self.model, input=[{"role": "system", "content": sys_prompt}, {"role": "user", "content": user_text}],)
+        resp = self.client.responses.create(
+            model=self.model,
+            input=[
+                {"role": "system", "content": sys_prompt},
+                {"role": "user", "content": user_text},
+            ],
+        )
         # Extract a dict payload
         payload: dict[str, Any] | None = None
         if hasattr(resp, "output") and isinstance(resp.output, dict):
