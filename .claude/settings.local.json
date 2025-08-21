@@ -61,7 +61,10 @@
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest --co -q)",
       "Bash(env SHADOW_MODE=1 ENABLE_CUA=0 DECISION_MODE=hybrid USE_THREE_INPUT_UI=true uv run streamlit run src/yc_matcher/interface/web/ui_streamlit.py --server.headless true --server.port 8502)",
       "Bash(env SHADOW_MODE=1 ENABLE_CUA=0 ENABLE_PLAYWRIGHT=1 DECISION_MODE=hybrid USE_THREE_INPUT_UI=true uv run streamlit run src/yc_matcher/interface/web/ui_streamlit.py --server.headless true --server.port 8502)",
-      "Bash(env SHADOW_MODE=1 ENABLE_CUA=0 ENABLE_PLAYWRIGHT=1 DECISION_MODE=hybrid USE_THREE_INPUT_UI=true PLAYWRIGHT_HEADLESS=1 YC_MATCH_URL=\"https://www.startupschool.org/cofounder-matching\" uv run streamlit run src/yc_matcher/interface/web/ui_streamlit.py --server.headless true --server.port 8502)"
+      "Bash(env SHADOW_MODE=1 ENABLE_CUA=0 ENABLE_PLAYWRIGHT=1 DECISION_MODE=hybrid USE_THREE_INPUT_UI=true PLAYWRIGHT_HEADLESS=1 YC_MATCH_URL=\"https://www.startupschool.org/cofounder-matching\" uv run streamlit run src/yc_matcher/interface/web/ui_streamlit.py --server.headless true --server.port 8502)",
+      "Bash(PLAYWRIGHT_BROWSERS_PATH=.ms-playwright uv run python -m playwright install chromium)",
+      "Bash(env PLAYWRIGHT_BROWSERS_PATH=.ms-playwright SHADOW_MODE=1 ENABLE_CUA=0 ENABLE_PLAYWRIGHT=1 DECISION_MODE=hybrid USE_THREE_INPUT_UI=true PLAYWRIGHT_HEADLESS=1 YC_MATCH_URL=\"https://www.startupschool.org/cofounder-matching\" uv run streamlit run src/yc_matcher/interface/web/ui_streamlit.py --server.headless true --server.port 8502)",
+      "Bash(env PLAYWRIGHT_BROWSERS_PATH=/mnt/c/Users/JJ/Desktop/Clarity-Digital-Twin/yc-cofounder-bot/.ms-playwright ENABLE_PLAYWRIGHT=1 DECISION_MODE=hybrid USE_THREE_INPUT_UI=true PLAYWRIGHT_HEADLESS=1 YC_MATCH_URL=\"https://www.startupschool.org/cofounder-matching\" uv run streamlit run src/yc_matcher/interface/web/ui_streamlit.py --server.headless true --server.port 8502)"
     ],
     "deny": [],
     "ask": []

@@ -91,15 +91,19 @@ def render_three_input_mode() -> None:
 
     with col_conf3:
         # Safety controls
+        st.subheader("🛡️ Safety Mode")
         shadow_mode = st.toggle(
-            "Shadow Mode (evaluate only)",
+            "Test Mode (Evaluate Only)",
             value=os.getenv("SHADOW_MODE", "1") == "1",
             key="shadow_auto",
+            help="When ON: Evaluates profiles but NEVER sends messages. When OFF: Will actually send real messages to matches."
         )
         if shadow_mode:
-            st.caption("✅ Safe: Will NOT send messages")
+            st.success("✅ **SAFE MODE**: Will evaluate but NOT send any messages")
+            st.caption("Perfect for testing. No messages will be sent.")
         else:
-            st.caption("⚠️ Live: Will send messages")
+            st.error("⚠️ **LIVE MODE**: Will ACTUALLY SEND real messages!")
+            st.caption("Real messages will be sent to matches. Use with caution.")
 
     # Advanced settings in expander (Clean Code: hide complexity)
     with st.expander("⚙️ Advanced Settings"):
