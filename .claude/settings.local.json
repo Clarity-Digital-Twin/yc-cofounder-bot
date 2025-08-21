@@ -86,7 +86,8 @@
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_browser_port_methods_use_cua_loop tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_fallback_to_playwright_when_cua_fails tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_verify_sent_strict_checking -xvs)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_decision_modes.py::TestHybridMode::test_hybrid_gates_with_rubric_first tests/unit/test_decision_modes.py::TestHybridMode::test_hybrid_includes_both_scores -xvs)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_decision_modes.py::TestHybridMode -q)",
-      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_di.py -k \"test_openai_adapter_when_enabled or test_build_services_creates_logger_with_versions or test_cua_browser_when_enabled\" -xvs)"
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_di.py -k \"test_openai_adapter_when_enabled or test_build_services_creates_logger_with_versions or test_cua_browser_when_enabled\" -xvs)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_di.py -q)"
     ],
     "deny": [],
     "ask": []

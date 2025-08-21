@@ -244,7 +244,7 @@ class TestBuildServices:
         assert send_use.quota is mock_quota
 
     @patch.dict(os.environ, {"ENABLE_CUA": "1"})
-    @patch("yc_matcher.interface.di.OpenAICUABrowser")
+    @patch("yc_matcher.infrastructure.openai_cua_browser.OpenAICUABrowser")
     def test_cua_browser_when_enabled(self, mock_cua_class: Mock) -> None:
         """Test CUA browser is used when enabled."""
         # Arrange
