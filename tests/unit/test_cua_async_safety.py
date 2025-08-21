@@ -93,7 +93,7 @@ class TestCUAAsyncSafety:
 
         # Act - Run CUA action loop
         start = asyncio.get_event_loop().time()
-        result = await browser._cua_action("click profile", max_steps=2)
+        result = await browser._cua_action("click profile")
         elapsed = asyncio.get_event_loop().time() - start
 
         # Assert - Should not block event loop
