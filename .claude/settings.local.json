@@ -121,7 +121,8 @@
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py tests/integration/test_browser_singleton.py -x)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/integration/ -q)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/integration/test_browser_singleton.py tests/integration/test_single_browser.py -v)",
-      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest --collect-only -q)"
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest --collect-only -q)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/integration/ -q --tb=no)"
     ],
     "deny": [],
     "ask": []
