@@ -72,10 +72,15 @@ class TestCUAAsyncSafety:
             browser = OpenAICUABrowser()
 
         # Mock responses to simulate CUA loop
-        mock_responses = [
-            MagicMock(computer_call=MagicMock(action="click", coordinates=(100, 200))),
-            MagicMock(computer_call=None, content="Done"),
-        ]
+        mock_resp1 = MagicMock()
+        mock_resp1.id = "resp1"
+        mock_resp1.output = [MagicMock(type="computer_call", call_id="call1", action=MagicMock(type="click", coordinates={"x": 100, "y": 200}))]
+        
+        mock_resp2 = MagicMock()
+        mock_resp2.id = "resp2"
+        mock_resp2.output = [MagicMock(type="output_text", text="Done")]
+        
+        mock_responses = [mock_resp1, mock_resp2]
 
         def slow_create(*args, **kwargs):
             time.sleep(0.05)  # Simulate network
