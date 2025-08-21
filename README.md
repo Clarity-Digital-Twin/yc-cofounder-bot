@@ -1,13 +1,34 @@
-YC Co‑Founder Matching Bot
+# YC Co-Founder Matcher Bot 🤖
 
-Autonomous browser automation for YC/Startup School cofounder matching using OpenAI Computer Use.
+Autonomous browser automation for YC/Startup School cofounder matching using OpenAI Computer Use API and Playwright.
 
-## How It Works
+## 🚀 Features
 
-1. **You provide 3 inputs**: Your Profile, Match Criteria, Message Template
-2. **CUA+Playwright browse together**: CUA analyzes screenshots, Playwright executes actions
-3. **Decisions made**: Using Advisor/Rubric/Hybrid modes per your configuration
-4. **Messages sent**: Automatically when thresholds met (with safety controls)
+- **Autonomous Browsing**: Automatically browse and evaluate co-founder profiles
+- **Smart Decision Making**: Three configurable decision modes (Advisor/Rubric/Hybrid)
+- **OpenAI Computer Use**: Vision models understand and interact with web pages
+- **Safety First**: Shadow mode, quotas, STOP flags, and deduplication
+- **Clean Architecture**: Domain-Driven Design with SOLID principles
+
+## 📋 Quick Start
+
+```bash
+# Clone and setup
+git clone https://github.com/Clarity-Digital-Twin/yc-cofounder-bot.git
+cd yc-cofounder-bot
+make setup
+
+# Configure (copy .env.example to .env and add your OpenAI key)
+cp .env.example .env
+
+# Run the web UI
+make run
+```
+
+Then open http://localhost:8502 and provide:
+1. **Your Profile**: Brief description of yourself
+2. **Match Criteria**: What you're looking for in a co-founder  
+3. **Message Template**: Outreach template with {name} placeholder
 
 ## Docs
 - See `docs/` for complete documentation
