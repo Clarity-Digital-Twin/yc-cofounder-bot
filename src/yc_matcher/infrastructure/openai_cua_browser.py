@@ -395,6 +395,14 @@ class OpenAICUABrowser:
                 pass  # Fallback failed, continue
 
         # Conservative: return False if uncertain
+        # Emit error event for observability
+        self._log_event({
+            "event": "error",
+            "type": "verify_sent_failed",
+            "reason": "could_not_confirm_sent",
+            "cua_result": result if result else None,
+            "message": "Message send could not be verified"
+        })
         return False
 
     async def close(self) -> None:

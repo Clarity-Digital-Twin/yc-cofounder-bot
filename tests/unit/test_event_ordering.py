@@ -3,8 +3,6 @@
 from collections.abc import Mapping
 from typing import Any
 
-import pytest
-
 from yc_matcher.application.use_cases import EvaluateProfile, ProcessCandidate, SendMessage
 from yc_matcher.domain.entities import Criteria, Profile
 
@@ -88,14 +86,14 @@ def test_decision_precedes_sent():
     This is a critical invariant for observability:
     - We must log the decision before attempting to send
     - This ensures we can trace why a message was sent
-    
+
     Following TDD: Write test first, ensure it expresses the requirement clearly.
     """
     # Arrange
     logger = LoggerOrdered()
     browser = BrowserMinimal()
     seen = SeenNever()
-    
+
     eval_use = EvaluateProfile(decision=DecisionYes(), message=MessageEcho())
     send_use = SendMessage(quota=QuotaAlways(), browser=browser, logger=logger)
     pc = ProcessCandidate(
@@ -105,7 +103,7 @@ def test_decision_precedes_sent():
         seen=seen,
         logger=logger
     )
-    
+
     # Act
     pc(
         url="file://test",
@@ -113,14 +111,14 @@ def test_decision_precedes_sent():
         limit=1,
         auto_send=True
     )
-    
+
     # Assert - decision must come before sent
     assert "decision" in logger.events, "Decision event not emitted"
     assert "sent" in logger.events, "Sent event not emitted"
-    
+
     decision_idx = logger.events.index("decision")
     sent_idx = logger.events.index("sent")
-    
+
     assert decision_idx < sent_idx, (
         f"Event ordering violation: 'decision' at {decision_idx} "
         f"must precede 'sent' at {sent_idx}. "
@@ -142,7 +140,7 @@ def test_decision_without_sent_when_no():
     logger = LoggerOrdered()
     browser = BrowserMinimal()
     seen = SeenNever()
-    
+
     eval_use = EvaluateProfile(decision=DecisionNo(), message=MessageEcho())
     send_use = SendMessage(quota=QuotaAlways(), browser=browser, logger=logger)
     pc = ProcessCandidate(
@@ -152,7 +150,7 @@ def test_decision_without_sent_when_no():
         seen=seen,
         logger=logger
     )
-    
+
     # Act
     pc(
         url="file://test",
@@ -160,19 +158,19 @@ def test_decision_without_sent_when_no():
         limit=1,
         auto_send=True
     )
-    
+
     # Assert
     assert "decision" in logger.events, "Decision event not emitted"
     assert "sent" not in logger.events, "Sent event should not be emitted for NO decision"
 
 
 def test_multiple_profiles_maintain_ordering():
-    """Test that decision→sent ordering is maintained across multiple profiles."""
+    """Test that decision→sent ordering is maintained across multiple calls."""
     # Arrange
     logger = LoggerOrdered()
     browser = BrowserMinimal()
     seen = SeenNever()
-    
+
     eval_use = EvaluateProfile(decision=DecisionYes(), message=MessageEcho())
     send_use = SendMessage(quota=QuotaAlways(), browser=browser, logger=logger)
     pc = ProcessCandidate(
@@ -182,24 +180,26 @@ def test_multiple_profiles_maintain_ordering():
         seen=seen,
         logger=logger
     )
-    
-    # Act - process 3 profiles
-    pc(
-        url="file://test",
-        criteria=Criteria(text="test"),
-        limit=3,
-        auto_send=True
-    )
-    
+
+    # Act - process 3 profiles with separate calls
+    for _ in range(3):
+        pc(
+            url="file://test",
+            criteria=Criteria(text="test"),
+            limit=1,
+            auto_send=True
+        )
+
     # Assert - each decision should precede its corresponding sent
     decision_indices = [i for i, e in enumerate(logger.events) if e == "decision"]
     sent_indices = [i for i, e in enumerate(logger.events) if e == "sent"]
-    
+
     assert len(decision_indices) == 3, f"Expected 3 decisions, got {len(decision_indices)}"
     assert len(sent_indices) == 3, f"Expected 3 sent events, got {len(sent_indices)}"
-    
-    for i, (dec_idx, sent_idx) in enumerate(zip(decision_indices, sent_indices)):
+
+    for i, (dec_idx, sent_idx) in enumerate(zip(decision_indices, sent_indices, strict=False)):
         assert dec_idx < sent_idx, (
             f"Profile {i}: decision at {dec_idx} must precede sent at {sent_idx}. "
             f"Events: {logger.events}"
         )
+
