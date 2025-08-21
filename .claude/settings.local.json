@@ -31,7 +31,9 @@
       "Bash(PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py -xvs)",
       "Bash(PYTHONPATH=src uv run python -m pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_cua_browser_uses_responses_api_not_agents_sdk -xvs)",
       "Bash(PYTHONPATH=src uv run python -c \"import pytest_asyncio; print(''pytest-asyncio installed'')\")",
-      "Bash(PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser_simple.py -xvs)"
+      "Bash(PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser_simple.py -xvs)",
+      "Bash(PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser_simple.py::test_cua_uses_responses_api_not_agents_sdk -xvs)",
+      "Bash(PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_cua_browser_uses_responses_api_not_agents_sdk -xvs)"
     ],
     "deny": [],
     "ask": []

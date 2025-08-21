@@ -29,21 +29,35 @@ class TestOpenAICUABrowserResponsesAPI:
     @pytest.fixture
     def mock_playwright(self) -> AsyncMock:
         """Mock Playwright for browser control."""
-        playwright = AsyncMock()
-        browser = AsyncMock()
         page = AsyncMock()
-        
-        # Setup mock chain
-        playwright.chromium.launch = AsyncMock(return_value=browser)
-        browser.new_page = AsyncMock(return_value=page)
         page.screenshot = AsyncMock(return_value=b"fake_screenshot_bytes")
         page.goto = AsyncMock()
         page.click = AsyncMock()
         page.fill = AsyncMock()
         page.keyboard = AsyncMock()
         page.keyboard.type = AsyncMock()
+        page.keyboard.press = AsyncMock()
+        page.mouse = AsyncMock()
+        page.mouse.wheel = AsyncMock()
+        page.close = AsyncMock()
         
-        return playwright, page
+        browser = AsyncMock()
+        browser.new_page = AsyncMock(return_value=page)
+        browser.close = AsyncMock()
+        
+        chromium = AsyncMock()
+        chromium.launch = AsyncMock(return_value=browser)
+        
+        playwright = AsyncMock()
+        playwright.chromium = chromium
+        playwright.stop = AsyncMock()
+        playwright.start = AsyncMock(return_value=playwright)
+        
+        # async_playwright returns a context manager
+        async_pw_mock = AsyncMock()
+        async_pw_mock.start = AsyncMock(return_value=playwright)
+        
+        return async_pw_mock, playwright, page
     
     @pytest.fixture
     def mock_env(self, monkeypatch) -> None:
@@ -75,10 +89,10 @@ class TestOpenAICUABrowserResponsesAPI:
     ) -> None:
         """Test that CUA uses Playwright to execute actions."""
         # Arrange
-        playwright_mock, page_mock = mock_playwright
+        async_pw_mock, playwright_mock, page_mock = mock_playwright
         
         with patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client):
-            with patch("yc_matcher.infrastructure.openai_cua_browser.async_playwright", return_value=playwright_mock):
+            with patch("yc_matcher.infrastructure.openai_cua_browser.async_playwright", return_value=async_pw_mock):
                 browser = OpenAICUABrowser()
                 
                 # Act - ensure browser launches
@@ -95,7 +109,7 @@ class TestOpenAICUABrowserResponsesAPI:
     ) -> None:
         """Test the core CUA loop: screenshot → analyze → execute → computer_call_output."""
         # Arrange
-        playwright_mock, page_mock = mock_playwright
+        async_pw_mock, playwright_mock, page_mock = mock_playwright
         
         # Mock CUA response with computer_call
         mock_response = Mock()
