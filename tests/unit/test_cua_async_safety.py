@@ -90,6 +90,7 @@ class TestCUAAsyncSafety:
         browser.page = AsyncMock()
         browser.page.screenshot = AsyncMock(return_value=b"screenshot")
         browser.page.click = AsyncMock()
+        browser.page.evaluate = AsyncMock(return_value="https://example.com")
 
         # Act - Run CUA action loop
         start = asyncio.get_event_loop().time()
