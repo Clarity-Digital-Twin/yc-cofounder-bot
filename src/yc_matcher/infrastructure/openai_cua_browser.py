@@ -107,6 +107,7 @@ class OpenAICUABrowser:
             Text output from CUA if any
         """
         await self._ensure_browser()
+        assert self.page is not None  # Type narrowing for mypy
 
         # Take initial screenshot for CUA to analyze
         screenshot = await self.page.screenshot()
