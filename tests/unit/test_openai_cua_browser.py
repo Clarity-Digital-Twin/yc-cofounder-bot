@@ -115,18 +115,26 @@ class TestOpenAICUABrowserResponsesAPI:
         """Test the core CUA loop: screenshot → analyze → execute → computer_call_output."""
         # Arrange
         async_pw_mock, playwright_mock, page_mock = mock_playwright
+        
+        # Add evaluate mock for URL checking
+        page_mock.evaluate = AsyncMock(return_value="https://example.com")
+        page_mock.mouse.click = AsyncMock()  # Add mouse.click for coordinates
 
-        # Mock CUA response with computer_call
+        # Mock CUA response with computer_call in output array (correct API structure)
         mock_response = Mock()
         mock_response.id = "resp_123"
-        mock_response.computer_call = Mock(
-            id="call_456", type="click", coordinates={"x": 100, "y": 200}
-        )
+        mock_response.output = [
+            Mock(
+                type="computer_call",
+                call_id="call_456",
+                action=Mock(type="click", coordinates={"x": 100, "y": 200})
+            )
+        ]
 
-        # Mock follow-up response
+        # Mock follow-up response after computer_call_output
         mock_follow = Mock()
         mock_follow.id = "resp_789"
-        mock_follow.computer_call = None  # Done
+        mock_follow.output = []  # No more computer calls
 
         mock_openai_client.responses.create.side_effect = [mock_response, mock_follow]
 
