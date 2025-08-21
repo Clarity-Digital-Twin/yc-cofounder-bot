@@ -10,17 +10,17 @@ os.environ["PLAYWRIGHT_HEADLESS"] = "1"
 
 def test_single_browser_instance() -> None:
     """Test that multiple method calls use the SAME browser instance."""
-    from unittest.mock import Mock, patch
+    from unittest.mock import Mock, AsyncMock, patch
     
     launch_count = 0
     
     # Mock playwright
     with patch("playwright.async_api.async_playwright") as mock_pw:
         # Track browser launches
-        mock_pw_instance = Mock()
-        mock_browser = Mock()
+        mock_pw_instance = AsyncMock()
+        mock_browser = AsyncMock()
         mock_browser.is_connected.return_value = True
-        mock_page = Mock()
+        mock_page = AsyncMock()
         mock_page.is_closed.return_value = False
         
         # Add async mocks for page methods
@@ -33,32 +33,32 @@ def test_single_browser_instance() -> None:
         async def mock_close(*args, **kwargs):
             return None
             
-        mock_page.goto = Mock(side_effect=mock_goto)
-        mock_page.screenshot = Mock(side_effect=mock_screenshot)  
-        mock_page.evaluate = Mock(side_effect=mock_evaluate)
-        mock_page.close = Mock(side_effect=mock_close)
-        mock_browser.close = Mock(side_effect=mock_close)
+        mock_page.goto = AsyncMock(side_effect=mock_goto)
+        mock_page.screenshot = AsyncMock(side_effect=mock_screenshot)  
+        mock_page.evaluate = AsyncMock(side_effect=mock_evaluate)
+        mock_page.close = AsyncMock(side_effect=mock_close)
+        mock_browser.close = AsyncMock(side_effect=mock_close)
         
         async def count_launch(*args, **kwargs):
             nonlocal launch_count
             launch_count += 1
             return mock_browser
             
-        mock_pw_instance.chromium.launch = Mock(side_effect=count_launch)
+        mock_pw_instance.chromium.launch = AsyncMock(side_effect=count_launch)
         
         async def mock_stop(*args, **kwargs):
             return None
-        mock_pw_instance.stop = Mock(side_effect=mock_stop)
+        mock_pw_instance.stop = AsyncMock(side_effect=mock_stop)
         
         async def mock_new_page(*args, **kwargs):
             return mock_page
             
-        mock_browser.new_page = Mock(side_effect=mock_new_page)
+        mock_browser.new_page = AsyncMock(side_effect=mock_new_page)
         
         async def mock_start():
             return mock_pw_instance
             
-        mock_pw.return_value.start = Mock(side_effect=mock_start)
+        mock_pw.return_value.start = AsyncMock(side_effect=mock_start)
         
         # Mock OpenAI
         with patch("openai.OpenAI") as mock_openai:

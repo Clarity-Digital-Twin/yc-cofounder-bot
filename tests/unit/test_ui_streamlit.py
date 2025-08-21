@@ -119,10 +119,9 @@ class TestStreamlitUI:
         mock_stop_flag_class.return_value = mock_stop
 
         mock_st.session_state = {"hil_pending": None, "last_screenshot": None}
-        mock_st.columns.side_effect = [
-            [MagicMock(), MagicMock(), MagicMock()],  # Main inputs
-            [MagicMock(), MagicMock(), MagicMock()],  # Config
-            [MagicMock(), MagicMock()],  # Stop control
+        # Use a lambda to dynamically create the right number of columns
+        mock_st.columns.side_effect = lambda n: [
+            MagicMock() for _ in range(n if isinstance(n, int) else len(n))
         ]
         mock_st.button.side_effect = [False, False]  # STOP button, Clear button
         mock_st.text_area.return_value = ""

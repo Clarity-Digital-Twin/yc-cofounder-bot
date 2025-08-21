@@ -2,7 +2,7 @@
 
 import os
 import time
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, AsyncMock, patch
 
 # Set test environment
 os.environ["CUA_MODEL"] = "test-model"
@@ -20,24 +20,28 @@ class TestBrowserSingleton:
         
         with patch("playwright.async_api.async_playwright") as mock_playwright:
             # Mock playwright setup
-            mock_pw_instance = Mock()
-            mock_browser = Mock()
+            mock_pw_instance = AsyncMock()
+            mock_browser = AsyncMock()
             mock_browser.is_connected.return_value = True
-            mock_page = Mock()
+            mock_page = AsyncMock()
             
             # Track launches
             def track_launch(*args, **kwargs):
                 browser_launches.append(time.time())
                 return mock_browser
                 
-            mock_pw_instance.chromium.launch = Mock(side_effect=track_launch)
-            mock_browser.new_page = Mock(return_value=mock_page)
+            mock_pw_instance.chromium.launch = AsyncMock(side_effect=track_launch)
+            mock_browser.new_page = AsyncMock(return_value=mock_page)
+            mock_pw_instance.stop = AsyncMock()
+            mock_page.is_closed.return_value = False
+            mock_page.close = AsyncMock()
+            mock_browser.close = AsyncMock()
             
             # Mock async context manager
             async def async_start():
                 return mock_pw_instance
                 
-            mock_playwright.return_value.start = Mock(side_effect=async_start)
+            mock_playwright.return_value.start = AsyncMock(side_effect=async_start)
             
             # Mock OpenAI client
             with patch("openai.OpenAI") as mock_openai:
