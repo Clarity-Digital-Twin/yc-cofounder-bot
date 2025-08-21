@@ -71,6 +71,10 @@ class OpenAICUABrowser:
     async def _ensure_browser(self) -> None:
         """Ensure Playwright browser is running (lazy initialization)."""
         if not self.playwright:
+            # CRITICAL: Set browser path BEFORE starting playwright
+            browsers_path = os.getenv("PLAYWRIGHT_BROWSERS_PATH", ".ms-playwright")
+            os.environ["PLAYWRIGHT_BROWSERS_PATH"] = browsers_path
+            
             self.playwright = await async_playwright().start()
             self.browser = await self.playwright.chromium.launch(
                 headless=os.getenv("PLAYWRIGHT_HEADLESS", "0") == "1"
