@@ -71,28 +71,35 @@ def test_single_browser_instance() -> None:
             mock_client.responses.create = Mock(return_value=mock_response)
             mock_openai.return_value = mock_client
 
-            # Import AFTER mocks
-            from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
+            # Mock AsyncLoopRunner to avoid real browser launch
+            with patch("yc_matcher.infrastructure.openai_cua_browser.AsyncLoopRunner") as mock_runner:
+                mock_runner_instance = Mock()
+                mock_runner_instance.submit = Mock(return_value=None)
+                mock_runner_instance.cleanup = Mock()
+                mock_runner.return_value = mock_runner_instance
+                
+                # Import AFTER mocks
+                from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
 
-            # Create browser and make multiple calls
-            browser = OpenAICUABrowser()
+                # Create browser and make multiple calls
+                browser = OpenAICUABrowser()
 
-            # These should all use the SAME browser
-            browser.open("https://example.com")
-            browser.click_view_profile()
-            browser.read_profile_text()
-            browser.focus_message_box()
-            browser.fill_message("test")
-            browser.send()
-            browser.verify_sent()
-            browser.skip()
+                # These should all use the SAME browser
+                browser.open("https://example.com")
+                browser.click_view_profile()
+                browser.read_profile_text()
+                browser.focus_message_box()
+                browser.fill_message("test")
+                browser.send()
+                browser.verify_sent()
+                browser.skip()
 
-            # CRITICAL ASSERTION: Only ONE browser launch!
-            assert launch_count == 1, f"Expected 1 browser launch, got {launch_count}"
-            print(f"✅ SUCCESS: Only {launch_count} browser instance created!")
+                # CRITICAL ASSERTION: Only ONE browser launch!
+                assert launch_count == 1, f"Expected 1 browser launch, got {launch_count}"
+                print(f"✅ SUCCESS: Only {launch_count} browser instance created!")
 
-            # Clean up
-            browser.close()
+                # Clean up
+                browser.close()
 
 
 if __name__ == "__main__":

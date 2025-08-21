@@ -3,6 +3,7 @@
 import os
 import time
 from unittest.mock import AsyncMock, Mock, patch
+import pytest
 
 # Set test environment
 os.environ["CUA_MODEL"] = "test-model"
@@ -54,26 +55,36 @@ class TestBrowserSingleton:
                 mock_client.responses.create = Mock(return_value=mock_response)
                 mock_openai.return_value = mock_client
 
-                # Import AFTER mocks are set up
-                from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
+                # Mock AsyncLoopRunner to avoid real browser launch
+                with patch("yc_matcher.infrastructure.openai_cua_browser.AsyncLoopRunner") as mock_runner:
+                    mock_runner_instance = Mock()
+                    mock_runner_instance.submit = Mock(return_value=None)
+                    mock_runner_instance.cleanup = Mock()
+                    mock_runner.return_value = mock_runner_instance
+                    
+                    # Import AFTER mocks are set up
+                    from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
+    
+                    # Create browser instance
+                    browser = OpenAICUABrowser()
 
-                # Create browser instance
-                browser = OpenAICUABrowser()
+                    # Make multiple calls that would previously create multiple browsers
+                    browser.open("https://example.com")
+                    browser.click_view_profile()
+                    browser.read_profile_text()
+                    browser.focus_message_box()
+                    browser.fill_message("test")
+                    browser.send()
+                    browser.verify_sent()
+                    browser.skip()
 
-                # Make multiple calls that would previously create multiple browsers
-                browser.open("https://example.com")
-                browser.click_view_profile()
-                browser.read_profile_text()
-                browser.focus_message_box()
-                browser.fill_message("test")
-                browser.send()
-                browser.verify_sent()
-                browser.skip()
-
-                # Assert only ONE browser was launched
-                assert len(browser_launches) <= 1, (
-                    f"Expected 1 browser launch, got {len(browser_launches)}"
-                )
+                    # Assert only ONE browser was launched
+                    assert len(browser_launches) <= 1, (
+                        f"Expected 1 browser launch, got {len(browser_launches)}"
+                    )
+                    
+                    # Clean up properly
+                    browser.close()
 
     def test_browser_manager_is_singleton(self) -> None:
         """Test that AsyncLoopRunner is used correctly."""
