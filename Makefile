@@ -35,15 +35,15 @@ type: ## Run mypy
 	$(PY) mypy src
 
 test: ## Run tests
-	PYTHONPATH=src $(PY) pytest -q
+	PACE_MIN_SECONDS=0 PYTHONPATH=src $(PY) pytest -q
 
 test-int: ## Run integration tests
-	PYTHONPATH=src $(PY) pytest -q -m integration
+	PACE_MIN_SECONDS=0 PYTHONPATH=src $(PY) pytest -q -m integration
 
 verify: ## Run lint, type, tests
 	make lint
 	make type
-	make test
+	PACE_MIN_SECONDS=0 make test
 
 doctor: ## Print env/caches to verify repo-scoped setup
 	@echo "ROOT=$(ROOT)"
@@ -51,6 +51,8 @@ doctor: ## Print env/caches to verify repo-scoped setup
 	@echo "XDG_CACHE_HOME=$(XDG_CACHE_HOME)"
 	@echo "PLAYWRIGHT_BROWSERS_PATH=$(PLAYWRIGHT_BROWSERS_PATH)"
 	@echo "MPLCONFIGDIR=$(MPLCONFIGDIR)"
+	@echo "CUA_MAX_TURNS=$${CUA_MAX_TURNS:-40} (default: 40)"
+	@echo "PACE_MIN_SECONDS=$${PACE_MIN_SECONDS:-45} (default: 45)"
 	@echo "Using PY=$(PY)"
 	@ls -ld .uv_cache .cache .ms-playwright .mplconfig .venv .runs || true
 

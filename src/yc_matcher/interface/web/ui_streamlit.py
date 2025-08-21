@@ -204,7 +204,8 @@ def render_three_input_mode() -> None:
                 "message": getattr(safety_check, "message", ""),
             }
 
-            # Wait for user response (polling pattern)
+            # Wait for user response (non-blocking async pattern)
+            import asyncio
             import time
             timeout = 60  # 60 second timeout
             start = time.time()
@@ -213,7 +214,7 @@ def render_three_input_mode() -> None:
                 if "hil_response" in st.session_state:
                     response = st.session_state.pop("hil_response")
                     return bool(response)
-                time.sleep(0.5)  # Poll every 500ms
+                await asyncio.sleep(0.5)  # Non-blocking async sleep
 
             # Timeout - default to reject for safety
             return False
