@@ -128,7 +128,7 @@ class TestOpenAICUABrowserResponsesAPI:
         mock_openai_client.responses.create.side_effect = [mock_response, mock_follow]
         
         with patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client):
-            with patch("yc_matcher.infrastructure.openai_cua_browser.async_playwright", return_value=playwright_mock):
+            with patch("yc_matcher.infrastructure.openai_cua_browser.async_playwright", return_value=async_pw_mock):
                 browser = OpenAICUABrowser()
                 
                 # Act
@@ -156,7 +156,7 @@ class TestOpenAICUABrowserResponsesAPI:
     ) -> None:
         """Test that CUA actions are executed via Playwright."""
         # Arrange
-        playwright_mock, page_mock = mock_playwright
+        async_pw_mock, playwright_mock, page_mock = mock_playwright
         
         # Mock different action types
         click_response = Mock(
