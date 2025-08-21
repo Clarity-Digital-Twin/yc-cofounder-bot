@@ -220,8 +220,29 @@ Environment Settings:
         with col_login1:
             if st.button("🌐 Open Controlled Browser", type="secondary", use_container_width=True):
                 st.info("Opening browser... Please log into YC Cofounder Matching")
-                # This will trigger browser launch
-                st.session_state["browser_opening"] = True
+                # Launch browser directly here using the existing browser infrastructure
+                try:
+                    # Create minimal services just to get browser
+                    eval_use, send_use, logger = build_services(
+                        criteria_text="temp",
+                        template_text="Hi {name}",
+                        decision_mode="rubric",
+                        threshold=0.5,
+                    )
+                    
+                    # Open the browser to YC login page
+                    yc_url = os.getenv("YC_MATCH_URL", "https://www.startupschool.org/cofounder-matching")
+                    send_use.browser.open(yc_url)
+                    
+                    # Store browser in session for reuse
+                    st.session_state["browser_instance"] = send_use.browser
+                    st.session_state["browser_opening"] = True
+                    
+                    st.success("✅ Browser launched! Please log into YC in the opened browser window.")
+                    st.info("The browser will stay open. After logging in, click 'I'm Logged In' to continue.")
+                except Exception as e:
+                    st.error(f"Failed to open browser: {str(e)}")
+                    st.info("Try running: PLAYWRIGHT_BROWSERS_PATH=.ms-playwright uv run python -m playwright install chromium")
 
         with col_login2:
             if st.button("✅ I'm Logged In", type="primary", use_container_width=True):

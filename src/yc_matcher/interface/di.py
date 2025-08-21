@@ -216,16 +216,18 @@ def build_services(
         except Exception:
             # Fallback to Playwright if CUA fails
             if os.getenv("ENABLE_PLAYWRIGHT_FALLBACK", "0") in {"1", "true", "True"}:
-                from ..infrastructure.browser_playwright import PlaywrightBrowser
+                # Use async-compatible version to avoid "Sync API in asyncio loop" error
+                from ..infrastructure.browser_playwright_async import PlaywrightBrowserAsync
 
-                browser = cast(BrowserPort, PlaywrightBrowser())
+                browser = cast(BrowserPort, PlaywrightBrowserAsync())
             else:
                 browser = cast(BrowserPort, _NullBrowser())
     # FALLBACK: Playwright when CUA not enabled
     elif os.getenv("ENABLE_PLAYWRIGHT", "0") in {"1", "true", "True"}:
-        from ..infrastructure.browser_playwright import PlaywrightBrowser
+        # Use async-compatible version to avoid "Sync API in asyncio loop" error
+        from ..infrastructure.browser_playwright_async import PlaywrightBrowserAsync
 
-        browser = cast(BrowserPort, PlaywrightBrowser())
+        browser = cast(BrowserPort, PlaywrightBrowserAsync())
     else:
         browser = cast(BrowserPort, _NullBrowser())
 
