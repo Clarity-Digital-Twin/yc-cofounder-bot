@@ -3,7 +3,6 @@
 import os
 import time
 from unittest.mock import AsyncMock, Mock, patch
-import pytest
 
 # Set test environment
 os.environ["CUA_MODEL"] = "test-model"
@@ -17,29 +16,31 @@ class TestBrowserSingleton:
     def test_single_browser_across_multiple_calls(self) -> None:
         """Test that only ONE browser is created across multiple method calls."""
         from types import SimpleNamespace
-        
+
         # Track browser launches
         browser_launches = []
-        
+
         # Patch BEFORE import
-        with patch("yc_matcher.infrastructure.async_loop_runner.AsyncLoopRunner") as mock_runner, \
-             patch("playwright.async_api.async_playwright") as mock_playwright, \
-             patch("openai.OpenAI") as mock_openai:
+        with (
+            patch("yc_matcher.infrastructure.async_loop_runner.AsyncLoopRunner") as mock_runner,
+            patch("playwright.async_api.async_playwright") as mock_playwright,
+            patch("openai.OpenAI") as mock_openai,
+        ):
             # Setup AsyncLoopRunner mock
             mock_runner_instance = Mock()
             mock_runner_instance.submit = Mock(return_value=None)
             mock_runner_instance.cleanup = Mock()
             mock_runner.return_value = mock_runner_instance
-            
+
             # Setup Playwright mocks with correct async/sync types
             mock_pw_instance = AsyncMock()
             mock_browser = AsyncMock()
             mock_page = AsyncMock()
-            
+
             # Sync methods (not awaited)
             mock_browser.is_connected = Mock(return_value=True)
             mock_page.is_closed = Mock(return_value=False)
-            
+
             # Async page methods
             mock_page.goto = AsyncMock()
             mock_page.screenshot = AsyncMock(return_value=b"fake_screenshot_bytes")
@@ -47,25 +48,25 @@ class TestBrowserSingleton:
             mock_page.close = AsyncMock()
             mock_page.mouse = SimpleNamespace(click=AsyncMock())
             mock_page.keyboard = SimpleNamespace(type=AsyncMock(), press=AsyncMock())
-            
+
             # Browser async methods
             mock_browser.close = AsyncMock()
             mock_browser.new_page = AsyncMock(return_value=mock_page)
-            
+
             # Track launches
             def track_launch(*args, **kwargs):
                 browser_launches.append(time.time())
                 return mock_browser
-            
+
             mock_pw_instance.chromium.launch = AsyncMock(side_effect=track_launch)
             mock_pw_instance.stop = AsyncMock()
-            
+
             # Playwright start
             async def async_start():
                 return mock_pw_instance
-            
+
             mock_playwright.return_value.start = AsyncMock(side_effect=async_start)
-            
+
             # Setup OpenAI mock
             mock_client = Mock()
             mock_response = Mock()
@@ -73,13 +74,13 @@ class TestBrowserSingleton:
             mock_response.output = []
             mock_client.responses.create = Mock(return_value=mock_response)
             mock_openai.return_value = mock_client
-            
+
             # Import AFTER all patches are in place
             from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
-            
+
             # Create browser instance
             browser = OpenAICUABrowser()
-            
+
             try:
                 # Make multiple calls that would previously create multiple browsers
                 browser.open("https://example.com")
@@ -90,7 +91,7 @@ class TestBrowserSingleton:
                 browser.send()
                 browser.verify_sent()
                 browser.skip()
-                
+
                 # Assert only ONE browser was launched
                 assert len(browser_launches) <= 1, (
                     f"Expected 1 browser launch, got {len(browser_launches)}"
