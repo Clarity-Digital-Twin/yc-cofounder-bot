@@ -137,7 +137,7 @@ class TestCreateDecisionAdapter:
             create_decision_adapter(mode="invalid", scoring=mock_scoring)
 
     @patch.dict(os.environ, {"ENABLE_OPENAI": "1"})
-    @patch("yc_matcher.interface.di.OpenAIDecisionAdapter")
+    @patch("yc_matcher.infrastructure.openai_decision.OpenAIDecisionAdapter")
     def test_openai_adapter_when_enabled(self, mock_openai_class: Mock) -> None:
         """Test OpenAI adapter is used when enabled."""
         # Arrange
