@@ -129,7 +129,12 @@
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/e2e/test_end_to_end_flow.py -xvs)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/e2e/test_end_to_end_flow.py::TestEndToEndFlow -q)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/e2e/test_end_to_end_flow.py -q)",
-      "Bash(env PLAYWRIGHT_BROWSERS_PATH=.ms-playwright SHADOW_MODE=1 ENABLE_PLAYWRIGHT=1 ENABLE_CUA=0 DECISION_MODE=rubric USE_THREE_INPUT_UI=true PLAYWRIGHT_HEADLESS=1 YC_MATCH_URL=\"https://www.startupschool.org/cofounder-matching\" uv run streamlit run src/yc_matcher/interface/web/ui_streamlit.py --server.headless true --server.port 8504)"
+      "Bash(env PLAYWRIGHT_BROWSERS_PATH=.ms-playwright SHADOW_MODE=1 ENABLE_PLAYWRIGHT=1 ENABLE_CUA=0 DECISION_MODE=rubric USE_THREE_INPUT_UI=true PLAYWRIGHT_HEADLESS=1 YC_MATCH_URL=\"https://www.startupschool.org/cofounder-matching\" uv run streamlit run src/yc_matcher/interface/web/ui_streamlit.py --server.headless true --server.port 8504)",
+      "Bash(PLAYWRIGHT_BROWSERS_PATH=.ms-playwright uv run python test_ui_interactive.py)",
+      "Bash(PLAYWRIGHT_BROWSERS_PATH=.ms-playwright uv run python test_full_flow.py)",
+      "Bash(PLAYWRIGHT_BROWSERS_PATH=.ms-playwright PLAYWRIGHT_HEADLESS=0 uv run python test_monitor_automation.py)",
+      "Bash(env PLAYWRIGHT_BROWSERS_PATH=.ms-playwright SHADOW_MODE=1 ENABLE_PLAYWRIGHT=1 ENABLE_CUA=0 DECISION_MODE=rubric USE_THREE_INPUT_UI=true PLAYWRIGHT_HEADLESS=0 YC_MATCH_URL=\"https://www.startupschool.org/cofounder-matching\" uv run streamlit run src/yc_matcher/interface/web/ui_streamlit.py --server.headless true --server.port 8504)",
+      "Bash(PLAYWRIGHT_BROWSERS_PATH=.ms-playwright PLAYWRIGHT_HEADLESS=0 uv run python test_visible_browser.py)"
     ],
     "deny": [],
     "ask": []
