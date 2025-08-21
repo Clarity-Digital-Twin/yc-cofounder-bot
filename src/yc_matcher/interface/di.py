@@ -231,7 +231,7 @@ def build_services(
 
     # Create stop controller (shared between ProcessCandidate and SendMessage)
     stop = FileStopFlag(Path(".runs/stop.flag"))
-    
+
     send_use = SendMessage(quota=quota, browser=browser, logger=logger, stop=stop)
 
     return eval_use, send_use, logger

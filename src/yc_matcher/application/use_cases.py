@@ -43,36 +43,36 @@ class SendMessage:
         if self.stop and self.stop.is_stopped():
             self.logger.emit({"event": "stopped", "where": "send_message_start"})
             return False
-            
+
         if not self.quota.check_and_increment(limit):
             self.logger.emit({"event": "quota_block", "limit": limit})
             return False
-            
+
         # Optional pacing delay between sends (seconds)
         try:
             pace_seconds = int(os.getenv("PACE_MIN_SECONDS", "45"))
         except Exception:
             pace_seconds = 45
-            
+
         # Check stop before focus
         if self.stop and self.stop.is_stopped():
             self.logger.emit({"event": "stopped", "where": "before_focus"})
             return False
-            
+
         self.browser.focus_message_box()
-        
+
         # Check stop after focus, before fill
         if self.stop and self.stop.is_stopped():
             self.logger.emit({"event": "stopped", "where": "after_focus"})
             return False
-            
+
         self.browser.fill_message(draft)
-        
+
         # Check stop after fill, before send
         if self.stop and self.stop.is_stopped():
             self.logger.emit({"event": "stopped", "where": "before_send"})
             return False
-            
+
         self.browser.send()
         if pace_seconds:
             time.sleep(pace_seconds)
@@ -84,12 +84,12 @@ class SendMessage:
             return True
         # retry once
         self.logger.emit({"event": "verify_failed", "attempt": 1})
-        
+
         # Check stop before retry
         if self.stop and self.stop.is_stopped():
             self.logger.emit({"event": "stopped", "where": "before_retry"})
             return False
-            
+
         self.browser.send()
         if pace_seconds:
             time.sleep(pace_seconds)

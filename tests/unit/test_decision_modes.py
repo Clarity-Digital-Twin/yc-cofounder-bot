@@ -158,7 +158,9 @@ class TestHybridMode:
 
         # Assert - rubric gate should block
         assert result["decision"] == "NO"
-        assert "Below threshold" in result["rationale"]  # Actual message is "Below threshold or red flags"
+        assert (
+            "Below threshold" in result["rationale"]
+        )  # Actual message is "Below threshold or red flags"
         # AI decision should not be called when gated
         mock_decision.evaluate.assert_not_called()
 

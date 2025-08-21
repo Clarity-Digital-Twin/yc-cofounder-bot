@@ -14,7 +14,9 @@ class TestStreamlitUI:
         # Arrange
         mock_st.session_state = {}
         # Mock columns to return MagicMocks (context managers) for any call
-        mock_st.columns.side_effect = lambda n: [MagicMock() for _ in range(n if isinstance(n, int) else len(n))]
+        mock_st.columns.side_effect = lambda n: [
+            MagicMock() for _ in range(n if isinstance(n, int) else len(n))
+        ]
         mock_st.button.return_value = False
         mock_st.text_area.return_value = ""
         mock_st.selectbox.return_value = "hybrid"
@@ -38,7 +40,9 @@ class TestStreamlitUI:
         """Test that session state is properly initialized."""
         # Arrange
         mock_st.session_state = {}
-        mock_st.columns.side_effect = lambda n: [MagicMock() for _ in range(n if isinstance(n, int) else len(n))]
+        mock_st.columns.side_effect = lambda n: [
+            MagicMock() for _ in range(n if isinstance(n, int) else len(n))
+        ]
         mock_st.button.return_value = False
         mock_st.text_area.return_value = ""
         mock_st.selectbox.return_value = "hybrid"
@@ -60,7 +64,9 @@ class TestStreamlitUI:
         """Test that UI creates three input columns."""
         # Arrange
         mock_st.session_state = {"hil_pending": None, "last_screenshot": None}
-        mock_st.columns.side_effect = lambda n: [MagicMock() for _ in range(n if isinstance(n, int) else len(n))]
+        mock_st.columns.side_effect = lambda n: [
+            MagicMock() for _ in range(n if isinstance(n, int) else len(n))
+        ]
         mock_st.button.return_value = False
         mock_st.text_area.return_value = ""
         mock_st.selectbox.return_value = "hybrid"
@@ -83,7 +89,9 @@ class TestStreamlitUI:
         """Test that decision mode selector has correct options."""
         # Arrange
         mock_st.session_state = {"hil_pending": None, "last_screenshot": None}
-        mock_st.columns.side_effect = lambda n: [MagicMock() for _ in range(n if isinstance(n, int) else len(n))]
+        mock_st.columns.side_effect = lambda n: [
+            MagicMock() for _ in range(n if isinstance(n, int) else len(n))
+        ]
         mock_st.button.return_value = False
         mock_st.text_area.return_value = ""
         mock_st.number_input.return_value = 10
@@ -140,7 +148,9 @@ class TestStreamlitUI:
             "hil_pending": {"message": "Safety check required", "id": "123"},
             "last_screenshot": None,
         }
-        mock_st.columns.side_effect = lambda n: [MagicMock() for _ in range(n if isinstance(n, int) else len(n))]
+        mock_st.columns.side_effect = lambda n: [
+            MagicMock() for _ in range(n if isinstance(n, int) else len(n))
+        ]
         mock_st.button.return_value = False
         mock_st.text_area.return_value = ""
         mock_st.selectbox.return_value = "hybrid"
@@ -165,7 +175,9 @@ class TestStreamlitUI:
         """Test screenshot panel displays when screenshot available."""
         # Arrange
         mock_st.session_state = {"hil_pending": None, "last_screenshot": "base64encodedimage"}
-        mock_st.columns.side_effect = lambda n: [MagicMock() for _ in range(n if isinstance(n, int) else len(n))]
+        mock_st.columns.side_effect = lambda n: [
+            MagicMock() for _ in range(n if isinstance(n, int) else len(n))
+        ]
         mock_st.button.return_value = False
         mock_st.text_area.return_value = ""
         mock_st.selectbox.return_value = "hybrid"
@@ -192,10 +204,14 @@ class TestStreamlitUI:
         """Test that start button validates required inputs."""
         # Arrange
         mock_st.session_state = {"hil_pending": None, "last_screenshot": None}
-        mock_st.columns.side_effect = lambda n: [MagicMock() for _ in range(n if isinstance(n, int) else len(n))]
+        mock_st.columns.side_effect = lambda n: [
+            MagicMock() for _ in range(n if isinstance(n, int) else len(n))
+        ]
+
         # Return True only for the Start button, False for all others
         def button_side_effect(label, *args, **kwargs):
             return "Start Autonomous Browsing" in label
+
         mock_st.button.side_effect = button_side_effect
         mock_st.text_area.side_effect = ["", "", "template"]  # Empty profile AND criteria
         mock_st.selectbox.return_value = "hybrid"
