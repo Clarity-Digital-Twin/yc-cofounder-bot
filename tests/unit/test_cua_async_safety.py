@@ -36,7 +36,7 @@ class TestCUAAsyncSafety:
         browser.client.responses.create = slow_responses_create
 
         # Mock playwright to avoid actual browser launch
-        with patch("yc_matcher.infrastructure.openai_cua_browser.async_playwright") as mock_pw:
+        with patch("yc_matcher.infrastructure.async_loop_runner.async_playwright") as mock_pw:
             mock_manager = AsyncMock()
             mock_browser = AsyncMock()
             mock_page = AsyncMock()

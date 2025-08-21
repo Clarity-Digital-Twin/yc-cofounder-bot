@@ -99,7 +99,7 @@ class TestOpenAICUABrowserResponsesAPI:
             "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.openai_cua_browser.async_playwright",
+                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
@@ -142,7 +142,7 @@ class TestOpenAICUABrowserResponsesAPI:
             "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.openai_cua_browser.async_playwright",
+                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
@@ -212,7 +212,7 @@ class TestOpenAICUABrowserResponsesAPI:
             "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.openai_cua_browser.async_playwright",
+                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
@@ -265,7 +265,7 @@ class TestOpenAICUABrowserResponsesAPI:
             "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.openai_cua_browser.async_playwright",
+                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
@@ -302,7 +302,7 @@ class TestOpenAICUABrowserResponsesAPI:
             "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.openai_cua_browser.async_playwright",
+                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
@@ -326,7 +326,7 @@ class TestOpenAICUABrowserResponsesAPI:
             "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.openai_cua_browser.async_playwright",
+                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
@@ -376,7 +376,7 @@ class TestOpenAICUABrowserResponsesAPI:
             "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.openai_cua_browser.async_playwright",
+                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
@@ -433,7 +433,7 @@ class TestOpenAICUABrowserResponsesAPI:
                 return_value=mock_openai_client,
             ):
                 with patch(
-                    "yc_matcher.infrastructure.openai_cua_browser.async_playwright",
+                    "yc_matcher.infrastructure.async_loop_runner.async_playwright",
                     return_value=async_pw_mock,
                 ):
                     browser = OpenAICUABrowser()
@@ -485,7 +485,7 @@ class TestOpenAICUABrowserResponsesAPI:
             "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.openai_cua_browser.async_playwright",
+                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
@@ -530,7 +530,7 @@ class TestOpenAICUABrowserResponsesAPI:
             "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.openai_cua_browser.async_playwright",
+                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()

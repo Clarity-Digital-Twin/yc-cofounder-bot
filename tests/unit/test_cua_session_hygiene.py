@@ -91,9 +91,12 @@ class TestCUASessionHygiene:
         """Test profile cache is cleared after a successful send."""
         # Arrange
         mock_client = Mock()
+        mock_output_item = Mock()
+        mock_output_item.type = "output_text"
+        mock_output_item.text = "true"
         mock_client.responses.create.return_value = Mock(
             id="resp-1",
-            output=[{"type": "output_text", "text": "sent"}]
+            output=[mock_output_item]
         )
 
         with patch.dict(os.environ, {"CUA_MODEL": "test-model", "OPENAI_API_KEY": "test-key"}):
@@ -107,10 +110,7 @@ class TestCUASessionHygiene:
             browser.send()
             sent_ok = browser.verify_sent()
 
-            if sent_ok:
-                # This should trigger cache clear
-                browser._clear_profile_cache_after_send()
-
             # Assert - cache should be empty after successful send
+            assert sent_ok, "verify_sent should return True"
             assert browser._profile_text_cache == "", \
                 "Profile cache must be cleared after successful send"

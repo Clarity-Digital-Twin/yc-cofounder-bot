@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from openai import OpenAI
-from playwright.async_api import Browser, Page, Playwright, async_playwright
+from playwright.async_api import Page
 
 
 class OpenAICUABrowser:
@@ -69,7 +69,7 @@ class OpenAICUABrowser:
         # Screenshot callback for UI display
         self.screenshot_callback = None
 
-    async def _ensure_browser(self) -> None:
+    async def _ensure_browser(self) -> Page:
         """Ensure browser exists via runner (single instance)."""
         # Runner handles browser lifecycle - returns the page
         page = await self._runner.ensure_browser()
@@ -98,8 +98,8 @@ class OpenAICUABrowser:
         Args:
             action: Computer call action from CUA with type and parameters
         """
-        await self._ensure_browser()
-        assert self.page is not None  # Type narrowing for mypy
+        page = await self._ensure_browser()
+        # Use the returned page directly
 
         action_type = getattr(action, "type", "")
 
@@ -108,24 +108,24 @@ class OpenAICUABrowser:
             coords = getattr(action, "coordinates", {})
             if coords:
                 # Playwright expects selector or coordinates
-                await self.page.mouse.click(coords.get("x", 0), coords.get("y", 0))
+                await page.mouse.click(coords.get("x", 0), coords.get("y", 0))
 
         elif action_type == "type":
             # Type text
             text = getattr(action, "text", "")
             if text:
-                await self.page.keyboard.type(text)
+                await page.keyboard.type(text)
 
         elif action_type == "scroll":
             # Scroll page
             delta = getattr(action, "delta", 100)
-            await self.page.mouse.wheel(0, delta)
+            await page.mouse.wheel(0, delta)
 
         elif action_type == "key":
             # Press key
             key = getattr(action, "key", "")
             if key:
-                await self.page.keyboard.press(key)
+                await page.keyboard.press(key)
 
         elif action_type == "wait":
             # Wait for a moment
@@ -153,16 +153,16 @@ class OpenAICUABrowser:
         Returns:
             Text output from CUA if any
         """
-        await self._ensure_browser()
-        assert self.page is not None  # Type narrowing for mypy
+        page = await self._ensure_browser()
+        # Use the returned page directly
 
         # Build input content
         input_content = [{"type": "input_text", "text": instruction}]
 
         # Only include screenshot if we have navigated somewhere
-        current_url = await self.page.evaluate("() => window.location.href")
+        current_url = await page.evaluate("() => window.location.href")
         if current_url and current_url != "about:blank":
-            screenshot = await self.page.screenshot()
+            screenshot = await page.screenshot()
             screenshot_b64 = base64.b64encode(screenshot).decode()
             input_content.append(
                 {"type": "input_image", "image_url": f"data:image/png;base64,{screenshot_b64}"}
@@ -221,7 +221,7 @@ class OpenAICUABrowser:
             await self._execute_action(action)
 
             # New screenshot after action
-            screenshot = await self.page.screenshot()
+            screenshot = await page.screenshot()
             screenshot_b64 = base64.b64encode(screenshot).decode()
 
             # Store screenshot for UI display if callback set
@@ -254,7 +254,7 @@ class OpenAICUABrowser:
                     return None
 
             # Get current URL for better context
-            current_url = await self.page.evaluate("() => window.location.href")
+            current_url = await page.evaluate("() => window.location.href")
 
             # Respond with computer_call_output - Use asyncio.to_thread to avoid blocking
             response = await asyncio.to_thread(
@@ -320,9 +320,8 @@ class OpenAICUABrowser:
             await self._cua_action(f"Navigate to {url}")
         except Exception as e:
             if self.fallback_enabled:
-                await self._ensure_browser()
-                assert self.page is not None
-                await self.page.goto(url)
+                page = await self._ensure_browser()
+                await page.goto(url)
             else:
                 raise e
 
@@ -396,20 +395,26 @@ class OpenAICUABrowser:
             "Look for a confirmation toast, banner, or an emptied message box."
         )
         if result and result.strip().lower() in {"true", "yes"}:
+            self._profile_text_cache = ""  # Clear cache on successful send
             return True
 
-        if self.page:
+        # Try fallback check with Playwright
+        try:
+            page = await self._ensure_browser()
             try:
-                message_box_empty = await self.page.evaluate("""
+                message_box_empty = await page.evaluate("""
                     () => {
                         const input = document.querySelector('textarea[placeholder*="message"]');
                         return input ? input.value === '' : false;
                     }
                 """)
                 if message_box_empty:
+                    self._profile_text_cache = ""  # Clear cache on successful send
                     return True
             except Exception:
                 pass
+        except Exception:
+            pass
 
         self._log_event(
             {
