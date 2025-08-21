@@ -105,6 +105,36 @@ def render_three_input_mode() -> None:
             st.error("⚠️ **LIVE MODE**: Will ACTUALLY SEND real messages!")
             st.caption("Real messages will be sent to matches. Use with caution.")
 
+    # Debug info expander
+    with st.expander("🔍 Debug Info", expanded=False):
+        # Determine engine type
+        cua_enabled = os.getenv("ENABLE_CUA", "0") == "1"
+        playwright_enabled = os.getenv("ENABLE_PLAYWRIGHT", "0") == "1"
+
+        if cua_enabled:
+            engine = "**CUA planner + Playwright executor**"
+            st.success(f"Engine: {engine}")
+            st.caption("OpenAI CUA plans actions, Playwright executes them")
+        elif playwright_enabled:
+            engine = "**Playwright-only**"
+            st.info(f"Engine: {engine}")
+            st.caption("Direct browser automation without AI planning")
+        else:
+            engine = "**None (dry run)**"
+            st.warning(f"Engine: {engine}")
+
+        # Show key environment settings
+        st.code(f"""
+Environment Settings:
+• PLAYWRIGHT_HEADLESS: {os.getenv('PLAYWRIGHT_HEADLESS', 'not set')}
+• PLAYWRIGHT_BROWSERS_PATH: {os.getenv('PLAYWRIGHT_BROWSERS_PATH', 'not set')}
+• CUA_MODEL: {os.getenv('CUA_MODEL', 'not set')}
+• CUA_MAX_TURNS: {os.getenv('CUA_MAX_TURNS', '10')}
+• PACE_MIN_SECONDS: {os.getenv('PACE_MIN_SECONDS', '45')}
+• Decision Mode: {mode}
+• Shadow Mode: {shadow_mode}
+        """)
+
     # Advanced settings in expander (Clean Code: hide complexity)
     with st.expander("⚙️ Advanced Settings"):
         threshold = st.slider(
@@ -174,6 +204,31 @@ def render_three_input_mode() -> None:
         with st.expander("📸 Last Screenshot", expanded=False):
             screenshot_b64 = st.session_state["last_screenshot"]
             st.image(f"data:image/png;base64,{screenshot_b64}", use_column_width=True)
+
+    # Login Preflight (for visible browser mode)
+    st.markdown("---")
+
+    # Check if browser is visible (not headless)
+    is_headful = os.getenv("PLAYWRIGHT_HEADLESS", "0") == "0"
+
+    if is_headful and "login_ready" not in st.session_state:
+        st.warning("🔐 **Login Required**: Please open the controlled browser and log into YC first")
+
+        col_login1, col_login2 = st.columns([1, 1])
+        with col_login1:
+            if st.button("🌐 Open Controlled Browser", type="secondary", use_container_width=True):
+                st.info("Opening browser... Please log into YC Cofounder Matching")
+                # This will trigger browser launch
+                st.session_state["browser_opening"] = True
+
+        with col_login2:
+            if st.button("✅ I'm Logged In", type="primary", use_container_width=True):
+                st.session_state["login_ready"] = True
+                st.success("Great! You can now start autonomous browsing")
+                st.rerun()
+
+        st.info("💡 **Steps**: 1) Click 'Open Controlled Browser' 2) Log into YC 3) Click 'I'm Logged In'")
+        return  # Don't show Start button until logged in
 
     # Main action button
     st.markdown("---")

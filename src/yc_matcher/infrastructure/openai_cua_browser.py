@@ -51,7 +51,9 @@ class OpenAICUABrowser:
         self.page: Page | None = None
 
         # Response chaining
-        self.prev_response_id: str | None = None
+        self._prev_response_id: str | None = None
+        self._turn_count = 0
+        self._max_turns = int(os.getenv("CUA_MAX_TURNS", "10"))
 
         # Fallback configuration
         self.fallback_enabled = os.getenv("ENABLE_PLAYWRIGHT_FALLBACK", "1") == "1"
@@ -188,11 +190,11 @@ class OpenAICUABrowser:
             ],
             input=[{"role": "user", "content": input_content}],
             truncation="auto",
-            previous_response_id=self.prev_response_id,
+            previous_response_id=self._prev_response_id,
             temperature=self.temperature,
             max_tokens=self.max_tokens,
         )
-        self.prev_response_id = response.id
+        self._prev_response_id = response.id
 
         # 2) Loop until no computer_call items (with turn cap for safety)
         MAX_TURNS = int(os.getenv("CUA_MAX_TURNS", "40"))
@@ -266,7 +268,7 @@ class OpenAICUABrowser:
             response = await asyncio.to_thread(
                 self.client.responses.create,
                 model=self.model,
-                previous_response_id=self.prev_response_id,
+                previous_response_id=self._prev_response_id,
                 tools=[
                     {
                         "type": "computer_use_preview",
@@ -289,7 +291,7 @@ class OpenAICUABrowser:
                 ],
                 truncation="auto",
             )
-            self.prev_response_id = response.id
+            self._prev_response_id = response.id
 
         # 3) Extract any text output (robust parsing)
         text_output = None
@@ -311,8 +313,10 @@ class OpenAICUABrowser:
 
     async def _open_async(self, url: str) -> None:
         """Navigate to URL using CUA or fallback to Playwright."""
-        # Clear profile cache on navigation to avoid stale data
+        # Reset session state for new profile
         self._profile_text_cache = ""
+        self._prev_response_id = None  # Reset CUA session
+        self._turn_count = 0  # Reset turn counter
 
         try:
             await self._cua_action(f"Navigate to {url}")
@@ -378,7 +382,14 @@ class OpenAICUABrowser:
 
     def verify_sent(self) -> bool:
         """Sync wrapper for verify_sent."""
-        return asyncio.run(self._verify_sent_async())
+        sent_ok = asyncio.run(self._verify_sent_async())
+        if sent_ok:
+            self._clear_profile_cache_after_send()
+        return sent_ok
+
+    def _clear_profile_cache_after_send(self) -> None:
+        """Clear profile cache after successful send."""
+        self._profile_text_cache = ""
 
     async def _verify_sent_async(self) -> bool:
         """Verify that message was sent successfully."""
