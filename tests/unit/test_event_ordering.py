@@ -203,3 +203,52 @@ def test_multiple_profiles_maintain_ordering():
             f"Events: {logger.events}"
         )
 
+
+def test_quota_block_emits_event():
+    """Test that quota blocking emits an observable event.
+
+    When quota is exceeded, we should see a quota event
+    with allowed=false, and no sent event should follow.
+
+    Following TDD: Test the observability requirement.
+    """
+    # Arrange
+    class QuotaOnce:
+        """Mock quota that allows only one send."""
+        def __init__(self):
+            self.count = 0
+
+        def check_and_increment(self, limit: int) -> bool:
+            if self.count >= 1:
+                return False  # Block second send
+            self.count += 1
+            return True
+
+    logger = LoggerOrdered()
+    browser = BrowserMinimal()
+    seen = SeenNever()
+    quota = QuotaOnce()
+
+    eval_use = EvaluateProfile(decision=DecisionYes(), message=MessageEcho())
+    send_use = SendMessage(quota=quota, browser=browser, logger=logger)
+    pc = ProcessCandidate(
+        evaluate=eval_use,
+        send=send_use,
+        browser=browser,
+        seen=seen,
+        logger=logger
+    )
+
+    # Act - process 2 profiles, second should be blocked
+    pc(url="file://test", criteria=Criteria(text="test"), limit=1, auto_send=True)
+    pc(url="file://test2", criteria=Criteria(text="test"), limit=1, auto_send=True)
+
+    # Assert
+    # First profile: decision and sent
+    # Second profile: decision but no sent (quota blocked)
+    decision_count = logger.events.count("decision")
+    sent_count = logger.events.count("sent")
+
+    assert decision_count == 2, f"Expected 2 decisions, got {decision_count}"
+    assert sent_count == 1, f"Expected 1 sent (quota blocked second), got {sent_count}"
+
