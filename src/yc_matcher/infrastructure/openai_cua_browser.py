@@ -184,7 +184,6 @@ class OpenAICUABrowser:
             truncation="auto",
             previous_response_id=self._prev_response_id,
             temperature=self.temperature,
-            max_tokens=self.max_tokens,
         )
         self._prev_response_id = response.id
 

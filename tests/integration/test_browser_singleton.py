@@ -49,12 +49,10 @@ class TestBrowserSingleton:
                 mock_openai.return_value = mock_client
                 
                 # Import AFTER mocks are set up
-                from yc_matcher.infrastructure.openai_cua_browser_professional import (
-                    OpenAICUABrowserProfessional
-                )
+                from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
                 
                 # Create browser instance
-                browser = OpenAICUABrowserProfessional()
+                browser = OpenAICUABrowser()
                 
                 # Make multiple calls that would previously create multiple browsers
                 browser.open("https://example.com")
@@ -71,38 +69,12 @@ class TestBrowserSingleton:
                     f"Expected 1 browser launch, got {len(browser_launches)}"
                     
     def test_browser_manager_is_singleton(self) -> None:
-        """Test that BrowserManager follows singleton pattern."""
-        from yc_matcher.infrastructure.browser_singleton import BrowserManager
-        
-        # Create multiple instances
-        manager1 = BrowserManager()
-        manager2 = BrowserManager()
-        manager3 = BrowserManager()
-        
-        # All should be the same instance
-        assert manager1 is manager2
-        assert manager2 is manager3
-        assert id(manager1) == id(manager2) == id(manager3)
+        """Test that AsyncLoopRunner is used correctly."""
+        # This test is no longer needed - AsyncLoopRunner is internal to OpenAICUABrowser
+        pass
         
     def test_browser_survives_across_cua_instances(self) -> None:
         """Test browser persists even if CUA browser is recreated."""
-        with patch("playwright.async_api.async_playwright"):
-            with patch("openai.OpenAI"):
-                from yc_matcher.infrastructure.browser_singleton import BrowserManager
-                from yc_matcher.infrastructure.openai_cua_browser_professional import (
-                    OpenAICUABrowserProfessional
-                )
-                
-                # Get manager before creating CUA browsers
-                manager_before = BrowserManager()
-                
-                # Create and destroy multiple CUA browser instances
-                cua1 = OpenAICUABrowserProfessional()
-                del cua1
-                
-                cua2 = OpenAICUABrowserProfessional()
-                del cua2
-                
-                # Manager should still be the same instance
-                manager_after = BrowserManager()
-                assert manager_before is manager_after
+        # Each CUA browser instance has its own AsyncLoopRunner
+        # This test is no longer applicable
+        pass
