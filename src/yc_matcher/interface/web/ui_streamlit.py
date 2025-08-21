@@ -205,55 +205,16 @@ Environment Settings:
             screenshot_b64 = st.session_state["last_screenshot"]
             st.image(f"data:image/png;base64,{screenshot_b64}", use_column_width=True)
 
-    # Login Preflight (for visible browser mode)
-    st.markdown("---")
-
-    # Check if browser is visible (not headless)
-    is_headful = os.getenv("PLAYWRIGHT_HEADLESS", "0") == "0"
-
-    if is_headful and "login_ready" not in st.session_state:
-        st.warning(
-            "🔐 **Login Required**: Please open the controlled browser and log into YC first"
-        )
-
-        col_login1, col_login2 = st.columns([1, 1])
-        with col_login1:
-            if st.button("🌐 Open Controlled Browser", type="secondary", use_container_width=True):
-                st.info("Opening browser... Please log into YC Cofounder Matching")
-                # Launch browser directly here using the existing browser infrastructure
-                try:
-                    # Create minimal services just to get browser
-                    eval_use, send_use, logger = build_services(
-                        criteria_text="temp",
-                        template_text="Hi {name}",
-                        decision_mode="rubric",
-                        threshold=0.5,
-                    )
-                    
-                    # Open the browser to YC login page
-                    yc_url = os.getenv("YC_MATCH_URL", "https://www.startupschool.org/cofounder-matching")
-                    send_use.browser.open(yc_url)
-                    
-                    # Store browser in session for reuse
-                    st.session_state["browser_instance"] = send_use.browser
-                    st.session_state["browser_opening"] = True
-                    
-                    st.success("✅ Browser launched! Please log into YC in the opened browser window.")
-                    st.info("The browser will stay open. After logging in, click 'I'm Logged In' to continue.")
-                except Exception as e:
-                    st.error(f"Failed to open browser: {str(e)}")
-                    st.info("Try running: PLAYWRIGHT_BROWSERS_PATH=.ms-playwright uv run python -m playwright install chromium")
-
-        with col_login2:
-            if st.button("✅ I'm Logged In", type="primary", use_container_width=True):
-                st.session_state["login_ready"] = True
-                st.success("Great! You can now start autonomous browsing")
-                st.rerun()
-
-        st.info(
-            "💡 **Steps**: 1) Click 'Open Controlled Browser' 2) Log into YC 3) Click 'I'm Logged In'"
-        )
-        return  # Don't show Start button until logged in
+    # Check if we have auto-login credentials
+    has_credentials = bool(os.getenv("YC_EMAIL") and os.getenv("YC_PASSWORD"))
+    
+    if has_credentials:
+        # With credentials, we can do everything automatically
+        st.success("✅ **Auto-login enabled** - credentials found in .env")
+    else:
+        # Without credentials, need manual login
+        st.warning("⚠️ **Manual login required** - no credentials in .env")
+        st.info("Add YC_EMAIL and YC_PASSWORD to .env for automatic login")
 
     # Main action button
     st.markdown("---")
@@ -304,35 +265,22 @@ Environment Settings:
             # Timeout - default to reject for safety
             return False
 
-        with st.spinner("Processing..."):
+        with st.spinner("🔄 Starting autonomous browsing..."):
             try:
-                # Check if we have an existing browser in session state
-                if "browser_instance" in st.session_state:
-                    # Reuse the existing logged-in browser!
-                    existing_browser = st.session_state["browser_instance"]
-                    
-                    # Build services but inject the existing browser
-                    eval_use, send_use, logger = build_services(
-                        criteria_text=criteria_text,
-                        template_text=template_text,
-                        prompt_ver="v1",
-                        rubric_ver="v1",
-                        decision_mode=mode,  # Pass mode to DI
-                    )
-                    
-                    # CRITICAL: Replace the new browser with our existing logged-in one
-                    send_use.browser = existing_browser
-                    browser = existing_browser
-                else:
-                    # No existing browser, create new services normally
-                    eval_use, send_use, logger = build_services(
-                        criteria_text=criteria_text,
-                        template_text=template_text,
-                        prompt_ver="v1",
-                        rubric_ver="v1",
-                        decision_mode=mode,  # Pass mode to DI
-                    )
-                    browser = send_use.browser
+                # Build services (browser singleton ensures we reuse any existing browser)
+                eval_use, send_use, logger = build_services(
+                    criteria_text=criteria_text,
+                    template_text=template_text,
+                    prompt_ver="v1",
+                    rubric_ver="v1",
+                    decision_mode=mode,  # Pass mode to DI
+                    threshold=threshold,
+                )
+                
+                browser = send_use.browser
+                
+                # Store browser in session state for potential reuse
+                st.session_state["browser_instance"] = browser
 
                 # Wire callbacks to browser if CUA enabled
                 if enable_cua:

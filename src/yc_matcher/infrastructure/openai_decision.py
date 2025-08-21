@@ -56,40 +56,88 @@ class OpenAIDecisionAdapter(DecisionPort):
         )
 
     def evaluate(self, profile: Profile, criteria: Criteria) -> Mapping[str, Any]:
+        import json
+        
+        # Extract template from criteria if present
+        template = ""
+        if "\nMessage Template:" in criteria.text:
+            parts = criteria.text.split("\nMessage Template:")
+            criteria_text = parts[0]
+            template = parts[1].strip()
+        else:
+            criteria_text = criteria.text
+        
         sys_prompt = (
-            f"You are a decisioning function. Return a JSON object with keys: "
-            f"decision (YES|NO), rationale (one sentence), draft (string), extracted.name. "
-            f"Follow rubric version {self.rubric_ver}."
+            "You are an expert recruiter evaluating potential co-founder matches. "
+            "You will analyze a candidate profile against specific criteria and make a decision. "
+            "Return a JSON object with these exact keys:\n"
+            "- decision: string 'YES' or 'NO'\n"
+            "- rationale: string explaining your reasoning in 1-2 sentences\n"
+            "- draft: if YES, a personalized message to the candidate (if NO, empty string)\n"
+            "- score: float between 0.0 and 1.0 indicating match strength\n"
+            "- confidence: float between 0.0 and 1.0 indicating your confidence\n\n"
+            "Be specific and reference actual details from their profile in the draft message."
         )
+        
         user_text = (
-            f"Criteria:\n{criteria.text}\n\nProfile:\n{profile.raw_text}\n\n"
-            "Decide YES or NO and include a short rationale and a draft outreach using the template rules."
+            f"MY CRITERIA:\n{criteria_text}\n\n"
+            f"CANDIDATE PROFILE:\n{profile.raw_text}\n\n"
         )
-        # Call the client in a library-agnostic way
-        resp = self.client.responses.create(
-            model=self.model,
-            input=[
-                {"role": "system", "content": sys_prompt},
-                {"role": "user", "content": user_text},
-            ],
+        
+        if template:
+            user_text += f"MESSAGE TEMPLATE (use this style but personalize it):\n{template}\n\n"
+        
+        user_text += (
+            "Evaluate if this candidate matches my criteria. "
+            "If YES, write a personalized outreach message that references specific details from their profile. "
+            "Make the message feel genuine and not like a template."
         )
-        # Extract a dict payload
-        payload: dict[str, Any] | None = None
-        if hasattr(resp, "output") and isinstance(resp.output, dict):
-            payload = resp.output
-        elif hasattr(resp, "output_text"):
-            maybe = resp.output_text
-            if isinstance(maybe, dict):
-                payload = maybe
-        if not isinstance(payload, dict):
-            # Fallback: empty decision
-            payload = {"decision": "NO", "rationale": "unparseable", "draft": ""}
+        
+        # Use the correct OpenAI chat completions API
+        try:
+            resp = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": sys_prompt},
+                    {"role": "user", "content": user_text},
+                ],
+                response_format={"type": "json_object"},  # Force JSON response
+                temperature=0.7,  # Some creativity for message drafting
+                max_tokens=800,   # Enough for decision + message
+            )
+            
+            # Parse the JSON response
+            content = resp.choices[0].message.content
+            payload = json.loads(content)
+            
+            # Ensure required fields
+            if "decision" not in payload:
+                payload["decision"] = "NO"
+            if "rationale" not in payload:
+                payload["rationale"] = "No rationale provided"
+            if "draft" not in payload:
+                payload["draft"] = ""
+            if "score" not in payload:
+                payload["score"] = 0.5
+            if "confidence" not in payload:
+                payload["confidence"] = 0.5
+                
+        except Exception as e:
+            # Fallback on any error
+            self.logger.emit({"event": "openai_error", "error": str(e)}) if self.logger else None
+            payload = {
+                "decision": "NO", 
+                "rationale": f"Error evaluating: {str(e)}", 
+                "draft": "",
+                "score": 0.0,
+                "confidence": 0.0
+            }
 
         # Stamp versions to the payload for downstream use
         payload.setdefault("prompt_ver", self.prompt_ver)
         payload.setdefault("rubric_ver", self.rubric_ver)
 
         # Log usage if present
-        self._log_usage(resp)
+        self._log_usage(resp if 'resp' in locals() else None)
 
         return payload

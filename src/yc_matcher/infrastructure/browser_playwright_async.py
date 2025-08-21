@@ -169,56 +169,151 @@ class PlaywrightBrowserAsync:
         return self._runner.submit(_check())
 
     def click_view_profile(self) -> bool:
-        """Click View Profile button."""
+        """Click View Profile button or detect if already on profile."""
         async def _click() -> bool:
             page = await self._ensure_page_async()
-            labels = ["View profile", "View Profile", "VIEW PROFILE"]
             
-            for label in labels:
+            # Wait for page to be ready
+            await page.wait_for_load_state("networkidle", timeout=5000)
+            
+            # CHECK 1: Are we already on a candidate profile page?
+            current_url = page.url
+            if "/candidate/" in current_url or "/profile/" in current_url:
+                print(f"✅ Already on profile: {current_url}")
+                # Make sure there's actual profile content
+                await page.wait_for_timeout(1000)  # Let page fully load
+                return True
+            
+            # CHECK 2: Are we on the dashboard? Need to click "View Profiles" first
+            if "dashboard" in current_url.lower() or "cofounder-matching" in current_url:
+                # Look for the main "View Profiles" button (like in your screenshot)
+                view_profiles_btn = page.locator('button:has-text("View Profiles"), a:has-text("View Profiles")')
+                if await view_profiles_btn.count() > 0:
+                    print("📋 Found 'View Profiles' button on dashboard, clicking...")
+                    await view_profiles_btn.first.click()
+                    await page.wait_for_load_state("networkidle", timeout=5000)
+                    # After clicking, we should be on a profile
+                    return True
+            
+            # CHECK 3: Try various selectors for individual "View Profile" button
+            selectors = [
+                'button:has-text("View profile")',
+                'button:has-text("View Profile")', 
+                'button:has-text("VIEW PROFILE")',
+                'a:has-text("View profile")',
+                'a:has-text("View Profile")',
+                '[data-test*="view"]',
+                'button.profile-button',
+                '.profile-card button',
+            ]
+            
+            for selector in selectors:
                 try:
-                    btn = page.get_by_role("button", name=label)
-                    if await btn.count() > 0:
-                        await btn.first.click()
+                    elem = page.locator(selector).first
+                    if await elem.count() > 0 and await elem.is_visible():
+                        await elem.click()
+                        await page.wait_for_load_state("networkidle", timeout=3000)
                         return True
                 except Exception:
                     pass
-                    
-                try:
-                    link = page.get_by_role("link", name=label)
-                    if await link.count() > 0:
-                        await link.first.click()
-                        return True
-                except Exception:
-                    pass
+            
+            # If no View Profile found, check if we're on the right page
+            current_url = page.url
+            print(f"⚠️ No 'View Profile' button found. Current URL: {current_url}")
+            
+            # Try to navigate to the profiles section if we're not there
+            if "cofounder-matching" not in current_url:
+                await page.goto("https://www.startupschool.org/cofounder-matching")
+                await page.wait_for_load_state("networkidle", timeout=5000)
+                
+                # Try again after navigation
+                for selector in selectors[:3]:  # Try first 3 selectors
+                    try:
+                        elem = page.locator(selector).first
+                        if await elem.count() > 0:
+                            await elem.click()
+                            return True
+                    except Exception:
+                        pass
             
             return False
         
         return self._runner.submit(_click())
 
     def read_profile_text(self) -> str:
-        """Read profile text from page."""
+        """Read profile text from candidate profile page."""
         async def _read() -> str:
             page = await self._ensure_page_async()
             await page.wait_for_load_state("networkidle", timeout=5000)
             
-            # Try multiple selectors
-            selectors = [
-                "main", ".profile-content", "#profile", 
-                "[role='main']", ".container", "article"
+            # For YC profiles on /candidate/ pages, extract structured data
+            profile_data = []
+            
+            # Try to get name from various selectors
+            name_selectors = [
+                "h1.text-2xl",  # Common on YC profiles
+                "h1", 
+                "h2.font-bold",
+                ".profile-name", 
+                "[data-test='name']"
+            ]
+            for sel in name_selectors:
+                try:
+                    elem = page.locator(sel).first
+                    if await elem.count() > 0:
+                        name = await elem.inner_text()
+                        if name and len(name) < 100 and not name.startswith("View"):  # Filter out button text
+                            profile_data.append(f"Name: {name}")
+                            break
+                except:
+                    pass
+            
+            # Try to get bio/about section
+            bio_selectors = [
+                ".bio", ".about", "[data-test='bio']",
+                "section:has-text('About')",
+                "div:has-text('Background')",
+                "p"  # Fallback to paragraphs
             ]
             
-            for selector in selectors:
+            for sel in bio_selectors:
+                try:
+                    elems = await page.locator(sel).all()
+                    for elem in elems[:5]:  # Check first 5 matches
+                        text = await elem.inner_text()
+                        if text and len(text) > 50:  # Meaningful content
+                            profile_data.append(f"About: {text}")
+                            break
+                    if len(profile_data) > 1:
+                        break
+                except:
+                    pass
+            
+            # If we got structured data, return it
+            if profile_data:
+                return "\n".join(profile_data)
+            
+            # Fallback: get all visible text from main content area
+            main_selectors = [
+                "main", ".profile-content", "#profile",
+                "[role='main']", ".container", "article", "body"
+            ]
+            
+            for selector in main_selectors:
                 try:
                     elem = page.locator(selector).first
                     if await elem.count() > 0:
                         text = await elem.inner_text()
                         if text and len(text) > 100:
+                            print(f"📄 Extracted {len(text)} chars from {selector}")
                             return text
                 except Exception:
                     continue
             
-            # Fallback to body text
-            return await page.locator("body").inner_text()
+            # Last resort - full page text
+            full_text = await page.locator("body").inner_text()
+            print(f"📄 Extracted full page: {len(full_text)} chars")
+            return full_text
         
         return self._runner.submit(_read())
 

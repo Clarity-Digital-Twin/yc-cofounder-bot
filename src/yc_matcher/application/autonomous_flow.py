@@ -97,6 +97,21 @@ class AutonomousFlow:
         # Navigate to YC matching page
         yc_url = os.getenv("YC_MATCH_URL", "https://www.startupschool.org/cofounder-matching")
         self.browser.open(yc_url)
+        
+        # CRITICAL: Ensure logged in before proceeding
+        max_login_attempts = 30  # 30 seconds timeout
+        for i in range(max_login_attempts):
+            if hasattr(self.browser, 'is_logged_in') and self.browser.is_logged_in():
+                self.logger.emit({"event": "login_confirmed", "attempt": i})
+                break
+            if self.stop.is_stopped():
+                self.logger.emit({"event": "stopped", "reason": "stop_flag_during_login"})
+                return {"error": "Stopped during login"}
+            import time
+            time.sleep(1)
+        else:
+            self.logger.emit({"event": "login_failed", "reason": "timeout"})
+            return {"error": "Login required. Please log in manually and try again."}
 
         results = []
         sent_count = 0
