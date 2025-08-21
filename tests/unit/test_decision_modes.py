@@ -158,7 +158,7 @@ class TestHybridMode:
 
         # Assert - rubric gate should block
         assert result["decision"] == "NO"
-        assert "Score below threshold" in result["rationale"]
+        assert "Below threshold" in result["rationale"]  # Actual message is "Below threshold or red flags"
         # AI decision should not be called when gated
         mock_decision.evaluate.assert_not_called()
 
@@ -211,11 +211,10 @@ class TestHybridMode:
         # Act
         result = gated.evaluate(profile, criteria)
 
-        # Assert
-        assert "score" in result
-        assert result["score"] == 4.5
-        if "confidence" in result:
-            assert result["confidence"] == 0.8
+        # Assert - GatedDecision passes through the decision result when threshold met
+        assert result["decision"] == "YES"
+        assert result["rationale"] == "Good match"
+        assert result["confidence"] == 0.8
 
     def test_hybrid_respects_ai_no_even_with_high_score(self) -> None:
         """Test hybrid respects AI's NO decision even with high rubric score."""

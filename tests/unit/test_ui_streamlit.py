@@ -1,6 +1,6 @@
 """Test Streamlit UI components with minimal mocks following TDD."""
 
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 from yc_matcher.interface.web.ui_streamlit import render_paste_mode, render_three_input_mode
 
@@ -13,7 +13,8 @@ class TestStreamlitUI:
         """Test that 3-input mode sets correct page configuration."""
         # Arrange
         mock_st.session_state = {}
-        mock_st.columns.return_value = [Mock(), Mock(), Mock()]
+        # Mock columns to return MagicMocks (context managers) for any call
+        mock_st.columns.side_effect = lambda n: [MagicMock() for _ in range(n if isinstance(n, int) else len(n))]
         mock_st.button.return_value = False
         mock_st.text_area.return_value = ""
         mock_st.selectbox.return_value = "hybrid"
@@ -37,7 +38,7 @@ class TestStreamlitUI:
         """Test that session state is properly initialized."""
         # Arrange
         mock_st.session_state = {}
-        mock_st.columns.return_value = [Mock(), Mock(), Mock()]
+        mock_st.columns.side_effect = lambda n: [MagicMock() for _ in range(n if isinstance(n, int) else len(n))]
         mock_st.button.return_value = False
         mock_st.text_area.return_value = ""
         mock_st.selectbox.return_value = "hybrid"
@@ -59,8 +60,7 @@ class TestStreamlitUI:
         """Test that UI creates three input columns."""
         # Arrange
         mock_st.session_state = {"hil_pending": None, "last_screenshot": None}
-        mock_cols = [Mock(), Mock(), Mock()]
-        mock_st.columns.return_value = mock_cols
+        mock_st.columns.side_effect = lambda n: [MagicMock() for _ in range(n if isinstance(n, int) else len(n))]
         mock_st.button.return_value = False
         mock_st.text_area.return_value = ""
         mock_st.selectbox.return_value = "hybrid"
@@ -83,7 +83,7 @@ class TestStreamlitUI:
         """Test that decision mode selector has correct options."""
         # Arrange
         mock_st.session_state = {"hil_pending": None, "last_screenshot": None}
-        mock_st.columns.return_value = [Mock(), Mock(), Mock()]
+        mock_st.columns.side_effect = lambda n: [MagicMock() for _ in range(n if isinstance(n, int) else len(n))]
         mock_st.button.return_value = False
         mock_st.text_area.return_value = ""
         mock_st.number_input.return_value = 10
@@ -112,9 +112,9 @@ class TestStreamlitUI:
 
         mock_st.session_state = {"hil_pending": None, "last_screenshot": None}
         mock_st.columns.side_effect = [
-            [Mock(), Mock(), Mock()],  # Main inputs
-            [Mock(), Mock(), Mock()],  # Config
-            [Mock(), Mock()],  # Stop control
+            [MagicMock(), MagicMock(), MagicMock()],  # Main inputs
+            [MagicMock(), MagicMock(), MagicMock()],  # Config
+            [MagicMock(), MagicMock()],  # Stop control
         ]
         mock_st.button.side_effect = [False, False]  # STOP button, Clear button
         mock_st.text_area.return_value = ""
@@ -140,7 +140,7 @@ class TestStreamlitUI:
             "hil_pending": {"message": "Safety check required", "id": "123"},
             "last_screenshot": None,
         }
-        mock_st.columns.return_value = [Mock(), Mock(), Mock()]
+        mock_st.columns.side_effect = lambda n: [MagicMock() for _ in range(n if isinstance(n, int) else len(n))]
         mock_st.button.return_value = False
         mock_st.text_area.return_value = ""
         mock_st.selectbox.return_value = "hybrid"
@@ -165,7 +165,7 @@ class TestStreamlitUI:
         """Test screenshot panel displays when screenshot available."""
         # Arrange
         mock_st.session_state = {"hil_pending": None, "last_screenshot": "base64encodedimage"}
-        mock_st.columns.return_value = [Mock(), Mock(), Mock()]
+        mock_st.columns.side_effect = lambda n: [MagicMock() for _ in range(n if isinstance(n, int) else len(n))]
         mock_st.button.return_value = False
         mock_st.text_area.return_value = ""
         mock_st.selectbox.return_value = "hybrid"
@@ -192,12 +192,15 @@ class TestStreamlitUI:
         """Test that start button validates required inputs."""
         # Arrange
         mock_st.session_state = {"hil_pending": None, "last_screenshot": None}
-        mock_st.columns.return_value = [Mock(), Mock(), Mock()]
-        mock_st.button.side_effect = [False, False, True]  # Start button pressed
-        mock_st.text_area.side_effect = ["", "criteria", "template"]  # Empty profile
+        mock_st.columns.side_effect = lambda n: [MagicMock() for _ in range(n if isinstance(n, int) else len(n))]
+        # Return True only for the Start button, False for all others
+        def button_side_effect(label, *args, **kwargs):
+            return "Start Autonomous Browsing" in label
+        mock_st.button.side_effect = button_side_effect
+        mock_st.text_area.side_effect = ["", "", "template"]  # Empty profile AND criteria
         mock_st.selectbox.return_value = "hybrid"
         mock_st.number_input.return_value = 10
-        mock_st.toggle.return_value = False
+        mock_st.toggle.return_value = True  # Shadow mode ON to avoid LIVE MODE error
         mock_st.slider.return_value = 0.7
         mock_st.expander.return_value.__enter__ = Mock()
         mock_st.expander.return_value.__exit__ = Mock()
