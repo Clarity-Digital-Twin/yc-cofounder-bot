@@ -12,7 +12,7 @@ import base64
 import os
 from typing import Any
 
-from openai import OpenAI
+from openai import OpenAI  # type: ignore[import]
 from playwright.async_api import Browser, Page, Playwright, async_playwright
 
 
@@ -31,7 +31,7 @@ class OpenAICUABrowser:
     def __init__(self) -> None:
         """Initialize CUA browser with Responses API client and Playwright."""
         # OpenAI client for Responses API
-        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.client: Any = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))  # type: ignore[no-any-unimported]
 
         # Model configuration
         self.model = os.getenv("CUA_MODEL")
@@ -74,6 +74,7 @@ class OpenAICUABrowser:
             action: Computer call from CUA with type and parameters
         """
         await self._ensure_browser()
+        assert self.page is not None  # Type narrowing for mypy
 
         if action.type == "click":
             # Click at coordinates
