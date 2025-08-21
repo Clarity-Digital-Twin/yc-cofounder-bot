@@ -207,7 +207,7 @@ def build_services(
 
     browser: BrowserPort
 
-    # PRIMARY: OpenAI CUA via Agents SDK
+    # PRIMARY: OpenAI CUA via Responses API (FIXED with AsyncLoopRunner)
     if os.getenv("ENABLE_CUA", "0") in {"1", "true", "True"}:
         try:
             from ..infrastructure.openai_cua_browser import OpenAICUABrowser

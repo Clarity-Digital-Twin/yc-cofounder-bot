@@ -45,10 +45,9 @@ class OpenAICUABrowser:
         self.temperature = float(os.getenv("CUA_TEMPERATURE", "0.3"))
         self.max_tokens = int(os.getenv("CUA_MAX_TOKENS", "1200"))
 
-        # Playwright components (initialized on first use)
-        self.playwright: Playwright | None = None
-        self.browser: Browser | None = None
-        self.page: Page | None = None
+        # CRITICAL FIX: Use AsyncLoopRunner for single browser instance
+        from .async_loop_runner import AsyncLoopRunner
+        self._runner = AsyncLoopRunner()
 
         # Response chaining
         self._prev_response_id: str | None = None
@@ -71,17 +70,9 @@ class OpenAICUABrowser:
         self.screenshot_callback = None
 
     async def _ensure_browser(self) -> None:
-        """Ensure Playwright browser is running (lazy initialization)."""
-        if not self.playwright:
-            # CRITICAL: Set browser path BEFORE starting playwright
-            browsers_path = os.getenv("PLAYWRIGHT_BROWSERS_PATH", ".ms-playwright")
-            os.environ["PLAYWRIGHT_BROWSERS_PATH"] = browsers_path
-
-            self.playwright = await async_playwright().start()
-            self.browser = await self.playwright.chromium.launch(
-                headless=os.getenv("PLAYWRIGHT_HEADLESS", "0") == "1"
-            )
-            self.page = await self.browser.new_page()
+        """Ensure browser exists via runner (single instance)."""
+        # Runner handles browser lifecycle - just ensure it exists
+        self.page = await self._runner.ensure_browser()
 
     def _should_stop(self) -> bool:
         """Check if STOP flag exists."""
@@ -308,8 +299,14 @@ class OpenAICUABrowser:
     # We'll override the async method names with sync versions
 
     def open(self, url: str) -> None:
-        """Sync wrapper for async open."""
-        asyncio.run(self._open_async(url))
+        """Navigate to URL using single browser instance."""
+        # Reset session state for new profile
+        self._profile_text_cache = ""
+        self._prev_response_id = None
+        self._turn_count = 0
+        
+        # Use runner instead of asyncio.run() - NO NEW EVENT LOOPS!
+        self._runner.submit(self._open_async(url))
 
     async def _open_async(self, url: str) -> None:
         """Navigate to URL using CUA or fallback to Playwright."""
@@ -329,8 +326,8 @@ class OpenAICUABrowser:
                 raise e
 
     def click_view_profile(self) -> bool:
-        """Sync wrapper. Returns True for compatibility."""
-        asyncio.run(self._click_view_profile_async())
+        """Click view profile using single browser instance."""
+        self._runner.submit(self._click_view_profile_async())
         return True
 
     async def _click_view_profile_async(self) -> None:
@@ -338,8 +335,8 @@ class OpenAICUABrowser:
         await self._cua_action("Click the 'View profile' button")
 
     def read_profile_text(self) -> str:
-        """Sync wrapper for read_profile_text."""
-        return asyncio.run(self._read_profile_text_async())
+        """Read profile text using single browser instance."""
+        return self._runner.submit(self._read_profile_text_async())
 
     async def _read_profile_text_async(self) -> str:
         """Extract and return profile text from current page."""
@@ -353,24 +350,24 @@ class OpenAICUABrowser:
         return self._profile_text_cache or ""
 
     def focus_message_box(self) -> None:
-        """Sync wrapper for focus_message_box."""
-        asyncio.run(self._focus_message_box_async())
+        """Focus message box using single browser instance."""
+        self._runner.submit(self._focus_message_box_async())
 
     async def _focus_message_box_async(self) -> None:
         """Focus on the message input box."""
         await self._cua_action("Click on the message input box to focus it")
 
     def fill_message(self, text: str) -> None:
-        """Sync wrapper for fill_message."""
-        asyncio.run(self._fill_message_async(text))
+        """Fill message using single browser instance."""
+        self._runner.submit(self._fill_message_async(text))
 
     async def _fill_message_async(self, text: str) -> None:
         """Fill message box with text."""
         await self._cua_action(f"Type the following message: {text}")
 
     def send(self) -> None:
-        """Sync wrapper for send."""
-        asyncio.run(self._send_async())
+        """Send message using single browser instance."""
+        self._runner.submit(self._send_async())
 
     async def _send_async(self) -> None:
         """Click send button to send the message."""
@@ -381,8 +378,8 @@ class OpenAICUABrowser:
         self.send()
 
     def verify_sent(self) -> bool:
-        """Sync wrapper for verify_sent."""
-        sent_ok = asyncio.run(self._verify_sent_async())
+        """Verify sent using single browser instance."""
+        sent_ok = self._runner.submit(self._verify_sent_async())
         if sent_ok:
             self._clear_profile_cache_after_send()
         return sent_ok
@@ -425,8 +422,9 @@ class OpenAICUABrowser:
         return False
 
     def skip(self) -> None:
-        """Sync wrapper for skip."""
-        asyncio.run(self._skip_async())
+        """Skip using single browser instance."""
+        self._profile_text_cache = ""  # Clear cache
+        self._runner.submit(self._skip_async())
 
     async def _skip_async(self) -> None:
         """Skip current profile and go to next."""
@@ -435,14 +433,11 @@ class OpenAICUABrowser:
         await self._cua_action("Click Skip or Next to go to the next profile")
 
     def close(self) -> None:
-        """Sync wrapper for close."""
-        asyncio.run(self._close_async())
+        """Close browser properly."""
+        self._runner.submit(self._close_async())
+        self._runner.cleanup()
 
     async def _close_async(self) -> None:
         """Clean up browser resources."""
-        if self.page:
-            await self.page.close()
-        if self.browser:
-            await self.browser.close()
-        if self.playwright:
-            await self.playwright.stop()
+        # Runner handles browser cleanup
+        await self._runner.close_browser()
