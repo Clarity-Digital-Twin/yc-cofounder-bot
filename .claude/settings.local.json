@@ -91,7 +91,8 @@
       "Bash(env PACE_MIN_SECONDS=0 make verify)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/test_browser_manual.py tests/test_cua_browser.py -xvs)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/integration/test_autonomous_flow.py::TestAutonomousFlow::test_autonomous_flow_stops_on_flag -xvs)",
-      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/integration/test_autonomous_flow.py::TestAutonomousFlow::test_autonomous_flow_shadow_mode_no_send -xvs)"
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/integration/test_autonomous_flow.py::TestAutonomousFlow::test_autonomous_flow_shadow_mode_no_send -xvs)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/integration/test_autonomous_flow.py -q)"
     ],
     "deny": [],
     "ask": []

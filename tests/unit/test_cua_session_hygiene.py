@@ -1,0 +1,111 @@
+"""Test CUA session hygiene - prev_response_id reset, turn caps, etc."""
+
+from unittest.mock import Mock, patch
+
+from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
+
+
+class TestCUASessionHygiene:
+    """Test CUA browser maintains clean session boundaries."""
+    
+    def test_prev_response_id_resets_on_new_profile(self) -> None:
+        """Test that prev_response_id is reset when starting a new profile."""
+        # Arrange
+        mock_client = Mock()
+        mock_client.responses.create.return_value = Mock(
+            id="new-response-id",
+            output=[{"type": "output_text", "text": "Done"}]
+        )
+        
+        with patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_client):
+            browser = OpenAICUABrowser()
+            
+            # Set an initial prev_response_id
+            browser._prev_response_id = "old-response-id"
+            
+            # Act - open new URL (new profile)
+            browser.open("https://example.com/profile1")
+            
+            # Assert - prev_response_id should be reset (None or empty)
+            assert browser._prev_response_id != "old-response-id", \
+                "prev_response_id must reset when opening new profile"
+                
+    def test_turn_counter_resets_per_profile(self) -> None:
+        """Test that turn counter resets between profiles."""
+        # Arrange
+        mock_client = Mock()
+        mock_client.responses.create.return_value = Mock(
+            id="resp-1",
+            output=[{"type": "output_text", "text": "Done"}]
+        )
+        
+        with patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_client):
+            browser = OpenAICUABrowser()
+            
+            # Simulate some turns on first profile
+            browser._turn_count = 5
+            
+            # Act - open new profile
+            browser.open("https://example.com/profile2")
+            
+            # Assert - turn count should reset
+            assert browser._turn_count == 0, "Turn count must reset for new profile"
+            
+    def test_max_turns_enforced_and_logged(self) -> None:
+        """Test that max turns cap is enforced and logged."""
+        # Arrange
+        mock_client = Mock()
+        mock_logger = Mock()
+        
+        # Simulate hitting max turns
+        mock_client.responses.create.side_effect = [
+            Mock(id=f"resp-{i}", output=[{"type": "computer_call", "id": f"call-{i}"}])
+            for i in range(15)  # More than typical max
+        ]
+        
+        with patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_client):
+            with patch("yc_matcher.infrastructure.openai_cua_browser.Path"):
+                browser = OpenAICUABrowser()
+                browser._logger = mock_logger
+                browser._max_turns = 10  # Set explicit limit
+                
+                # Act - try to exceed turns
+                for i in range(12):
+                    try:
+                        browser._cua_loop("Do something", max_turns=10)
+                    except Exception:
+                        pass  # Expected when hitting limit
+                
+                # Assert - should log max turns event
+                mock_logger.emit.assert_any_call({
+                    "event": "max_turns_reached",
+                    "turns": 10,
+                    "instruction": "Do something"
+                })
+                
+    def test_cache_clears_after_successful_send(self) -> None:
+        """Test profile cache is cleared after a successful send."""
+        # Arrange  
+        mock_client = Mock()
+        mock_client.responses.create.return_value = Mock(
+            id="resp-1",
+            output=[{"type": "output_text", "text": "sent"}]
+        )
+        
+        with patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_client):
+            browser = OpenAICUABrowser()
+            
+            # Set some cached profile text
+            browser._profile_text_cache = "Old profile data"
+            
+            # Act - send message and verify
+            browser.send()
+            sent_ok = browser.verify_sent()
+            
+            if sent_ok:
+                # This should trigger cache clear
+                browser._clear_profile_cache_after_send()
+            
+            # Assert - cache should be empty after successful send
+            assert browser._profile_text_cache == "", \
+                "Profile cache must be cleared after successful send"
