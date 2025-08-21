@@ -35,7 +35,9 @@
       "Bash(PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser_simple.py::test_cua_uses_responses_api_not_agents_sdk -xvs)",
       "Bash(PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_cua_browser_uses_responses_api_not_agents_sdk -xvs)",
       "Bash(PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py -q)",
-      "Bash(PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser_simple.py -q)"
+      "Bash(PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser_simple.py -q)",
+      "Bash(PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_cua_screenshot_loop_with_computer_call_output -xvs)",
+      "Bash(cp:*)"
     ],
     "deny": [],
     "ask": []

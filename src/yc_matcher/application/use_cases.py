@@ -41,16 +41,16 @@ class SendMessage:
         if not self.quota.check_and_increment(limit):
             self.logger.emit({"event": "quota_block", "limit": limit})
             return False
-        # Optional pacing delay between sends (ms)
+        # Optional pacing delay between sends (seconds)
         try:
-            delay_ms = int(os.getenv("SEND_DELAY_MS", "0"))
+            pace_seconds = int(os.getenv("PACE_MIN_SECONDS", "45"))
         except Exception:
-            delay_ms = 0
+            pace_seconds = 45
         self.browser.focus_message_box()
         self.browser.fill_message(draft)
         self.browser.send()
-        if delay_ms:
-            time.sleep(delay_ms / 1000.0)
+        if pace_seconds:
+            time.sleep(pace_seconds)
         # Verify sent; retry once if needed
         if self.browser.verify_sent():
             self.logger.emit(
@@ -60,8 +60,8 @@ class SendMessage:
         # retry once
         self.logger.emit({"event": "verify_failed", "attempt": 1})
         self.browser.send()
-        if delay_ms:
-            time.sleep(delay_ms / 1000.0)
+        if pace_seconds:
+            time.sleep(pace_seconds)
         if self.browser.verify_sent():
             self.logger.emit(
                 {

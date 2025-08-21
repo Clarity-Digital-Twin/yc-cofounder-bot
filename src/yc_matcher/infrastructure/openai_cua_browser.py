@@ -57,10 +57,10 @@ class OpenAICUABrowser:
 
         # Cache for efficiency
         self._profile_text_cache = ""
-        
+
         # Logger for events (will be injected via DI in production)
         self.logger = None
-        
+
         # HIL approval callback (will be set by UI)
         self.hil_approve_callback = None
 
@@ -77,12 +77,12 @@ class OpenAICUABrowser:
         """Check if STOP flag exists."""
         stop_file = Path(".runs/stop.flag")
         return stop_file.exists()
-    
+
     def _log_event(self, event: dict[str, Any]) -> None:
         """Log event to logger if available."""
         if self.logger:
             self.logger.log_event(event.get("event", "unknown"), event)
-    
+
     async def _hil_acknowledge(self, safety_check: Any) -> bool:
         """Get HIL acknowledgment for safety check."""
         if self.hil_approve_callback:
@@ -98,38 +98,39 @@ class OpenAICUABrowser:
         """
         await self._ensure_browser()
         assert self.page is not None  # Type narrowing for mypy
-        
+
         action_type = getattr(action, "type", "")
-        
+
         if action_type == "click":
             # Click at coordinates
             coords = getattr(action, "coordinates", {})
             if coords:
                 # Playwright expects selector or coordinates
                 await self.page.mouse.click(coords.get("x", 0), coords.get("y", 0))
-        
+
         elif action_type == "type":
             # Type text
             text = getattr(action, "text", "")
             if text:
                 await self.page.keyboard.type(text)
-        
+
         elif action_type == "scroll":
             # Scroll page
             delta = getattr(action, "delta", 100)
             await self.page.mouse.wheel(0, delta)
-        
+
         elif action_type == "key":
             # Press key
             key = getattr(action, "key", "")
             if key:
                 await self.page.keyboard.press(key)
-        
+
         elif action_type == "wait":
             # Wait for a moment
             import asyncio
+
             await asyncio.sleep(1)
-        
+
         elif action_type == "screenshot":
             # Just take screenshot, no action needed
             pass
@@ -152,33 +153,31 @@ class OpenAICUABrowser:
         """
         await self._ensure_browser()
         assert self.page is not None  # Type narrowing for mypy
-        
+
         # Build input content
         input_content = [{"type": "input_text", "text": instruction}]
-        
+
         # Only include screenshot if we have navigated somewhere
         current_url = await self.page.evaluate("() => window.location.href")
         if current_url and current_url != "about:blank":
             screenshot = await self.page.screenshot()
             screenshot_b64 = base64.b64encode(screenshot).decode()
-            input_content.append({
-                "type": "input_image",
-                "image_url": f"data:image/png;base64,{screenshot_b64}"
-            })
+            input_content.append(
+                {"type": "input_image", "image_url": f"data:image/png;base64,{screenshot_b64}"}
+            )
 
         # 1) First turn (plan)
         response = self.client.responses.create(
             model=self.model,
-            tools=[{
-                "type": "computer_use_preview",
-                "display_width": 1920,
-                "display_height": 1080,
-                "environment": "browser"
-            }],
-            input=[{
-                "role": "user",
-                "content": input_content
-            }],
+            tools=[
+                {
+                    "type": "computer_use_preview",
+                    "display_width": 1920,
+                    "display_height": 1080,
+                    "environment": "browser",
+                }
+            ],
+            input=[{"role": "user", "content": input_content}],
             truncation="auto",
             previous_response_id=self.prev_response_id,
             temperature=self.temperature,
@@ -195,70 +194,75 @@ class OpenAICUABrowser:
 
             # Parse output list items; find the first computer_call
             output_items = getattr(response, "output", []) or []
-            calls = [
-                item for item in output_items 
-                if getattr(item, "type", "") == "computer_call"
-            ]
-            
+            calls = [item for item in output_items if getattr(item, "type", "") == "computer_call"]
+
             if not calls:
                 break  # No more computer calls
-            
+
             call = calls[0]
             call_id = getattr(call, "call_id", None) or getattr(call, "id", None)
             action = getattr(call, "action", None)
-            
+
             if not action:
                 break
-            
+
             # Execute action locally
             await self._execute_action(action)
-            
+
             # New screenshot after action
             screenshot = await self.page.screenshot()
             screenshot_b64 = base64.b64encode(screenshot).decode()
-            
+
             # Handle safety checks if present
             acknowledged = []
             pending_checks = getattr(call, "pending_safety_checks", []) or []
             for safety_check in pending_checks:
                 if await self._hil_acknowledge(safety_check):
-                    acknowledged.append({
-                        "id": getattr(safety_check, "id", ""),
-                        "code": getattr(safety_check, "code", ""),
-                        "message": getattr(safety_check, "message", "")
-                    })
+                    acknowledged.append(
+                        {
+                            "id": getattr(safety_check, "id", ""),
+                            "code": getattr(safety_check, "code", ""),
+                            "message": getattr(safety_check, "message", ""),
+                        }
+                    )
                 else:
-                    self._log_event({
-                        "event": "stopped",
-                        "reason": "safety_check_not_acknowledged",
-                        "safety_check": str(safety_check)
-                    })
+                    self._log_event(
+                        {
+                            "event": "stopped",
+                            "reason": "safety_check_not_acknowledged",
+                            "safety_check": str(safety_check),
+                        }
+                    )
                     return None
-            
+
             # Get current URL for better context
             current_url = await self.page.evaluate("() => window.location.href")
-            
+
             # Respond with computer_call_output
             response = self.client.responses.create(
                 model=self.model,
                 previous_response_id=self.prev_response_id,
-                tools=[{
-                    "type": "computer_use_preview",
-                    "display_width": 1920,
-                    "display_height": 1080,
-                    "environment": "browser"
-                }],
-                input=[{
-                    "type": "computer_call_output",
-                    "call_id": call_id,
-                    "output": {
-                        "type": "input_image",
-                        "image_url": f"data:image/png;base64,{screenshot_b64}"
-                    },
-                    "acknowledged_safety_checks": acknowledged,
-                    "current_url": current_url
-                }],
-                truncation="auto"
+                tools=[
+                    {
+                        "type": "computer_use_preview",
+                        "display_width": 1920,
+                        "display_height": 1080,
+                        "environment": "browser",
+                    }
+                ],
+                input=[
+                    {
+                        "type": "computer_call_output",
+                        "call_id": call_id,
+                        "output": {
+                            "type": "input_image",
+                            "image_url": f"data:image/png;base64,{screenshot_b64}",
+                        },
+                        "acknowledged_safety_checks": acknowledged,
+                        "current_url": current_url,
+                    }
+                ],
+                truncation="auto",
             )
             self.prev_response_id = response.id
 
@@ -269,7 +273,7 @@ class OpenAICUABrowser:
             if getattr(item, "type", "") == "output_text":
                 text_output = getattr(item, "text", None)
                 break
-        
+
         return text_output
 
     async def open(self, url: str) -> None:
@@ -337,7 +341,7 @@ class OpenAICUABrowser:
 
     async def verify_sent(self) -> bool:
         """Verify that message was sent successfully.
-        
+
         More strict verification:
         - Asks CUA for explicit true/false answer
         - No default True assumption
@@ -351,11 +355,11 @@ class OpenAICUABrowser:
             "Reply strictly 'true' or 'false': has the message been sent successfully? "
             "Look for a confirmation toast, banner, or an emptied message box."
         )
-        
+
         # Only return True for explicit positive confirmation
         if result and result.strip().lower() in {"true", "yes"}:
             return True
-        
+
         # Optional: Playwright DOM heuristic as fallback
         if self.page:
             try:
@@ -371,7 +375,7 @@ class OpenAICUABrowser:
                     return True
             except Exception:
                 pass  # Fallback failed, continue
-        
+
         # Conservative: return False if uncertain
         return False
 

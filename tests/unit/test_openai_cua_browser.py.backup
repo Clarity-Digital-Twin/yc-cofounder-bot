@@ -127,7 +127,7 @@ class TestOpenAICUABrowserResponsesAPI:
             type="computer_call",
             call_id="call_456",
             action=Mock(type="click", coordinates={"x": 100, "y": 200}),
-            pending_safety_checks=[],  # Explicitly set to empty list
+            pending_safety_checks=[]  # Explicitly set to empty list
         )
         mock_response.output = [computer_call]
 
@@ -183,10 +183,9 @@ class TestOpenAICUABrowserResponsesAPI:
                 Mock(
                     type="computer_call",
                     call_id="call_1",
-                    action=Mock(type="click", coordinates={"x": 100, "y": 200}),
-                    pending_safety_checks=[],
+                    action=Mock(type="click", coordinates={"x": 100, "y": 200})
                 )
-            ],
+            ]
         )
         type_response = Mock(
             id="resp_2",
@@ -194,10 +193,9 @@ class TestOpenAICUABrowserResponsesAPI:
                 Mock(
                     type="computer_call",
                     call_id="call_2",
-                    action=Mock(type="type", text="Hello World"),
-                    pending_safety_checks=[],
+                    action=Mock(type="type", text="Hello World")
                 )
-            ],
+            ]
         )
         done_response = Mock(id="resp_3", output=[])  # No more computer calls
 
@@ -240,10 +238,9 @@ class TestOpenAICUABrowserResponsesAPI:
                     Mock(
                         type="computer_call",
                         call_id="call_1",
-                        action=Mock(type="click", coordinates={"x": 50, "y": 50}),
-                        pending_safety_checks=[],
+                        action=Mock(type="click", coordinates={"x": 50, "y": 50})
                     )
-                ],
+                ]
             ),
             Mock(
                 id="resp_2",
@@ -251,10 +248,9 @@ class TestOpenAICUABrowserResponsesAPI:
                     Mock(
                         type="computer_call",
                         call_id="call_2",
-                        action=Mock(type="click", coordinates={"x": 100, "y": 100}),
-                        pending_safety_checks=[],
+                        action=Mock(type="click", coordinates={"x": 100, "y": 100})
                     )
-                ],
+                ]
             ),
             Mock(id="resp_3", output=[]),  # No more computer calls
         ]
@@ -295,7 +291,10 @@ class TestOpenAICUABrowserResponsesAPI:
 
         # Mock simple response with text output (correct API structure)
         mock_response = Mock(
-            id="resp_1", output=[Mock(type="output_text", text="Profile text here")]
+            id="resp_1",
+            output=[
+                Mock(type="output_text", text="Profile text here")
+            ]
         )
         mock_openai_client.responses.create.return_value = mock_response
 
@@ -309,7 +308,7 @@ class TestOpenAICUABrowserResponsesAPI:
                 browser = OpenAICUABrowser()
 
                 # Act - test high-level methods
-                result = await browser.read_profile_text()
+                result = await browser.extract_profile_text()
 
                 # Assert
                 assert result == "Profile text here"
@@ -366,10 +365,9 @@ class TestOpenAICUABrowserResponsesAPI:
                 Mock(
                     type="computer_call",
                     call_id="call_1",
-                    action=Mock(type="click", coordinates={"x": 10, "y": 20}),
-                    pending_safety_checks=[],
+                    action=Mock(type="click", coordinates={"x": 10, "y": 20})
                 )
-            ],
+            ]
         )
         done_response = Mock(id="resp_2", output=[])
         mock_openai_client.responses.create.side_effect = [mock_response, done_response]
@@ -417,10 +415,9 @@ class TestOpenAICUABrowserResponsesAPI:
                 Mock(
                     type="computer_call",
                     call_id="call_1",
-                    action=Mock(type="click", coordinates={"x": 10, "y": 20}),
-                    pending_safety_checks=[],
+                    action=Mock(type="click", coordinates={"x": 10, "y": 20})
                 )
-            ],
+            ]
         )
         mock_openai_client.responses.create.return_value = mock_response
 
@@ -431,8 +428,7 @@ class TestOpenAICUABrowserResponsesAPI:
 
         try:
             with patch(
-                "yc_matcher.infrastructure.openai_cua_browser.OpenAI",
-                return_value=mock_openai_client,
+                "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
             ):
                 with patch(
                     "yc_matcher.infrastructure.openai_cua_browser.async_playwright",
@@ -448,7 +444,7 @@ class TestOpenAICUABrowserResponsesAPI:
                     assert result is None
                     browser.logger.log_event.assert_called_with(
                         "stopped",
-                        {"event": "stopped", "where": "_cua_action", "reason": "stop_flag"},
+                        {"event": "stopped", "where": "_cua_action", "reason": "stop_flag"}
                     )
                     # Should only make initial call, not computer_call_output
                     assert mock_openai_client.responses.create.call_count == 1
@@ -474,12 +470,10 @@ class TestOpenAICUABrowserResponsesAPI:
                     call_id="call_1",
                     action=Mock(type="click", coordinates={"x": 10, "y": 20}),
                     pending_safety_checks=[
-                        Mock(
-                            id="safety_1", code="CONFIRM_ACTION", message="Confirm sending message?"
-                        )
-                    ],
+                        Mock(id="safety_1", code="CONFIRM_ACTION", message="Confirm sending message?")
+                    ]
                 )
-            ],
+            ]
         )
         mock_openai_client.responses.create.return_value = mock_response
 
@@ -502,13 +496,10 @@ class TestOpenAICUABrowserResponsesAPI:
                 # Assert - should stop due to safety check rejection
                 assert result is None
                 browser.hil_approve_callback.assert_called_once()
-                # Check that log_event was called with safety_check_not_acknowledged
-                browser.logger.log_event.assert_called_once()
-                call_args = browser.logger.log_event.call_args
-                assert call_args[0][0] == "stopped"
-                assert call_args[0][1]["event"] == "stopped"
-                assert call_args[0][1]["reason"] == "safety_check_not_acknowledged"
-                assert "safety_check" in call_args[0][1]
+                browser.logger.log_event.assert_called_with(
+                    "stopped",
+                    {"event": "stopped", "reason": "safety_check_not_acknowledged", "safety_check": "Mock(id='safety_1', code='CONFIRM_ACTION', message='Confirm sending message?')"}
+                )
 
     @pytest.mark.asyncio
     async def test_verify_sent_strict_checking(
@@ -517,7 +508,6 @@ class TestOpenAICUABrowserResponsesAPI:
         """Test that verify_sent only returns True for explicit confirmation."""
         # Arrange
         async_pw_mock, playwright_mock, page_mock = mock_playwright
-
         # Create a custom side_effect function that returns URL for URL checks
         # and False for DOM checks
         def evaluate_side_effect(script):
@@ -526,7 +516,7 @@ class TestOpenAICUABrowserResponsesAPI:
             else:
                 # For DOM check scripts
                 return False
-
+        
         page_mock.evaluate = AsyncMock(side_effect=evaluate_side_effect)
 
         with patch(
@@ -546,9 +536,7 @@ class TestOpenAICUABrowserResponsesAPI:
                 assert result is True
 
                 # Test case 2: Ambiguous response
-                mock_response = Mock(
-                    id="resp_2", output=[Mock(type="output_text", text="maybe sent")]
-                )
+                mock_response = Mock(id="resp_2", output=[Mock(type="output_text", text="maybe sent")])
                 mock_openai_client.responses.create.return_value = mock_response
 
                 result = await browser.verify_sent()
