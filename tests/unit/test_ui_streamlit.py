@@ -217,16 +217,36 @@ class TestStreamlitUI:
         mock_build.assert_not_called()
 
     @patch("yc_matcher.interface.web.ui_streamlit.st")
-    def test_render_paste_mode_sets_page_config(self, mock_st: Mock) -> None:
+    @patch("yc_matcher.interface.web.ui_streamlit.FileStopFlag")
+    @patch("yc_matcher.interface.web.ui_streamlit.read_count")
+    def test_render_paste_mode_sets_page_config(
+        self, mock_read_count: Mock, mock_stop_flag_class: Mock, mock_st: Mock
+    ) -> None:
         """Test paste mode sets correct page configuration."""
         # Arrange
-        mock_st.sidebar.__enter__ = Mock()
-        mock_st.sidebar.__exit__ = Mock()
+        mock_sidebar = Mock()
+        mock_sidebar.__enter__ = Mock(return_value=mock_sidebar)
+        mock_sidebar.__exit__ = Mock()
+        mock_st.sidebar = mock_sidebar
+        
         mock_st.text_area.return_value = ""
         mock_st.number_input.return_value = 5
         mock_st.toggle.return_value = True
         mock_st.button.return_value = False
-        mock_st.columns.return_value = [Mock(), Mock()]
+        
+        mock_col1 = Mock()
+        mock_col1.__enter__ = Mock(return_value=mock_col1)
+        mock_col1.__exit__ = Mock()
+        mock_col2 = Mock()
+        mock_col2.__enter__ = Mock(return_value=mock_col2)
+        mock_col2.__exit__ = Mock()
+        mock_st.columns.return_value = [mock_col1, mock_col2]
+        
+        mock_stop = Mock()
+        mock_stop.is_stopped.return_value = False
+        mock_stop_flag_class.return_value = mock_stop
+        
+        mock_read_count.return_value = 0
 
         # Act
         render_paste_mode()
