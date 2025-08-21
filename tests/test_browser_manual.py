@@ -3,9 +3,11 @@
 
 import asyncio
 
+import pytest
 from playwright.async_api import async_playwright
 
 
+@pytest.mark.asyncio
 async def test_browser():
     """Test if Playwright can open a browser."""
     print("🧪 Testing Playwright browser...")

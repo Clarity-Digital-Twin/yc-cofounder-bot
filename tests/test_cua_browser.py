@@ -4,6 +4,8 @@
 import asyncio
 import os
 
+import pytest
+
 # Set up environment
 os.environ["ENABLE_CUA"] = "1"
 os.environ["ENABLE_PLAYWRIGHT"] = "1"
@@ -14,6 +16,7 @@ print("🧪 Testing CUA Browser...")
 print("=" * 50)
 
 
+@pytest.mark.asyncio
 async def test_cua():
     """Test CUA browser operations."""
 
