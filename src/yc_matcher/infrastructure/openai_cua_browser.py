@@ -10,9 +10,10 @@ from __future__ import annotations
 
 import base64
 import os
+from pathlib import Path
 from typing import Any
 
-from openai import OpenAI  # type: ignore[import]
+from openai import OpenAI
 from playwright.async_api import Browser, Page, Playwright, async_playwright
 
 
@@ -24,14 +25,13 @@ class OpenAICUABrowser:
     - Playwright = Executor/Browser Control
     - Loop: Screenshot → CUA analyze → CUA suggest → Playwright execute
 
-    This replaces the Agents SDK implementation with the correct
-    Responses API pattern as per SSOT.
+    This implements the correct Responses API pattern per the official spec.
     """
 
     def __init__(self) -> None:
         """Initialize CUA browser with Responses API client and Playwright."""
         # OpenAI client for Responses API
-        self.client: Any = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))  # type: ignore[no-any-unimported]
+        self.client: Any = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
         # Model configuration
         self.model = os.getenv("CUA_MODEL")
@@ -57,6 +57,12 @@ class OpenAICUABrowser:
 
         # Cache for efficiency
         self._profile_text_cache = ""
+        
+        # Logger for events (will be injected via DI in production)
+        self.logger = None
+        
+        # HIL approval callback (will be set by UI)
+        self.hil_approve_callback = None
 
     async def _ensure_browser(self) -> None:
         """Ensure Playwright browser is running (lazy initialization)."""
@@ -67,38 +73,76 @@ class OpenAICUABrowser:
             )
             self.page = await self.browser.new_page()
 
+    def _should_stop(self) -> bool:
+        """Check if STOP flag exists."""
+        stop_file = Path(".runs/stop.flag")
+        return stop_file.exists()
+    
+    def _log_event(self, event: dict[str, Any]) -> None:
+        """Log event to logger if available."""
+        if self.logger:
+            self.logger.log_event(event.get("event", "unknown"), event)
+    
+    async def _hil_acknowledge(self, safety_check: Any) -> bool:
+        """Get HIL acknowledgment for safety check."""
+        if self.hil_approve_callback:
+            return await self.hil_approve_callback(safety_check)
+        # Default: conservative, don't proceed without explicit approval
+        return False
+
     async def _execute_action(self, action: Any) -> None:
         """Execute CUA-suggested action via Playwright.
 
         Args:
-            action: Computer call from CUA with type and parameters
+            action: Computer call action from CUA with type and parameters
         """
         await self._ensure_browser()
         assert self.page is not None  # Type narrowing for mypy
-
-        if action.type == "click":
+        
+        action_type = getattr(action, "type", "")
+        
+        if action_type == "click":
             # Click at coordinates
-            coords = action.coordinates
-            await self.page.click({"x": coords["x"], "y": coords["y"]})
-
-        elif action.type == "type":
+            coords = getattr(action, "coordinates", {})
+            if coords:
+                # Playwright expects selector or coordinates
+                await self.page.mouse.click(coords.get("x", 0), coords.get("y", 0))
+        
+        elif action_type == "type":
             # Type text
-            await self.page.keyboard.type(action.text)
-
-        elif action.type == "scroll":
+            text = getattr(action, "text", "")
+            if text:
+                await self.page.keyboard.type(text)
+        
+        elif action_type == "scroll":
             # Scroll page
-            await self.page.mouse.wheel(0, action.get("delta", 100))
-
-        elif action.type == "key":
+            delta = getattr(action, "delta", 100)
+            await self.page.mouse.wheel(0, delta)
+        
+        elif action_type == "key":
             # Press key
-            await self.page.keyboard.press(action.key)
-
-        elif action.type == "screenshot":
+            key = getattr(action, "key", "")
+            if key:
+                await self.page.keyboard.press(key)
+        
+        elif action_type == "wait":
+            # Wait for a moment
+            import asyncio
+            await asyncio.sleep(1)
+        
+        elif action_type == "screenshot":
             # Just take screenshot, no action needed
             pass
 
     async def _cua_action(self, instruction: str) -> str | None:
         """Core CUA loop: plan with Responses API, execute with Playwright.
+
+        This implements the correct API specification:
+        1. Send request with proper input structure
+        2. Parse output array for computer_call items
+        3. Execute actions and send computer_call_output
+        4. Handle safety checks with HIL
+        5. Check STOP flag in loop
 
         Args:
             instruction: What to do (e.g., "Click the first profile")
@@ -108,55 +152,125 @@ class OpenAICUABrowser:
         """
         await self._ensure_browser()
         assert self.page is not None  # Type narrowing for mypy
+        
+        # Build input content
+        input_content = [{"type": "input_text", "text": instruction}]
+        
+        # Only include screenshot if we have navigated somewhere
+        current_url = await self.page.evaluate("() => window.location.href")
+        if current_url and current_url != "about:blank":
+            screenshot = await self.page.screenshot()
+            screenshot_b64 = base64.b64encode(screenshot).decode()
+            input_content.append({
+                "type": "input_image",
+                "image_url": f"data:image/png;base64,{screenshot_b64}"
+            })
 
-        # Take initial screenshot for CUA to analyze
-        screenshot = await self.page.screenshot()
-        screenshot_b64 = base64.b64encode(screenshot).decode()
-
-        # Start or continue CUA planning turn
+        # 1) First turn (plan)
         response = self.client.responses.create(
             model=self.model,
-            input=[{"role": "user", "content": instruction}],
-            tools=[{"type": "computer_use_preview", "display_width": 1920, "display_height": 1080}],
+            tools=[{
+                "type": "computer_use_preview",
+                "display_width": 1920,
+                "display_height": 1080,
+                "environment": "browser"
+            }],
+            input=[{
+                "role": "user",
+                "content": input_content
+            }],
             truncation="auto",
             previous_response_id=self.prev_response_id,
             temperature=self.temperature,
             max_tokens=self.max_tokens,
         )
+        self.prev_response_id = response.id
 
-        # Process response
-        result_text = None
+        # 2) Loop until no computer_call items
+        while True:
+            # STOP gate (bail immediately and log)
+            if self._should_stop():
+                self._log_event({"event": "stopped", "where": "_cua_action", "reason": "stop_flag"})
+                break
 
-        # Keep executing computer calls until done
-        while hasattr(response, "computer_call") and response.computer_call:
-            action = response.computer_call
-
-            # Execute the action with Playwright
+            # Parse output list items; find the first computer_call
+            output_items = getattr(response, "output", []) or []
+            calls = [
+                item for item in output_items 
+                if getattr(item, "type", "") == "computer_call"
+            ]
+            
+            if not calls:
+                break  # No more computer calls
+            
+            call = calls[0]
+            call_id = getattr(call, "call_id", None) or getattr(call, "id", None)
+            action = getattr(call, "action", None)
+            
+            if not action:
+                break
+            
+            # Execute action locally
             await self._execute_action(action)
-
-            # Take screenshot after action
+            
+            # New screenshot after action
             screenshot = await self.page.screenshot()
             screenshot_b64 = base64.b64encode(screenshot).decode()
-
-            # Send computer_call_output with screenshot
+            
+            # Handle safety checks if present
+            acknowledged = []
+            pending_checks = getattr(call, "pending_safety_checks", []) or []
+            for safety_check in pending_checks:
+                if await self._hil_acknowledge(safety_check):
+                    acknowledged.append({
+                        "id": getattr(safety_check, "id", ""),
+                        "code": getattr(safety_check, "code", ""),
+                        "message": getattr(safety_check, "message", "")
+                    })
+                else:
+                    self._log_event({
+                        "event": "stopped",
+                        "reason": "safety_check_not_acknowledged",
+                        "safety_check": str(safety_check)
+                    })
+                    return None
+            
+            # Get current URL for better context
+            current_url = await self.page.evaluate("() => window.location.href")
+            
+            # Respond with computer_call_output
             response = self.client.responses.create(
                 model=self.model,
-                previous_response_id=response.id,
-                computer_call_output={"call_id": action.id, "screenshot": screenshot_b64},
-                truncation="auto",
+                previous_response_id=self.prev_response_id,
+                tools=[{
+                    "type": "computer_use_preview",
+                    "display_width": 1920,
+                    "display_height": 1080,
+                    "environment": "browser"
+                }],
+                input=[{
+                    "type": "computer_call_output",
+                    "call_id": call_id,
+                    "output": {
+                        "type": "input_image",
+                        "image_url": f"data:image/png;base64,{screenshot_b64}"
+                    },
+                    "acknowledged_safety_checks": acknowledged,
+                    "current_url": current_url
+                }],
+                truncation="auto"
             )
-
-            # Update previous response ID for chaining
             self.prev_response_id = response.id
 
-        # Extract any text output
-        if hasattr(response, "output") and response.output:
-            if isinstance(response.output, dict) and "text" in response.output:
-                result_text = response.output["text"]
-            elif isinstance(response.output, str):
-                result_text = response.output
-
-        return result_text
+        # 3) Extract any text output (robust parsing)
+        text_output = None
+        output_items = getattr(response, "output", []) or []
+        for item in output_items:
+            if getattr(item, "type", "") == "output_text":
+                text_output = getattr(item, "text", None)
+                break
+        
+        return text_output
 
     async def open(self, url: str) -> None:
         """Navigate to URL using CUA or fallback to Playwright.
@@ -170,6 +284,7 @@ class OpenAICUABrowser:
             if self.fallback_enabled:
                 # Fallback to direct Playwright navigation
                 await self._ensure_browser()
+                assert self.page is not None  # Type narrowing
                 await self.page.goto(url)
             else:
                 raise e
@@ -194,7 +309,7 @@ class OpenAICUABrowser:
             return result
 
         # Fallback: return cached or empty
-        return self._profile_text_cache or "Profile text here"
+        return self._profile_text_cache or ""
 
     async def focus_message_box(self) -> None:
         """Focus on the message input box."""
@@ -222,21 +337,43 @@ class OpenAICUABrowser:
 
     async def verify_sent(self) -> bool:
         """Verify that message was sent successfully.
+        
+        More strict verification:
+        - Asks CUA for explicit true/false answer
+        - No default True assumption
+        - Could add Playwright DOM fallback
 
         Returns:
-            True if message sent successfully
+            True only if message confirmed sent
         """
+        # Ask CUA for explicit confirmation
         result = await self._cua_action(
-            "Check if the message was sent successfully. "
-            "Look for confirmation message or success indicator."
+            "Reply strictly 'true' or 'false': has the message been sent successfully? "
+            "Look for a confirmation toast, banner, or an emptied message box."
         )
-
-        # Simple heuristic: if CUA found success indicators
-        if result and any(word in result.lower() for word in ["success", "sent", "delivered"]):
+        
+        # Only return True for explicit positive confirmation
+        if result and result.strip().lower() in {"true", "yes"}:
             return True
-
-        # Default to assuming success if no error
-        return True
+        
+        # Optional: Playwright DOM heuristic as fallback
+        if self.page:
+            try:
+                # Example: Check if message input is empty (was cleared after send)
+                # This is site-specific and should be customized
+                message_box_empty = await self.page.evaluate("""
+                    () => {
+                        const input = document.querySelector('textarea[placeholder*="message"]');
+                        return input ? input.value === '' : false;
+                    }
+                """)
+                if message_box_empty:
+                    return True
+            except Exception:
+                pass  # Fallback failed, continue
+        
+        # Conservative: return False if uncertain
+        return False
 
     async def close(self) -> None:
         """Clean up browser resources."""
