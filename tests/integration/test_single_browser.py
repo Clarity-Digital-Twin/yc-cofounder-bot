@@ -26,10 +26,13 @@ def test_single_browser_instance() -> None:
         # Add async mocks for page methods
         async def mock_goto(*args, **kwargs):
             return None
+
         async def mock_screenshot(*args, **kwargs):
             return b"fake_screenshot"
+
         async def mock_evaluate(*args, **kwargs):
             return "http://example.com"
+
         async def mock_close(*args, **kwargs):
             return None
 
@@ -48,6 +51,7 @@ def test_single_browser_instance() -> None:
 
         async def mock_stop(*args, **kwargs):
             return None
+
         mock_pw_instance.stop = AsyncMock(side_effect=mock_stop)
 
         async def mock_new_page(*args, **kwargs):

@@ -14,12 +14,13 @@ class TestCUASessionHygiene:
         # Arrange
         mock_client = Mock()
         mock_client.responses.create.return_value = Mock(
-            id="new-response-id",
-            output=[{"type": "output_text", "text": "Done"}]
+            id="new-response-id", output=[{"type": "output_text", "text": "Done"}]
         )
 
         with patch.dict(os.environ, {"CUA_MODEL": "test-model", "OPENAI_API_KEY": "test-key"}):
-            with patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_client):
+            with patch(
+                "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_client
+            ):
                 browser = OpenAICUABrowser()
 
             # Set an initial prev_response_id
@@ -29,20 +30,22 @@ class TestCUASessionHygiene:
             browser.open("https://example.com/profile1")
 
             # Assert - prev_response_id should be reset (None or empty)
-            assert browser._prev_response_id != "old-response-id", \
+            assert browser._prev_response_id != "old-response-id", (
                 "prev_response_id must reset when opening new profile"
+            )
 
     def test_turn_counter_resets_per_profile(self) -> None:
         """Test that turn counter resets between profiles."""
         # Arrange
         mock_client = Mock()
         mock_client.responses.create.return_value = Mock(
-            id="resp-1",
-            output=[{"type": "output_text", "text": "Done"}]
+            id="resp-1", output=[{"type": "output_text", "text": "Done"}]
         )
 
         with patch.dict(os.environ, {"CUA_MODEL": "test-model", "OPENAI_API_KEY": "test-key"}):
-            with patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_client):
+            with patch(
+                "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_client
+            ):
                 browser = OpenAICUABrowser()
 
             # Simulate some turns on first profile
@@ -67,13 +70,12 @@ class TestCUASessionHygiene:
         mock_output_item = Mock()
         mock_output_item.type = "output_text"
         mock_output_item.text = "true"
-        mock_client.responses.create.return_value = Mock(
-            id="resp-1",
-            output=[mock_output_item]
-        )
+        mock_client.responses.create.return_value = Mock(id="resp-1", output=[mock_output_item])
 
         with patch.dict(os.environ, {"CUA_MODEL": "test-model", "OPENAI_API_KEY": "test-key"}):
-            with patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_client):
+            with patch(
+                "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_client
+            ):
                 browser = OpenAICUABrowser()
 
             # Set some cached profile text
@@ -85,5 +87,6 @@ class TestCUASessionHygiene:
 
             # Assert - cache should be empty after successful send
             assert sent_ok, "verify_sent should return True"
-            assert browser._profile_text_cache == "", \
+            assert browser._profile_text_cache == "", (
                 "Profile cache must be cleared after successful send"
+            )

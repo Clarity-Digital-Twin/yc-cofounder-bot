@@ -29,10 +29,7 @@ class TestEventSchemas:
         mock_quota.check_and_increment = Mock(return_value=False)
 
         send_use_case = SendMessage(
-            quota=mock_quota,
-            browser=mock_browser,
-            logger=mock_logger,
-            stop=None
+            quota=mock_quota, browser=mock_browser, logger=mock_logger, stop=None
         )
 
         # Act - try to send (should be blocked by quota)
@@ -66,10 +63,7 @@ class TestEventSchemas:
         mock_quota.check_and_increment = Mock(return_value=True)
 
         send_use_case = SendMessage(
-            quota=mock_quota,
-            browser=mock_browser,
-            logger=mock_logger,
-            stop=None
+            quota=mock_quota, browser=mock_browser, logger=mock_logger, stop=None
         )
 
         # Act - send successfully
@@ -100,10 +94,7 @@ class TestEventSchemas:
         mock_stop.is_stopped = Mock(return_value=True)
 
         send_use_case = SendMessage(
-            quota=mock_quota,
-            browser=mock_browser,
-            logger=mock_logger,
-            stop=mock_stop
+            quota=mock_quota, browser=mock_browser, logger=mock_logger, stop=mock_stop
         )
 
         # Act - try to send (should be stopped immediately)
@@ -116,8 +107,11 @@ class TestEventSchemas:
         stopped_event = stopped_events[0]
         assert "where" in stopped_event, "Stopped event must include 'where' context"
         assert stopped_event["where"] in {
-            "send_message_start", "before_focus", "after_focus",
-            "before_send", "before_retry"
+            "send_message_start",
+            "before_focus",
+            "after_focus",
+            "before_send",
+            "before_retry",
         }
 
     def test_no_sent_after_quota_block(self) -> None:
@@ -132,10 +126,7 @@ class TestEventSchemas:
         mock_quota.check_and_increment = Mock(return_value=False)  # Block
 
         send_use_case = SendMessage(
-            quota=mock_quota,
-            browser=mock_browser,
-            logger=mock_logger,
-            stop=None
+            quota=mock_quota, browser=mock_browser, logger=mock_logger, stop=None
         )
 
         # Act
@@ -153,6 +144,7 @@ class TestEventSchemas:
 
         if quota_idx is not None:
             # No sent events should follow
-            for e in events[quota_idx + 1:]:
-                assert e.get("event") != "sent", \
+            for e in events[quota_idx + 1 :]:
+                assert e.get("event") != "sent", (
                     "No sent event should follow quota_block in same call"
+                )

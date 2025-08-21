@@ -113,7 +113,10 @@
       "Bash(git config:*)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/ --tb=no)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_ui_streamlit.py::TestStreamlitUI::test_hil_safety_panel_appears_when_pending -xvs)",
-      "Bash(env PYTHONPATH=src uv run python tests/integration/test_single_browser.py)"
+      "Bash(env PYTHONPATH=src uv run python tests/integration/test_single_browser.py)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/integration/test_browser_singleton.py::TestBrowserSingleton::test_single_browser_across_multiple_calls -xvs)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/integration/test_single_browser.py::test_single_browser_instance -xvs)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/)"
     ],
     "deny": [],
     "ask": []

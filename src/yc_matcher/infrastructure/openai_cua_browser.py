@@ -47,6 +47,7 @@ class OpenAICUABrowser:
 
         # CRITICAL FIX: Use AsyncLoopRunner for single browser instance
         from .async_loop_runner import AsyncLoopRunner
+
         self._runner = AsyncLoopRunner()
 
         # Response chaining

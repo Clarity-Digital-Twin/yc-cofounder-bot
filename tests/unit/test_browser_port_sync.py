@@ -69,10 +69,19 @@ class TestBrowserPortSync:
 
         # Don't actually create instance (would need OpenAI client)
         # Just check the class methods are not coroutines
-        for method_name in ["open", "click_view_profile", "read_profile_text",
-                           "focus_message_box", "fill_message", "send",
-                           "verify_sent", "skip", "close"]:
+        for method_name in [
+            "open",
+            "click_view_profile",
+            "read_profile_text",
+            "focus_message_box",
+            "fill_message",
+            "send",
+            "verify_sent",
+            "skip",
+            "close",
+        ]:
             method = getattr(OpenAICUABrowser, method_name)
             # The methods themselves should not be async def
-            assert not inspect.iscoroutinefunction(method), \
+            assert not inspect.iscoroutinefunction(method), (
                 f"OpenAICUABrowser.{method_name} must be synchronous for AutonomousFlow"
+            )

@@ -8,12 +8,12 @@ from typing import Any, TypeVar
 
 from playwright.async_api import Browser, Page, Playwright, async_playwright
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class AsyncLoopRunner:
     """Manages a single async event loop in a dedicated thread.
-    
+
     This is THE solution to the browser spam problem:
     - ONE event loop that lives for the entire session
     - ONE Playwright instance
@@ -21,7 +21,7 @@ class AsyncLoopRunner:
     - ONE page
     - All async operations run in this single loop
     - Sync methods submit work to this loop and wait for results
-    
+
     No more asyncio.run() spam creating new loops/browsers!
     """
 
@@ -43,7 +43,8 @@ class AsyncLoopRunner:
 
     def _start_loop(self) -> None:
         """Start the event loop in a dedicated thread."""
-        def run_loop():
+
+        def run_loop() -> None:
             """Thread target - run event loop forever."""
             # Create new event loop for this thread
             self._loop = asyncio.new_event_loop()
@@ -59,11 +60,7 @@ class AsyncLoopRunner:
             self._loop.close()
 
         # Start thread
-        self._thread = threading.Thread(
-            target=run_loop,
-            daemon=True,
-            name="AsyncLoopRunner"
-        )
+        self._thread = threading.Thread(target=run_loop, daemon=True, name="AsyncLoopRunner")
         self._thread.start()
 
         # Wait for loop to be ready
@@ -74,16 +71,16 @@ class AsyncLoopRunner:
 
     def submit(self, coro: Coroutine[Any, Any, T]) -> T:
         """Submit coroutine to event loop and wait for result.
-        
+
         This is the KEY method that replaces asyncio.run().
         Instead of creating a new loop, we submit to the existing one.
-        
+
         Args:
             coro: Async coroutine to run
-            
+
         Returns:
             Result of the coroutine
-            
+
         Raises:
             RuntimeError: If loop is not running
         """
@@ -105,10 +102,10 @@ class AsyncLoopRunner:
 
     async def ensure_browser(self) -> Page:
         """Ensure browser and page are initialized.
-        
+
         This runs IN the event loop thread.
         Called lazily on first browser operation.
-        
+
         Returns:
             The browser page (creates if needed)
         """
@@ -130,10 +127,12 @@ class AsyncLoopRunner:
             # Launch browser (headless based on env)
             self._browser = await self._playwright.chromium.launch(
                 headless=os.getenv("PLAYWRIGHT_HEADLESS", "0") == "1",
-                args=['--no-sandbox', '--disable-setuid-sandbox'] if os.getenv("CI") else []
+                args=["--no-sandbox", "--disable-setuid-sandbox"] if os.getenv("CI") else [],
             )
 
-            print(f"🌐 Browser launched (single instance, headless={os.getenv('PLAYWRIGHT_HEADLESS', '0') == '1'})")
+            print(
+                f"🌐 Browser launched (single instance, headless={os.getenv('PLAYWRIGHT_HEADLESS', '0') == '1'})"
+            )
 
         # Only create page if not exists
         if not self._page or self._page.is_closed():
@@ -143,7 +142,7 @@ class AsyncLoopRunner:
 
     async def close_browser(self) -> None:
         """Close browser and playwright.
-        
+
         This runs IN the event loop thread.
         """
         if self._page and not self._page.is_closed():
@@ -170,10 +169,7 @@ class AsyncLoopRunner:
         if self._loop and self._loop.is_running():
             # Schedule browser cleanup in the loop
             try:
-                future = asyncio.run_coroutine_threadsafe(
-                    self.close_browser(),
-                    self._loop
-                )
+                future = asyncio.run_coroutine_threadsafe(self.close_browser(), self._loop)
                 future.result(timeout=5)
             except Exception:
                 pass  # Best effort

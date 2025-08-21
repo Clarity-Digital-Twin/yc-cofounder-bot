@@ -126,11 +126,11 @@ def render_three_input_mode() -> None:
         # Show key environment settings
         st.code(f"""
 Environment Settings:
-• PLAYWRIGHT_HEADLESS: {os.getenv('PLAYWRIGHT_HEADLESS', 'not set')}
-• PLAYWRIGHT_BROWSERS_PATH: {os.getenv('PLAYWRIGHT_BROWSERS_PATH', 'not set')}
-• CUA_MODEL: {os.getenv('CUA_MODEL', 'not set')}
-• CUA_MAX_TURNS: {os.getenv('CUA_MAX_TURNS', '10')}
-• PACE_MIN_SECONDS: {os.getenv('PACE_MIN_SECONDS', '45')}
+• PLAYWRIGHT_HEADLESS: {os.getenv("PLAYWRIGHT_HEADLESS", "not set")}
+• PLAYWRIGHT_BROWSERS_PATH: {os.getenv("PLAYWRIGHT_BROWSERS_PATH", "not set")}
+• CUA_MODEL: {os.getenv("CUA_MODEL", "not set")}
+• CUA_MAX_TURNS: {os.getenv("CUA_MAX_TURNS", "10")}
+• PACE_MIN_SECONDS: {os.getenv("PACE_MIN_SECONDS", "45")}
 • Decision Mode: {mode}
 • Shadow Mode: {shadow_mode}
         """)
@@ -212,7 +212,9 @@ Environment Settings:
     is_headful = os.getenv("PLAYWRIGHT_HEADLESS", "0") == "0"
 
     if is_headful and "login_ready" not in st.session_state:
-        st.warning("🔐 **Login Required**: Please open the controlled browser and log into YC first")
+        st.warning(
+            "🔐 **Login Required**: Please open the controlled browser and log into YC first"
+        )
 
         col_login1, col_login2 = st.columns([1, 1])
         with col_login1:
@@ -227,7 +229,9 @@ Environment Settings:
                 st.success("Great! You can now start autonomous browsing")
                 st.rerun()
 
-        st.info("💡 **Steps**: 1) Click 'Open Controlled Browser' 2) Log into YC 3) Click 'I'm Logged In'")
+        st.info(
+            "💡 **Steps**: 1) Click 'Open Controlled Browser' 2) Log into YC 3) Click 'I'm Logged In'"
+        )
         return  # Don't show Start button until logged in
 
     # Main action button

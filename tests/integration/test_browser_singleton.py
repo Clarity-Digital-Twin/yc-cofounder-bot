@@ -71,8 +71,9 @@ class TestBrowserSingleton:
                 browser.skip()
 
                 # Assert only ONE browser was launched
-                assert len(browser_launches) <= 1, \
+                assert len(browser_launches) <= 1, (
                     f"Expected 1 browser launch, got {len(browser_launches)}"
+                )
 
     def test_browser_manager_is_singleton(self) -> None:
         """Test that AsyncLoopRunner is used correctly."""
