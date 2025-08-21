@@ -8,6 +8,7 @@ Following clean code principles:
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import os
 from pathlib import Path
@@ -294,95 +295,128 @@ class OpenAICUABrowser:
 
         return text_output
 
-    async def open(self, url: str) -> None:
-        """Navigate to URL using CUA or fallback to Playwright.
+    # ========== SYNCHRONOUS WRAPPERS FOR COMPATIBILITY ==========
+    # The AutonomousFlow expects sync methods, so we wrap async ones
+    # We'll override the async method names with sync versions
 
-        Args:
-            url: URL to navigate to
-        """
+    def open(self, url: str) -> None:  # type: ignore[override]
+        """Sync wrapper for async open."""
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            loop.run_until_complete(self._open_async(url))
+        finally:
+            loop.close()
+
+    async def _open_async(self, url: str) -> None:
+        """Navigate to URL using CUA or fallback to Playwright."""
         try:
             await self._cua_action(f"Navigate to {url}")
         except Exception as e:
             if self.fallback_enabled:
-                # Fallback to direct Playwright navigation
                 await self._ensure_browser()
-                assert self.page is not None  # Type narrowing
+                assert self.page is not None
                 await self.page.goto(url)
             else:
                 raise e
 
-    async def click_view_profile(self) -> None:
+    def click_view_profile(self) -> bool:  # type: ignore[override]
+        """Sync wrapper. Returns True for compatibility."""
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            loop.run_until_complete(self._click_view_profile_async())
+        finally:
+            loop.close()
+        return True
+
+    async def _click_view_profile_async(self) -> None:
         """Click on view profile button."""
         await self._cua_action("Click the 'View profile' button")
 
-    async def read_profile_text(self) -> str:
-        """Extract and return profile text from current page.
+    def read_profile_text(self) -> str:  # type: ignore[override]
+        """Sync wrapper for read_profile_text."""
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            return loop.run_until_complete(self._read_profile_text_async())
+        finally:
+            loop.close()
 
-        Returns:
-            Extracted profile text
-        """
+    async def _read_profile_text_async(self) -> str:
+        """Extract and return profile text from current page."""
         result = await self._cua_action(
             "Read and extract all the profile text from the current page. "
             "Include name, bio, skills, location, and any other relevant information."
         )
-
         if result:
             self._profile_text_cache = result
             return result
-
-        # Fallback: return cached or empty
         return self._profile_text_cache or ""
 
-    async def focus_message_box(self) -> None:
+    def focus_message_box(self) -> None:  # type: ignore[override]
+        """Sync wrapper for focus_message_box."""
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            loop.run_until_complete(self._focus_message_box_async())
+        finally:
+            loop.close()
+
+    async def _focus_message_box_async(self) -> None:
         """Focus on the message input box."""
         await self._cua_action("Click on the message input box to focus it")
 
-    async def fill_message(self, text: str) -> None:
-        """Fill message box with text.
+    def fill_message(self, text: str) -> None:  # type: ignore[override]
+        """Sync wrapper for fill_message."""
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            loop.run_until_complete(self._fill_message_async(text))
+        finally:
+            loop.close()
 
-        Args:
-            text: Message text to type
-        """
+    async def _fill_message_async(self, text: str) -> None:
+        """Fill message box with text."""
         await self._cua_action(f"Type the following message: {text}")
 
-    async def send(self) -> None:
+    def send(self) -> None:  # type: ignore[override]
+        """Sync wrapper for send."""
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            loop.run_until_complete(self._send_async())
+        finally:
+            loop.close()
+
+    async def _send_async(self) -> None:
         """Click send button to send the message."""
         await self._cua_action("Click the Send button to send the message")
 
-    async def press_send(self) -> None:
+    def press_send(self) -> None:
         """Alias for send() for compatibility."""
-        await self.send()
+        self.send()
 
-    async def skip(self) -> None:
-        """Skip current profile and go to next."""
-        await self._cua_action("Click Skip or Next to go to the next profile")
+    def verify_sent(self) -> bool:  # type: ignore[override]
+        """Sync wrapper for verify_sent."""
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            return loop.run_until_complete(self._verify_sent_async())
+        finally:
+            loop.close()
 
-    async def verify_sent(self) -> bool:
-        """Verify that message was sent successfully.
-
-        More strict verification:
-        - Asks CUA for explicit true/false answer
-        - No default True assumption
-        - Could add Playwright DOM fallback
-
-        Returns:
-            True only if message confirmed sent
-        """
-        # Ask CUA for explicit confirmation
+    async def _verify_sent_async(self) -> bool:
+        """Verify that message was sent successfully."""
         result = await self._cua_action(
             "Reply strictly 'true' or 'false': has the message been sent successfully? "
             "Look for a confirmation toast, banner, or an emptied message box."
         )
-
-        # Only return True for explicit positive confirmation
         if result and result.strip().lower() in {"true", "yes"}:
             return True
-
-        # Optional: Playwright DOM heuristic as fallback
+        
         if self.page:
             try:
-                # Example: Check if message input is empty (was cleared after send)
-                # This is site-specific and should be customized
                 message_box_empty = await self.page.evaluate("""
                     () => {
                         const input = document.querySelector('textarea[placeholder*="message"]');
@@ -392,10 +426,8 @@ class OpenAICUABrowser:
                 if message_box_empty:
                     return True
             except Exception:
-                pass  # Fallback failed, continue
-
-        # Conservative: return False if uncertain
-        # Emit error event for observability
+                pass
+        
         self._log_event({
             "event": "error",
             "type": "verify_sent_failed",
@@ -405,7 +437,29 @@ class OpenAICUABrowser:
         })
         return False
 
-    async def close(self) -> None:
+    def skip(self) -> None:  # type: ignore[override]
+        """Sync wrapper for skip."""
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            loop.run_until_complete(self._skip_async())
+        finally:
+            loop.close()
+
+    async def _skip_async(self) -> None:
+        """Skip current profile and go to next."""
+        await self._cua_action("Click Skip or Next to go to the next profile")
+
+    def close(self) -> None:  # type: ignore[override]
+        """Sync wrapper for close."""
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            loop.run_until_complete(self._close_async())
+        finally:
+            loop.close()
+
+    async def _close_async(self) -> None:
         """Clean up browser resources."""
         if self.page:
             await self.page.close()
@@ -413,8 +467,3 @@ class OpenAICUABrowser:
             await self.browser.close()
         if self.playwright:
             await self.playwright.stop()
-
-        self.page = None
-        self.browser = None
-        self.playwright = None
-        self.prev_response_id = None
