@@ -5,6 +5,10 @@ from pathlib import Path
 from typing import Any
 
 import streamlit as st
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 from yc_matcher.application.autonomous_flow import AutonomousFlow
 from yc_matcher.application.use_cases import ProcessCandidate
