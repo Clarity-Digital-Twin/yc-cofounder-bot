@@ -70,7 +70,11 @@
       "Bash(echo:*)",
       "Bash(git rm:*)",
       "Bash(git filter-branch:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git gc:*)",
+      "Bash(git push:*)",
+      "Bash(gh repo edit:*)",
+      "Bash(gh repo view:*)"
     ],
     "deny": [],
     "ask": []

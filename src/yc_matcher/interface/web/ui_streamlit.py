@@ -289,7 +289,10 @@ def render_three_input_mode() -> None:
                     st.json(results["results"])
 
             except Exception as e:
+                import traceback
                 st.error(f"Failed to start: {e}")
+                with st.expander("Error Details", expanded=True):
+                    st.code(traceback.format_exc())
 
 
 def render_paste_mode() -> None:

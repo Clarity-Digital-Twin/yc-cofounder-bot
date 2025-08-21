@@ -301,12 +301,7 @@ class OpenAICUABrowser:
 
     def open(self, url: str) -> None:  # type: ignore[override]
         """Sync wrapper for async open."""
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            loop.run_until_complete(self._open_async(url))
-        finally:
-            loop.close()
+        asyncio.run(self._open_async(url))
 
     async def _open_async(self, url: str) -> None:
         """Navigate to URL using CUA or fallback to Playwright."""
@@ -322,12 +317,7 @@ class OpenAICUABrowser:
 
     def click_view_profile(self) -> bool:  # type: ignore[override]
         """Sync wrapper. Returns True for compatibility."""
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            loop.run_until_complete(self._click_view_profile_async())
-        finally:
-            loop.close()
+        asyncio.run(self._click_view_profile_async())
         return True
 
     async def _click_view_profile_async(self) -> None:
@@ -336,12 +326,7 @@ class OpenAICUABrowser:
 
     def read_profile_text(self) -> str:  # type: ignore[override]
         """Sync wrapper for read_profile_text."""
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            return loop.run_until_complete(self._read_profile_text_async())
-        finally:
-            loop.close()
+        return asyncio.run(self._read_profile_text_async())
 
     async def _read_profile_text_async(self) -> str:
         """Extract and return profile text from current page."""
@@ -356,12 +341,7 @@ class OpenAICUABrowser:
 
     def focus_message_box(self) -> None:  # type: ignore[override]
         """Sync wrapper for focus_message_box."""
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            loop.run_until_complete(self._focus_message_box_async())
-        finally:
-            loop.close()
+        asyncio.run(self._focus_message_box_async())
 
     async def _focus_message_box_async(self) -> None:
         """Focus on the message input box."""
@@ -369,12 +349,7 @@ class OpenAICUABrowser:
 
     def fill_message(self, text: str) -> None:  # type: ignore[override]
         """Sync wrapper for fill_message."""
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            loop.run_until_complete(self._fill_message_async(text))
-        finally:
-            loop.close()
+        asyncio.run(self._fill_message_async(text))
 
     async def _fill_message_async(self, text: str) -> None:
         """Fill message box with text."""
@@ -382,12 +357,7 @@ class OpenAICUABrowser:
 
     def send(self) -> None:  # type: ignore[override]
         """Sync wrapper for send."""
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            loop.run_until_complete(self._send_async())
-        finally:
-            loop.close()
+        asyncio.run(self._send_async())
 
     async def _send_async(self) -> None:
         """Click send button to send the message."""
@@ -399,12 +369,7 @@ class OpenAICUABrowser:
 
     def verify_sent(self) -> bool:  # type: ignore[override]
         """Sync wrapper for verify_sent."""
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            return loop.run_until_complete(self._verify_sent_async())
-        finally:
-            loop.close()
+        return asyncio.run(self._verify_sent_async())
 
     async def _verify_sent_async(self) -> bool:
         """Verify that message was sent successfully."""
@@ -439,12 +404,7 @@ class OpenAICUABrowser:
 
     def skip(self) -> None:  # type: ignore[override]
         """Sync wrapper for skip."""
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            loop.run_until_complete(self._skip_async())
-        finally:
-            loop.close()
+        asyncio.run(self._skip_async())
 
     async def _skip_async(self) -> None:
         """Skip current profile and go to next."""
@@ -452,12 +412,7 @@ class OpenAICUABrowser:
 
     def close(self) -> None:  # type: ignore[override]
         """Sync wrapper for close."""
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            loop.run_until_complete(self._close_async())
-        finally:
-            loop.close()
+        asyncio.run(self._close_async())
 
     async def _close_async(self) -> None:
         """Clean up browser resources."""
