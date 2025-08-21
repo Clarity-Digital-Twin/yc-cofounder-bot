@@ -71,8 +71,9 @@ class OpenAICUABrowser:
 
     async def _ensure_browser(self) -> None:
         """Ensure browser exists via runner (single instance)."""
-        # Runner handles browser lifecycle - just ensure it exists
-        self.page = await self._runner.ensure_browser()
+        # Runner handles browser lifecycle - returns the page
+        page = await self._runner.ensure_browser()
+        return page  # Return it, don't store it
 
     def _should_stop(self) -> bool:
         """Check if STOP flag exists."""
