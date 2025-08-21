@@ -175,16 +175,31 @@ class TestOpenAICUABrowserResponsesAPI:
         """Test that CUA actions are executed via Playwright."""
         # Arrange
         async_pw_mock, playwright_mock, page_mock = mock_playwright
+        page_mock.evaluate = AsyncMock(return_value="https://example.com")
+        page_mock.mouse.click = AsyncMock()
 
-        # Mock different action types
+        # Mock different action types (correct API structure)
         click_response = Mock(
             id="resp_1",
-            computer_call=Mock(id="call_1", type="click", coordinates={"x": 100, "y": 200}),
+            output=[
+                Mock(
+                    type="computer_call",
+                    call_id="call_1",
+                    action=Mock(type="click", coordinates={"x": 100, "y": 200})
+                )
+            ]
         )
         type_response = Mock(
-            id="resp_2", computer_call=Mock(id="call_2", type="type", text="Hello World")
+            id="resp_2",
+            output=[
+                Mock(
+                    type="computer_call",
+                    call_id="call_2",
+                    action=Mock(type="type", text="Hello World")
+                )
+            ]
         )
-        done_response = Mock(id="resp_3", computer_call=None)
+        done_response = Mock(id="resp_3", output=[])  # No more computer calls
 
         mock_openai_client.responses.create.side_effect = [
             click_response,
