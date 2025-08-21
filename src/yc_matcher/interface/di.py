@@ -15,6 +15,7 @@ from ..infrastructure.local_decision import LocalDecisionAdapter
 from ..infrastructure.logger_stamped import LoggerWithStamps
 from ..infrastructure.quota import FileQuota
 from ..infrastructure.sqlite_quota import SQLiteDailyWeeklyQuota
+from ..infrastructure.stop_flag import FileStopFlag
 from ..infrastructure.template_loader import load_default_template
 from ..infrastructure.templates import TemplateRenderer
 
@@ -228,6 +229,9 @@ def build_services(
     else:
         browser = cast(BrowserPort, _NullBrowser())
 
-    send_use = SendMessage(quota=quota, browser=browser, logger=logger)
+    # Create stop controller (shared between ProcessCandidate and SendMessage)
+    stop = FileStopFlag(Path(".runs/stop.flag"))
+    
+    send_use = SendMessage(quota=quota, browser=browser, logger=logger, stop=stop)
 
     return eval_use, send_use, logger
