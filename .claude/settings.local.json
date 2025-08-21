@@ -106,7 +106,14 @@
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_cua_integrates_playwright_for_execution -xvs)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/ -q --tb=line)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/integration/ -q --tb=line)",
-      "Bash(env PACE_MIN_SECONDS=0 make test)"
+      "Bash(env PACE_MIN_SECONDS=0 make test)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/ -q --tb=no)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/ --co -q)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/ -q)",
+      "Bash(git config:*)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/ --tb=no)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_ui_streamlit.py::TestStreamlitUI::test_hil_safety_panel_appears_when_pending -xvs)",
+      "Bash(env PYTHONPATH=src uv run python tests/integration/test_single_browser.py)"
     ],
     "deny": [],
     "ask": []

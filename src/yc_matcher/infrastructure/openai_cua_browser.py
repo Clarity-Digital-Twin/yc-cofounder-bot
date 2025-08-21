@@ -304,7 +304,7 @@ class OpenAICUABrowser:
         self._profile_text_cache = ""
         self._prev_response_id = None
         self._turn_count = 0
-        
+
         # Use runner instead of asyncio.run() - NO NEW EVENT LOOPS!
         self._runner.submit(self._open_async(url))
 
