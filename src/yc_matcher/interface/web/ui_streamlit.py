@@ -96,7 +96,7 @@ def render_three_input_mode() -> None:
             "Test Mode (Evaluate Only)",
             value=os.getenv("SHADOW_MODE", "1") == "1",
             key="shadow_auto",
-            help="When ON: Evaluates profiles but NEVER sends messages. When OFF: Will actually send real messages to matches."
+            help="When ON: Evaluates profiles but NEVER sends messages. When OFF: Will actually send real messages to matches.",
         )
         if shadow_mode:
             st.success("✅ **SAFE MODE**: Will evaluate but NOT send any messages")
@@ -211,6 +211,7 @@ def render_three_input_mode() -> None:
             # Wait for user response (non-blocking async pattern)
             import asyncio
             import time
+
             timeout = 60  # 60 second timeout
             start = time.time()
 
@@ -243,6 +244,7 @@ def render_three_input_mode() -> None:
                         # Screenshot callback to update UI
                         def screenshot_callback(screenshot_b64: str) -> None:
                             st.session_state["last_screenshot"] = screenshot_b64
+
                         browser.screenshot_callback = screenshot_callback
 
                 # Create dependencies for autonomous flow
@@ -258,7 +260,7 @@ def render_three_input_mode() -> None:
                     seen=seen_repo,
                     logger=logger,
                     stop=stop_flag,
-                    quota=quota
+                    quota=quota,
                 )
 
                 # Execute autonomous flow
@@ -270,7 +272,7 @@ def render_three_input_mode() -> None:
                     limit=max_profiles,
                     shadow_mode=shadow_mode,
                     threshold=threshold,
-                    alpha=alpha if mode == "hybrid" else 0.5
+                    alpha=alpha if mode == "hybrid" else 0.5,
                 )
 
                 # Display results
@@ -290,6 +292,7 @@ def render_three_input_mode() -> None:
 
             except Exception as e:
                 import traceback
+
                 st.error(f"Failed to start: {e}")
                 with st.expander("Error Details", expanded=True):
                     st.code(traceback.format_exc())

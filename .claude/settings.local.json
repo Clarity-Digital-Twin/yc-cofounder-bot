@@ -74,7 +74,9 @@
       "Bash(git gc:*)",
       "Bash(git push:*)",
       "Bash(gh repo edit:*)",
-      "Bash(gh repo view:*)"
+      "Bash(gh repo view:*)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_cua_async_safety.py::TestCUAAsyncSafety::test_openai_calls_dont_block_event_loop -xvs)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_cua_async_safety.py -xvs)"
     ],
     "deny": [],
     "ask": []

@@ -24,7 +24,7 @@ graph TD
     AF -->|Uses| ADV
 ```
 
-### 2. The REAL Browser Problem
+### 2. Browser Init & Async/Sync Edges
 
 ```mermaid
 sequenceDiagram
@@ -33,18 +33,20 @@ sequenceDiagram
     participant ASYNC as Async Methods
     participant PW as Playwright
     
-    Note over AF,CUA: PROBLEM: Sync/Async Mismatch!
+    Note over AF,CUA: Sync/async boundary is sensitive
     
-    AF->>CUA: browser.open(url) [SYNC]
+    AF->>CUA: open(url) [sync]
     CUA->>CUA: asyncio.run(_open_async)
     CUA->>ASYNC: _open_async(url)
     ASYNC->>ASYNC: _ensure_browser()
+    ASYNC->>PW: async_playwright().start(); chromium.launch()
+    Note over CUA,PW: PLAYWRIGHT_BROWSERS_PATH set before start (current code)
     
-    Note over ASYNC,PW: CRASHES HERE!
-    ASYNC->>PW: playwright.chromium.launch()
-    PW--xAF: Error: Executable doesn't exist<br/>/home/jj/.cache/ms-playwright
-    
-    Note over PW: Looking in WRONG path!<br/>Should use .ms-playwright
+    alt Called from an active loop
+        CUA--xAF: asyncio.run raises "loop already running"
+    else Normal sync context
+        PW-->>CUA: Page ready
+    end
 ```
 
 ### 3. What's Actually Happening in AutonomousFlow
@@ -130,36 +132,28 @@ classDiagram
     GatedDecision --> OpenAIDecision
 ```
 
-### 5. Why It's Failing - The Real Issue
+### 5. Common Failure Modes
 
 ```mermaid
 graph TB
-    subgraph "Current State"
-        ENV[PLAYWRIGHT_BROWSERS_PATH=.ms-playwright<br/>Set in environment]
-        CUA[OpenAICUABrowser]
-        PW[Playwright]
+    subgraph "Potential Issues"
+        M1[Async/sync mismatch<br/>asyncio.run within async]
+        M2[Headless/display problems]
+        M3[Playwright install path mismatch]
+        M4[CUA call blocks event loop]
     end
     
-    subgraph "The Problem"
-        INIT[_ensure_browser called]
-        LAUNCH[playwright.chromium.launch<br/>headless=False]
-        FAIL[Looks for browser in<br/>/home/jj/.cache/ms-playwright]
+    subgraph "Mitigations"
+        F1[Keep Port sync; expose async adapter for tests]
+        F2[Allow PLAYWRIGHT_HEADLESS=1 fallback]
+        F3[Ensure PLAYWRIGHT_BROWSERS_PATH set before start]
+        F4[Run OpenAI calls in thread executor]
     end
     
-    subgraph "Why?"
-        R1[Environment variable not passed<br/>to async context]
-        R2[Playwright ignores env var<br/>after initialization]
-        R3[Need to set BEFORE<br/>async_playwright().start()]
-    end
-    
-    ENV -.NOT USED.-> CUA
-    CUA --> INIT
-    INIT --> LAUNCH
-    LAUNCH --> FAIL
-    
-    FAIL --> R1
-    FAIL --> R2
-    FAIL --> R3
+    M1 --> F1
+    M2 --> F2
+    M3 --> F3
+    M4 --> F4
 ```
 
 ### 6. The Fix We Need
@@ -191,3 +185,310 @@ graph LR
 3. **The core loop works** but can't start because browser won't launch
 
 4. **We lost our fixes** when we reset to avoid the API key issue
+
+## 7. CUA + Playwright Detailed Interaction Flow
+
+```mermaid
+sequenceDiagram
+    participant UI as Streamlit UI
+    participant AF as AutonomousFlow
+    participant CUA as OpenAICUABrowser
+    participant Client as OpenAI Client
+    participant PW as Playwright Page
+    participant YC as YC Website
+    
+    Note over UI,YC: Full CUA Loop (Responses API Pattern)
+    
+    UI->>AF: run(profile, criteria, template)
+    AF->>CUA: open(YC_MATCH_URL)
+    
+    rect rgb(240, 240, 240)
+        Note over CUA,PW: Browser Initialization
+        CUA->>CUA: _ensure_browser()
+        CUA->>CUA: Set PLAYWRIGHT_BROWSERS_PATH
+        CUA->>PW: chromium.launch()
+        PW->>PW: new_page()
+    end
+    
+    rect rgb(250, 250, 240)
+        Note over CUA,YC: Navigation Loop
+        CUA->>PW: goto(url)
+        PW->>YC: GET /cofounder-matching
+        YC-->>PW: HTML Response
+        PW->>PW: screenshot()
+        
+        CUA->>Client: responses.create(screenshot)
+        Client-->>CUA: Response with computer_call
+        
+        alt Has computer_call
+            CUA->>PW: Execute action (click/type)
+            PW->>YC: Perform action
+            YC-->>PW: Updated page
+            PW->>PW: screenshot()
+            CUA->>Client: responses.create(computer_call_output)
+        else Text response
+            CUA-->>AF: Return extracted text
+        end
+    end
+    
+    AF->>AF: evaluate_profile()
+    AF->>CUA: send_message() if threshold met
+```
+
+## 8. Decision Flow Architecture (All 3 Modes)
+
+```mermaid
+flowchart TB
+    subgraph "Input"
+        Profile[Profile Text]
+        Criteria[Match Criteria]
+        Mode[Decision Mode]
+    end
+    
+    subgraph "Decision Router"
+        Router{Which Mode?}
+    end
+    
+    subgraph "Advisor Mode"
+        A1[OpenAIDecision]
+        A2[LLM Analysis]
+        A3[Extract Fields]
+        A4[Generate Rationale]
+        A5[HIL Approval Required]
+    end
+    
+    subgraph "Rubric Mode"
+        R1[RubricOnlyAdapter]
+        R2[Calculate Skill Match]
+        R3[Calculate Location Match]
+        R4[Calculate Experience Match]
+        R5[Weighted Score]
+        R6[Auto-send if > threshold]
+    end
+    
+    subgraph "Hybrid Mode"
+        H1[GatedDecision]
+        H2[Get LLM Confidence]
+        H3[Get Rubric Score]
+        H4[Alpha Weighting]
+        H5[Combined Score]
+        H6[Auto-send if > threshold]
+    end
+    
+    Profile --> Router
+    Criteria --> Router
+    Mode --> Router
+    
+    Router -->|advisor| A1
+    A1 --> A2 --> A3 --> A4 --> A5
+    
+    Router -->|rubric| R1
+    R1 --> R2
+    R1 --> R3
+    R1 --> R4
+    R2 --> R5
+    R3 --> R5
+    R4 --> R5
+    R5 --> R6
+    
+    Router -->|hybrid| H1
+    H1 --> H2
+    H1 --> H3
+    H2 --> H4
+    H3 --> H4
+    H4 --> H5
+    H5 --> H6
+```
+
+## 9. Error Handling & Recovery Flows
+
+```mermaid
+stateDiagram-v2
+    [*] --> BrowserInit
+    
+    BrowserInit --> BrowserReady: Success
+    BrowserInit --> BrowserError: Fail
+    
+    BrowserError --> CheckPath: Path Issue?
+    BrowserError --> CheckHeadless: Display Issue?
+    
+    CheckPath --> SetEnvVar: Fix Path
+    SetEnvVar --> BrowserInit: Retry
+    
+    CheckHeadless --> FallbackHeadless: Set PLAYWRIGHT_HEADLESS=1
+    FallbackHeadless --> BrowserInit: Retry
+    
+    BrowserReady --> Navigate
+    Navigate --> ProfileLoop
+    
+    ProfileLoop --> CheckStop
+    CheckStop --> StopRequested: stop.flag exists
+    CheckStop --> ClickProfile: Continue
+    
+    StopRequested --> Cleanup
+    
+    ClickProfile --> ReadProfile: Success
+    ClickProfile --> NoMoreProfiles: No button found
+    ClickProfile --> CUATimeout: Timeout
+    
+    CUATimeout --> PlaywrightFallback: If enabled
+    CUATimeout --> SkipProfile: If disabled
+    
+    PlaywrightFallback --> ReadProfile: Use selectors
+    
+    ReadProfile --> EvaluateProfile
+    EvaluateProfile --> SendMessage: Above threshold
+    EvaluateProfile --> SkipProfile: Below threshold
+    
+    SendMessage --> QuotaCheck
+    QuotaCheck --> QuotaExceeded: Over limit
+    QuotaCheck --> PerformSend: Within limit
+    
+    QuotaExceeded --> Cleanup
+    PerformSend --> ProfileLoop
+    SkipProfile --> ProfileLoop
+    NoMoreProfiles --> Cleanup
+    
+    Cleanup --> [*]
+```
+
+## 10. Quota & Safety Mechanisms Flow
+
+```mermaid
+flowchart LR
+    subgraph "Safety Checks"
+        S1[Check STOP flag]
+        S2[Check Daily Quota]
+        S3[Check Weekly Quota]
+        S4[Check Seen Database]
+        S5[Check Shadow Mode]
+        S6[Check Pace Timing]
+    end
+    
+    subgraph "Decision Points"
+        D1{STOP?}
+        D2{Daily OK?}
+        D3{Weekly OK?}
+        D4{Already Seen?}
+        D5{Shadow Mode?}
+        D6{Too Fast?}
+    end
+    
+    subgraph "Actions"
+        A1[Abort - STOP requested]
+        A2[Abort - Daily exceeded]
+        A3[Abort - Weekly exceeded]
+        A4[Skip - Already messaged]
+        A5[Log only - Shadow mode]
+        A6[Wait - Pace control]
+        A7[Send Message]
+    end
+    
+    S1 --> D1
+    D1 -->|Yes| A1
+    D1 -->|No| S2
+    
+    S2 --> D2
+    D2 -->|No| A2
+    D2 -->|Yes| S3
+    
+    S3 --> D3
+    D3 -->|No| A3
+    D3 -->|Yes| S4
+    
+    S4 --> D4
+    D4 -->|Yes| A4
+    D4 -->|No| S5
+    
+    S5 --> D5
+    D5 -->|Yes| A5
+    D5 -->|No| S6
+    
+    S6 --> D6
+    D6 -->|Yes| A6
+    A6 --> A7
+    D6 -->|No| A7
+```
+
+## 11. Event Logging & Persistence Flow
+
+```mermaid
+sequenceDiagram
+    participant Flow as AutonomousFlow
+    participant Logger as LoggerWithStamps
+    participant Events as events.jsonl
+    participant Seen as seen.sqlite
+    participant Quota as quota.sqlite
+    
+    Note over Flow,Quota: Every action emits events
+    
+    Flow->>Logger: log_event("started")
+    Logger->>Events: {"event": "started", "timestamp": "..."}
+    
+    Flow->>Flow: Read profile
+    Flow->>Logger: log_event("profile_read")
+    Logger->>Events: {"event": "profile_read", "text": "..."}
+    
+    Flow->>Seen: check_seen(profile_hash)
+    Seen-->>Flow: False (not seen)
+    
+    Flow->>Flow: Evaluate profile
+    Flow->>Logger: log_event("decision")
+    Logger->>Events: {"event": "decision", "mode": "hybrid", "score": 0.85}
+    
+    Flow->>Quota: check_quota()
+    Quota-->>Flow: {daily: 5/25, weekly: 30/120}
+    
+    Flow->>Flow: Send message
+    Flow->>Logger: log_event("sent")
+    Logger->>Events: {"event": "sent", "profile_id": "..."}
+    
+    Flow->>Seen: mark_seen(profile_hash)
+    Seen->>Seen: INSERT INTO seen_profiles
+    
+    Flow->>Quota: increment()
+    Quota->>Quota: UPDATE quotas SET daily = daily + 1
+```
+
+## 12. BUGS & ISSUES IDENTIFIED (Validated Against Code)
+
+### Critical Bugs Found:
+
+1. **Async/Sync Interface Mismatch**
+   - Ports are synchronous; several tests expect async methods
+   - Risk: `asyncio.run()` fails when invoked inside an existing event loop
+   - Action: Keep sync `BrowserPort` for app; provide an async test adapter or add `awaitable` wrappers guarded by "if loop running"
+
+2. **Playwright Headless/Install Variance**
+   - Launch can fail on CI/headless displays or missing install path
+   - Current code sets `PLAYWRIGHT_BROWSERS_PATH` before start (good)
+   - Action: Document `python -m playwright install chromium`; allow `PLAYWRIGHT_HEADLESS=1` fallback in docs/UI
+
+3. **CUA Calls Block Event Loop**
+   - `responses.create(...)` is sync but used inside `async` code
+   - Risk: blocks the loop under real I/O; tests mock this
+   - Action: run blocking calls in a thread via `asyncio.to_thread` or `loop.run_in_executor`
+
+4. **Limited Error Recovery in Flow**
+   - Flow catches exceptions and skips, but no retries/backoff
+   - Action: Add small bounded retries for read/skip, and restart browser on fatal errors
+
+5. **Quota Atomicity (File Counter)**
+   - `FileQuota` JSON counter is not atomic across processes
+   - Action: Prefer SQLite quota (already implemented) or add file lock
+
+6. **Profile Text Cache Semantics**
+   - Cache retains last text to avoid empty return; not a leak but can mislead
+   - Action: Clear cache on navigation/skip to avoid stale reuse
+
+7. **HIL Callback Robustness**
+   - Code assumes async callback; a sync callback would error
+   - Action: accept both sync/async callbacks (inspect and wrap accordingly)
+
+8. **STOP Check Granularity**
+   - Checked at loop head; SendMessage path doesn’t re-check
+   - Action: Re-check stop before send, and in long operations
+
+9. **Pacing Blocks UI Thread**
+   - `time.sleep` in `SendMessage` blocks for `PACE_MIN_SECONDS`
+   - Action: Move pacing outside or make non-blocking when called from UI

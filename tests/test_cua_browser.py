@@ -13,13 +13,15 @@ os.environ["CUA_MODEL"] = os.getenv("CUA_MODEL", "gpt-4")  # Fallback if not set
 print("🧪 Testing CUA Browser...")
 print("=" * 50)
 
+
 async def test_cua():
     """Test CUA browser operations."""
-    
+
     # Test 1: Import and create browser
     print("\n1️⃣ Creating CUA browser...")
     try:
         from src.yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
+
         browser = OpenAICUABrowser()
         print(f"✅ Created browser: {type(browser).__name__}")
         print(f"   - Model: {browser.model}")
@@ -27,7 +29,7 @@ async def test_cua():
     except Exception as e:
         print(f"❌ Failed to create browser: {e}")
         return
-    
+
     # Test 2: Open a URL
     print("\n2️⃣ Opening YC cofounder matching...")
     try:
@@ -37,8 +39,9 @@ async def test_cua():
     except Exception as e:
         print(f"❌ Failed to open URL: {e}")
         import traceback
+
         traceback.print_exc()
-    
+
     # Test 3: Take a screenshot
     print("\n3️⃣ Taking screenshot...")
     try:
@@ -49,7 +52,7 @@ async def test_cua():
             print("⚠️  No page available for screenshot")
     except Exception as e:
         print(f"❌ Screenshot failed: {e}")
-    
+
     # Test 4: Close browser
     print("\n4️⃣ Closing browser...")
     try:
@@ -57,9 +60,10 @@ async def test_cua():
         print("✅ Browser closed")
     except Exception as e:
         print(f"❌ Failed to close: {e}")
-    
+
     print("\n" + "=" * 50)
     print("✨ CUA Browser test complete!")
+
 
 if __name__ == "__main__":
     asyncio.run(test_cua())

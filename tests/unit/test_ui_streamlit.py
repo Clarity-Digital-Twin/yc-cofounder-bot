@@ -1,11 +1,8 @@
 """Test Streamlit UI components with minimal mocks following TDD."""
 
-from typing import Any
 from unittest.mock import Mock, patch
 
-import pytest
-
-from yc_matcher.interface.web.ui_streamlit import render_three_input_mode, render_paste_mode
+from yc_matcher.interface.web.ui_streamlit import render_paste_mode, render_three_input_mode
 
 
 class TestStreamlitUI:
@@ -112,7 +109,7 @@ class TestStreamlitUI:
         mock_stop = Mock()
         mock_stop.is_stopped.return_value = False
         mock_stop_flag_class.return_value = mock_stop
-        
+
         mock_st.session_state = {"hil_pending": None, "last_screenshot": None}
         mock_st.columns.side_effect = [
             [Mock(), Mock(), Mock()],  # Main inputs
@@ -141,7 +138,7 @@ class TestStreamlitUI:
         # Arrange
         mock_st.session_state = {
             "hil_pending": {"message": "Safety check required", "id": "123"},
-            "last_screenshot": None
+            "last_screenshot": None,
         }
         mock_st.columns.return_value = [Mock(), Mock(), Mock()]
         mock_st.button.return_value = False
@@ -167,10 +164,7 @@ class TestStreamlitUI:
     def test_screenshot_panel_displays_when_available(self, mock_st: Mock) -> None:
         """Test screenshot panel displays when screenshot available."""
         # Arrange
-        mock_st.session_state = {
-            "hil_pending": None,
-            "last_screenshot": "base64encodedimage"
-        }
+        mock_st.session_state = {"hil_pending": None, "last_screenshot": "base64encodedimage"}
         mock_st.columns.return_value = [Mock(), Mock(), Mock()]
         mock_st.button.return_value = False
         mock_st.text_area.return_value = ""
@@ -189,8 +183,7 @@ class TestStreamlitUI:
         # Assert
         mock_st.expander.assert_any_call("📸 Last Screenshot", expanded=False)
         mock_st.image.assert_called_once_with(
-            "data:image/png;base64,base64encodedimage",
-            use_column_width=True
+            "data:image/png;base64,base64encodedimage", use_column_width=True
         )
 
     @patch("yc_matcher.interface.web.ui_streamlit.st")
@@ -228,12 +221,12 @@ class TestStreamlitUI:
         mock_sidebar.__enter__ = Mock(return_value=mock_sidebar)
         mock_sidebar.__exit__ = Mock()
         mock_st.sidebar = mock_sidebar
-        
+
         mock_st.text_area.return_value = ""
         mock_st.number_input.return_value = 5
         mock_st.toggle.return_value = True
         mock_st.button.return_value = False
-        
+
         mock_col1 = Mock()
         mock_col1.__enter__ = Mock(return_value=mock_col1)
         mock_col1.__exit__ = Mock()
@@ -241,11 +234,11 @@ class TestStreamlitUI:
         mock_col2.__enter__ = Mock(return_value=mock_col2)
         mock_col2.__exit__ = Mock()
         mock_st.columns.return_value = [mock_col1, mock_col2]
-        
+
         mock_stop = Mock()
         mock_stop.is_stopped.return_value = False
         mock_stop_flag_class.return_value = mock_stop
-        
+
         mock_read_count.return_value = 0
 
         # Act

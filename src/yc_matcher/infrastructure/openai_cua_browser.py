@@ -74,7 +74,7 @@ class OpenAICUABrowser:
             # CRITICAL: Set browser path BEFORE starting playwright
             browsers_path = os.getenv("PLAYWRIGHT_BROWSERS_PATH", ".ms-playwright")
             os.environ["PLAYWRIGHT_BROWSERS_PATH"] = browsers_path
-            
+
             self.playwright = await async_playwright().start()
             self.browser = await self.playwright.chromium.launch(
                 headless=os.getenv("PLAYWRIGHT_HEADLESS", "0") == "1"
@@ -174,8 +174,9 @@ class OpenAICUABrowser:
                 {"type": "input_image", "image_url": f"data:image/png;base64,{screenshot_b64}"}
             )
 
-        # 1) First turn (plan)
-        response = self.client.responses.create(
+        # 1) First turn (plan) - Use asyncio.to_thread to avoid blocking
+        response = await asyncio.to_thread(
+            self.client.responses.create,
             model=self.model,
             tools=[
                 {
@@ -261,8 +262,9 @@ class OpenAICUABrowser:
             # Get current URL for better context
             current_url = await self.page.evaluate("() => window.location.href")
 
-            # Respond with computer_call_output
-            response = self.client.responses.create(
+            # Respond with computer_call_output - Use asyncio.to_thread to avoid blocking
+            response = await asyncio.to_thread(
+                self.client.responses.create,
                 model=self.model,
                 previous_response_id=self.prev_response_id,
                 tools=[
@@ -309,6 +311,9 @@ class OpenAICUABrowser:
 
     async def _open_async(self, url: str) -> None:
         """Navigate to URL using CUA or fallback to Playwright."""
+        # Clear profile cache on navigation to avoid stale data
+        self._profile_text_cache = ""
+
         try:
             await self._cua_action(f"Navigate to {url}")
         except Exception as e:
@@ -383,7 +388,7 @@ class OpenAICUABrowser:
         )
         if result and result.strip().lower() in {"true", "yes"}:
             return True
-        
+
         if self.page:
             try:
                 message_box_empty = await self.page.evaluate("""
@@ -396,14 +401,16 @@ class OpenAICUABrowser:
                     return True
             except Exception:
                 pass
-        
-        self._log_event({
-            "event": "error",
-            "type": "verify_sent_failed",
-            "reason": "could_not_confirm_sent",
-            "cua_result": result if result else None,
-            "message": "Message send could not be verified"
-        })
+
+        self._log_event(
+            {
+                "event": "error",
+                "type": "verify_sent_failed",
+                "reason": "could_not_confirm_sent",
+                "cua_result": result if result else None,
+                "message": "Message send could not be verified",
+            }
+        )
         return False
 
     def skip(self) -> None:  # type: ignore[override]
@@ -412,6 +419,8 @@ class OpenAICUABrowser:
 
     async def _skip_async(self) -> None:
         """Skip current profile and go to next."""
+        # Clear profile cache when skipping to avoid carrying over data
+        self._profile_text_cache = ""
         await self._cua_action("Click Skip or Next to go to the next profile")
 
     def close(self) -> None:  # type: ignore[override]
