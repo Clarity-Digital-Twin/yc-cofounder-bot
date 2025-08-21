@@ -43,7 +43,7 @@ class RubricOnlyAdapter(DecisionPort):
             "mode": "rubric",
             "auto_send": self.auto_send and passed,
             "score": score.value,
-            "threshold": self.threshold
+            "threshold": self.threshold,
         }
 
 
@@ -54,7 +54,7 @@ def create_decision_adapter(
     client: Any = None,
     logger: Any = None,
     prompt_ver: str = "v1",
-    rubric_ver: str = "v1"
+    rubric_ver: str = "v1",
 ) -> DecisionPort:
     """Factory method for decision adapters (Factory Pattern).
 
@@ -72,6 +72,7 @@ def create_decision_adapter(
             if client is None:
                 try:
                     from openai import OpenAI
+
                     client = OpenAI()
                 except Exception:
                     # Fallback client
@@ -82,15 +83,19 @@ def create_decision_adapter(
                                 return type(
                                     "R",
                                     (),
-                                    {"output": {"decision": "NO", "rationale": "offline", "draft": ""}},
+                                    {
+                                        "output": {
+                                            "decision": "NO",
+                                            "rationale": "offline",
+                                            "draft": "",
+                                        }
+                                    },
                                 )()
+
                     client = _Noop()
 
             ai_decision = OpenAIDecisionAdapter(
-                client=client,
-                logger=logger,
-                prompt_ver=prompt_ver,
-                rubric_ver=rubric_ver
+                client=client, logger=logger, prompt_ver=prompt_ver, rubric_ver=rubric_ver
             )
         except Exception:
             pass  # Keep LocalDecisionAdapter
@@ -116,11 +121,7 @@ def create_decision_adapter(
         # Use environment variables for hybrid configuration
         hybrid_threshold = float(os.getenv("HYBRID_THRESHOLD", str(threshold)))
 
-        return GatedDecision(
-            scoring=scoring,
-            decision=ai_decision,
-            threshold=hybrid_threshold
-        )
+        return GatedDecision(scoring=scoring, decision=ai_decision, threshold=hybrid_threshold)
 
     else:
         raise ValueError(f"Unknown decision mode: {mode}")
@@ -156,7 +157,7 @@ def build_services(
         client=None,  # Will be created inside if needed
         logger=None,  # Will be attached below
         prompt_ver=prompt_ver,
-        rubric_ver=rubric_ver
+        rubric_ver=rubric_ver,
     )
 
     eval_use = EvaluateProfile(decision=decision, message=renderer)

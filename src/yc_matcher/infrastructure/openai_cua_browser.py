@@ -64,6 +64,9 @@ class OpenAICUABrowser:
         # HIL approval callback (will be set by UI)
         self.hil_approve_callback = None
 
+        # Screenshot callback for UI display
+        self.screenshot_callback = None
+
     async def _ensure_browser(self) -> None:
         """Ensure Playwright browser is running (lazy initialization)."""
         if not self.playwright:
@@ -185,8 +188,11 @@ class OpenAICUABrowser:
         )
         self.prev_response_id = response.id
 
-        # 2) Loop until no computer_call items
-        while True:
+        # 2) Loop until no computer_call items (with turn cap for safety)
+        MAX_TURNS = int(os.getenv("CUA_MAX_TURNS", "40"))
+        turns = 0
+
+        while turns < MAX_TURNS:
             # STOP gate (bail immediately and log)
             if self._should_stop():
                 self._log_event({"event": "stopped", "where": "_cua_action", "reason": "stop_flag"})
@@ -198,6 +204,11 @@ class OpenAICUABrowser:
 
             if not calls:
                 break  # No more computer calls
+
+            turns += 1
+            if turns >= MAX_TURNS:
+                self._log_event({"event": "max_turns_reached", "turns": turns})
+                break
 
             call = calls[0]
             call_id = getattr(call, "call_id", None) or getattr(call, "id", None)
@@ -213,11 +224,16 @@ class OpenAICUABrowser:
             screenshot = await self.page.screenshot()
             screenshot_b64 = base64.b64encode(screenshot).decode()
 
-            # Handle safety checks if present
-            acknowledged = []
+            # Store screenshot for UI display if callback set
+            if self.screenshot_callback:
+                self.screenshot_callback(screenshot_b64)
+
+            # Handle safety checks if present (default to reject for safety)
+            acknowledged: list[dict[str, Any]] = []
             pending_checks = getattr(call, "pending_safety_checks", []) or []
             for safety_check in pending_checks:
-                if await self._hil_acknowledge(safety_check):
+                # Only acknowledge if HIL callback is set AND approves
+                if self.hil_approve_callback and await self._hil_acknowledge(safety_check):
                     acknowledged.append(
                         {
                             "id": getattr(safety_check, "id", ""),
@@ -226,11 +242,13 @@ class OpenAICUABrowser:
                         }
                     )
                 else:
+                    # Default to reject for safety
                     self._log_event(
                         {
                             "event": "stopped",
                             "reason": "safety_check_not_acknowledged",
                             "safety_check": str(safety_check),
+                            "has_callback": bool(self.hil_approve_callback),
                         }
                     )
                     return None

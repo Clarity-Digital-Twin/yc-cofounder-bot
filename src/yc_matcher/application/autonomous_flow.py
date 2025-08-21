@@ -83,14 +83,16 @@ class AutonomousFlow:
         Returns:
             Dictionary with results summary
         """
-        self.logger.emit({
-            "event": "autonomous_start",
-            "mode": mode,
-            "limit": limit,
-            "shadow": shadow_mode,
-            "criteria_len": len(criteria),
-            "template_len": len(template)
-        })
+        self.logger.emit(
+            {
+                "event": "autonomous_start",
+                "mode": mode,
+                "limit": limit,
+                "shadow": shadow_mode,
+                "criteria_len": len(criteria),
+                "template_len": len(template),
+            }
+        )
 
         # Navigate to YC matching page
         yc_url = os.getenv("YC_MATCH_URL", "https://www.startupschool.org/cofounder-matching")
@@ -107,10 +109,7 @@ class AutonomousFlow:
                 self.logger.emit({"event": "stopped", "at_profile": i, "reason": "stop_flag"})
                 break
 
-            # Check quota
-            if not shadow_mode and not self.quota.check_and_increment(1):
-                self.logger.emit({"event": "quota_reached", "at_profile": i})
-                break
+            # Skip quota check here - will be checked in SendMessage use case
 
             try:
                 # Click view profile
@@ -145,20 +144,20 @@ class AutonomousFlow:
                 evaluation = self.evaluate(profile, criteria_obj)
 
                 # Log decision event
-                self.logger.emit({
-                    "event": "decision",
-                    "profile": i,
-                    "decision": evaluation.get("decision"),
-                    "mode": mode,
-                    "rationale": evaluation.get("rationale", ""),
-                    "score": evaluation.get("score"),
-                    "auto_send": evaluation.get("auto_send", False)
-                })
+                self.logger.emit(
+                    {
+                        "event": "decision",
+                        "profile": i,
+                        "decision": evaluation.get("decision"),
+                        "mode": mode,
+                        "rationale": evaluation.get("rationale", ""),
+                        "score": evaluation.get("score"),
+                        "auto_send": evaluation.get("auto_send", False),
+                    }
+                )
 
                 # Determine if should send
-                should_send = self._should_auto_send(
-                    dict(evaluation), mode, shadow_mode, threshold
-                )
+                should_send = self._should_auto_send(dict(evaluation), mode, shadow_mode, threshold)
 
                 # Send message if appropriate
                 if should_send and evaluation.get("decision") == "YES":
@@ -168,40 +167,36 @@ class AutonomousFlow:
                         success = self.send(draft, 1)
                         if success:
                             sent_count += 1
-                            self.logger.emit({
-                                "event": "sent",
-                                "profile": i,
-                                "ok": True,
-                                "mode": "auto",
-                                "verified": True
-                            })
+                            self.logger.emit(
+                                {
+                                    "event": "sent",
+                                    "profile": i,
+                                    "ok": True,
+                                    "mode": "auto",
+                                    "verified": True,
+                                }
+                            )
                     elif shadow_mode:
-                        self.logger.emit({
-                            "event": "shadow_send",
-                            "profile": i,
-                            "would_send": True
-                        })
+                        self.logger.emit({"event": "shadow_send", "profile": i, "would_send": True})
 
                 # Store result
-                results.append({
-                    "profile_num": i,
-                    "hash": profile_hash,
-                    "decision": evaluation.get("decision"),
-                    "rationale": evaluation.get("rationale"),
-                    "sent": should_send and not shadow_mode,
-                    "mode": mode
-                })
+                results.append(
+                    {
+                        "profile_num": i,
+                        "hash": profile_hash,
+                        "decision": evaluation.get("decision"),
+                        "rationale": evaluation.get("rationale"),
+                        "sent": should_send and not shadow_mode,
+                        "mode": mode,
+                    }
+                )
 
                 # Move to next profile
                 if evaluation.get("decision") == "NO" or shadow_mode:
                     self.browser.skip()
 
             except Exception as e:
-                self.logger.emit({
-                    "event": "error",
-                    "profile": i,
-                    "error": str(e)
-                })
+                self.logger.emit({"event": "error", "profile": i, "error": str(e)})
                 # Try to continue
                 try:
                     self.browser.skip()
@@ -215,22 +210,15 @@ class AutonomousFlow:
             "total_skipped": skipped_count,
             "mode": mode,
             "shadow": shadow_mode,
-            "results": results
+            "results": results,
         }
 
-        self.logger.emit({
-            "event": "autonomous_complete",
-            **summary
-        })
+        self.logger.emit({"event": "autonomous_complete", **summary})
 
         return summary
 
     def _should_auto_send(
-        self,
-        evaluation: dict[str, Any],
-        mode: str,
-        shadow_mode: bool,
-        threshold: float
+        self, evaluation: dict[str, Any], mode: str, shadow_mode: bool, threshold: float
     ) -> bool:
         """Determine if message should be sent automatically.
 
