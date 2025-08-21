@@ -306,18 +306,36 @@ Environment Settings:
 
         with st.spinner("Processing..."):
             try:
-                # Reuse existing services (DRY principle)
-                eval_use, send_use, logger = build_services(
-                    criteria_text=criteria_text,
-                    template_text=template_text,
-                    prompt_ver="v1",
-                    rubric_ver="v1",
-                    decision_mode=mode,  # Pass mode to DI
-                )
+                # Check if we have an existing browser in session state
+                if "browser_instance" in st.session_state:
+                    # Reuse the existing logged-in browser!
+                    existing_browser = st.session_state["browser_instance"]
+                    
+                    # Build services but inject the existing browser
+                    eval_use, send_use, logger = build_services(
+                        criteria_text=criteria_text,
+                        template_text=template_text,
+                        prompt_ver="v1",
+                        rubric_ver="v1",
+                        decision_mode=mode,  # Pass mode to DI
+                    )
+                    
+                    # CRITICAL: Replace the new browser with our existing logged-in one
+                    send_use.browser = existing_browser
+                    browser = existing_browser
+                else:
+                    # No existing browser, create new services normally
+                    eval_use, send_use, logger = build_services(
+                        criteria_text=criteria_text,
+                        template_text=template_text,
+                        prompt_ver="v1",
+                        rubric_ver="v1",
+                        decision_mode=mode,  # Pass mode to DI
+                    )
+                    browser = send_use.browser
 
                 # Wire callbacks to browser if CUA enabled
-                if enable_cua and hasattr(send_use, "browser"):
-                    browser = send_use.browser
+                if enable_cua:
                     if hasattr(browser, "hil_approve_callback"):
                         browser.hil_approve_callback = hil_approve_callback
                     if hasattr(browser, "screenshot_callback"):
