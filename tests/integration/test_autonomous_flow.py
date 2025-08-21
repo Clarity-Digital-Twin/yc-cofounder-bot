@@ -66,11 +66,14 @@ class TestAutonomousFlow:
         browser.open = Mock()
         browser.click_view_profile = Mock(return_value=True)
         browser.read_profile_text = Mock(return_value="Profile")
+        browser.skip = Mock()
 
         evaluate = Mock()
+        evaluate.return_value = {"decision": "NO", "rationale": "Test"}
         send = Mock()
         seen = Mock()
         seen.is_seen = Mock(return_value=False)
+        seen.mark_seen = Mock()
 
         logger = Mock()
         stop = Mock()
@@ -169,6 +172,7 @@ class TestAutonomousFlow:
             "rationale": "Good match",
             "draft": "Hello!",
             "auto_send": True,
+            "score": 5.0,  # Add score for rubric mode
         }
 
         send = Mock()
@@ -226,6 +230,7 @@ class TestAutonomousFlow:
             "rationale": "Good",
             "draft": "Message",
             "auto_send": True,
+            "score": 5.0,  # Add score for rubric mode
         }
 
         send = Mock()
@@ -277,6 +282,7 @@ class TestAutonomousFlow:
             "rationale": "Good",
             "draft": "Message",
             "auto_send": True,
+            "score": 5.0,  # Add score for rubric mode
         }
 
         send = Mock()

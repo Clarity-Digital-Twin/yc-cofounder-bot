@@ -156,11 +156,11 @@ class AutonomousFlow:
                     }
                 )
 
-                # Determine if should send
-                should_send = self._should_auto_send(dict(evaluation), mode, shadow_mode, threshold)
+                # Determine if should send (ignoring shadow mode for now)
+                would_send = self._should_auto_send(dict(evaluation), mode, False, threshold)
 
                 # Send message if appropriate
-                if should_send and evaluation.get("decision") == "YES":
+                if would_send and evaluation.get("decision") == "YES":
                     draft = evaluation.get("draft", "")
                     if draft and not shadow_mode:
                         # Use send use case with quota
@@ -176,7 +176,7 @@ class AutonomousFlow:
                                     "verified": True,
                                 }
                             )
-                    elif shadow_mode:
+                    elif draft and shadow_mode:
                         self.logger.emit({"event": "shadow_send", "profile": i, "would_send": True})
 
                 # Store result
@@ -186,7 +186,7 @@ class AutonomousFlow:
                         "hash": profile_hash,
                         "decision": evaluation.get("decision"),
                         "rationale": evaluation.get("rationale"),
-                        "sent": should_send and not shadow_mode,
+                        "sent": would_send and not shadow_mode,
                         "mode": mode,
                     }
                 )

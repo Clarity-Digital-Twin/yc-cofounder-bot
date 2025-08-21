@@ -87,7 +87,11 @@
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_decision_modes.py::TestHybridMode::test_hybrid_gates_with_rubric_first tests/unit/test_decision_modes.py::TestHybridMode::test_hybrid_includes_both_scores -xvs)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_decision_modes.py::TestHybridMode -q)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_di.py -k \"test_openai_adapter_when_enabled or test_build_services_creates_logger_with_versions or test_cua_browser_when_enabled\" -xvs)",
-      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_di.py -q)"
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_di.py -q)",
+      "Bash(env PACE_MIN_SECONDS=0 make verify)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/test_browser_manual.py tests/test_cua_browser.py -xvs)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/integration/test_autonomous_flow.py::TestAutonomousFlow::test_autonomous_flow_stops_on_flag -xvs)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/integration/test_autonomous_flow.py::TestAutonomousFlow::test_autonomous_flow_shadow_mode_no_send -xvs)"
     ],
     "deny": [],
     "ask": []

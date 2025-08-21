@@ -305,7 +305,7 @@ class OpenAICUABrowser:
     # The AutonomousFlow expects sync methods, so we wrap async ones
     # We'll override the async method names with sync versions
 
-    def open(self, url: str) -> None:  # type: ignore[override]
+    def open(self, url: str) -> None:
         """Sync wrapper for async open."""
         asyncio.run(self._open_async(url))
 
@@ -324,7 +324,7 @@ class OpenAICUABrowser:
             else:
                 raise e
 
-    def click_view_profile(self) -> bool:  # type: ignore[override]
+    def click_view_profile(self) -> bool:
         """Sync wrapper. Returns True for compatibility."""
         asyncio.run(self._click_view_profile_async())
         return True
@@ -333,7 +333,7 @@ class OpenAICUABrowser:
         """Click on view profile button."""
         await self._cua_action("Click the 'View profile' button")
 
-    def read_profile_text(self) -> str:  # type: ignore[override]
+    def read_profile_text(self) -> str:
         """Sync wrapper for read_profile_text."""
         return asyncio.run(self._read_profile_text_async())
 
@@ -348,7 +348,7 @@ class OpenAICUABrowser:
             return result
         return self._profile_text_cache or ""
 
-    def focus_message_box(self) -> None:  # type: ignore[override]
+    def focus_message_box(self) -> None:
         """Sync wrapper for focus_message_box."""
         asyncio.run(self._focus_message_box_async())
 
@@ -356,7 +356,7 @@ class OpenAICUABrowser:
         """Focus on the message input box."""
         await self._cua_action("Click on the message input box to focus it")
 
-    def fill_message(self, text: str) -> None:  # type: ignore[override]
+    def fill_message(self, text: str) -> None:
         """Sync wrapper for fill_message."""
         asyncio.run(self._fill_message_async(text))
 
@@ -364,7 +364,7 @@ class OpenAICUABrowser:
         """Fill message box with text."""
         await self._cua_action(f"Type the following message: {text}")
 
-    def send(self) -> None:  # type: ignore[override]
+    def send(self) -> None:
         """Sync wrapper for send."""
         asyncio.run(self._send_async())
 
@@ -376,7 +376,7 @@ class OpenAICUABrowser:
         """Alias for send() for compatibility."""
         self.send()
 
-    def verify_sent(self) -> bool:  # type: ignore[override]
+    def verify_sent(self) -> bool:
         """Sync wrapper for verify_sent."""
         return asyncio.run(self._verify_sent_async())
 
@@ -413,7 +413,7 @@ class OpenAICUABrowser:
         )
         return False
 
-    def skip(self) -> None:  # type: ignore[override]
+    def skip(self) -> None:
         """Sync wrapper for skip."""
         asyncio.run(self._skip_async())
 
@@ -423,7 +423,7 @@ class OpenAICUABrowser:
         self._profile_text_cache = ""
         await self._cua_action("Click Skip or Next to go to the next profile")
 
-    def close(self) -> None:  # type: ignore[override]
+    def close(self) -> None:
         """Sync wrapper for close."""
         asyncio.run(self._close_async())
 
