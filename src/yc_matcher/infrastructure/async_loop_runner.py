@@ -2,6 +2,7 @@
 
 import asyncio
 import atexit
+import os
 import threading
 from collections.abc import Coroutine
 from typing import Any, TypeVar
@@ -35,6 +36,11 @@ class AsyncLoopRunner:
         self._ready = threading.Event()
         self._stopping = False
 
+        # CRITICAL: Don't start real browser in test mode
+        if os.getenv("PYTEST_CURRENT_TEST"):
+            print("⚠️ AsyncLoopRunner: Test mode detected, not starting browser")
+            return  # Tests should mock this entirely
+        
         # Start the event loop in a thread
         self._start_loop()
 
