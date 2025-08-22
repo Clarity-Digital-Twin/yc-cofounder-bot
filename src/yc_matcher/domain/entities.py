@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict
 
 
 @dataclass(frozen=True)
@@ -21,7 +20,7 @@ class Profile:
 class Score:
     value: float
     reasons: list[str] = field(default_factory=list)
-    details: Dict[str, float] = field(default_factory=dict)
+    details: dict[str, float] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)

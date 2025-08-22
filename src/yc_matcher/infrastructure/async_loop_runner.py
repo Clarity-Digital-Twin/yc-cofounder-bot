@@ -99,7 +99,7 @@ class AsyncLoopRunner:
             # Use thread-safe submit to our loop
             future = asyncio.run_coroutine_threadsafe(coro, self._loop)
             return future.result(timeout=30)
-        
+
         # No loop or not running - run in new event loop
         # This handles test mode gracefully
         try:
@@ -133,14 +133,13 @@ class AsyncLoopRunner:
         if os.getenv("PYTEST_CURRENT_TEST"):
             # Return a mock page for tests
             from unittest.mock import AsyncMock
-            import base64
             mock_page = AsyncMock()
             mock_page.url = "https://test.com"
             mock_page.is_closed.return_value = False
             # Mock screenshot to return bytes
             mock_page.screenshot.return_value = b"fake_screenshot_bytes"
             return mock_page
-        
+
         # Only create if not exists
         if not self._playwright:
             import os
