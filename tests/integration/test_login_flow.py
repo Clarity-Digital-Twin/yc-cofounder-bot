@@ -27,7 +27,7 @@ class TestLoginFlowIntegration:
         # Arrange
         mock_client = Mock()
         mock_openai.return_value = mock_client
-        
+
         # Mock the CUA responses for login flow
         login_response = Mock(
             id="resp_1",
@@ -35,18 +35,18 @@ class TestLoginFlowIntegration:
             content="Login successful"
         )
         mock_client.responses.create.return_value = login_response
-        
+
         # Create browser
         browser = OpenAICUABrowser()
-        
+
         # Act
         result = browser.ensure_logged_in()
-        
+
         # Assert
         assert result is None  # No error means success
         # Verify CUA was called to perform login
         mock_client.responses.create.assert_called()
-        
+
     @pytest.mark.asyncio
     @patch.dict(os.environ, {"YC_EMAIL": "test@example.com", "YC_PASSWORD": "test123"})
     @patch("yc_matcher.infrastructure.browser_playwright.sync_playwright")
@@ -56,19 +56,19 @@ class TestLoginFlowIntegration:
         mock_context = Mock()
         mock_browser = Mock()
         mock_page = Mock()
-        
+
         mock_playwright.return_value.start.return_value.chromium.launch.return_value = mock_browser
         mock_browser.new_page.return_value = mock_page
-        
+
         # Mock login check
         mock_page.locator.return_value.count.return_value = 0  # Not logged in initially
-        
+
         # Create browser
         browser = BrowserPlaywright()
-        
+
         # Act
         browser.ensure_logged_in()
-        
+
         # Assert
         # Should navigate to login page
         mock_page.goto.assert_called()
@@ -82,11 +82,11 @@ class TestLoginFlowIntegration:
         """Test that login fails gracefully when no credentials are provided."""
         # Arrange
         browser = BrowserPlaywright()
-        
+
         # Act & Assert
         with pytest.raises(Exception) as exc_info:
             browser.ensure_logged_in()
-        
+
         assert "credentials" in str(exc_info.value).lower()
 
     @pytest.mark.asyncio
@@ -100,7 +100,7 @@ class TestLoginFlowIntegration:
         # Arrange
         mock_client = Mock()
         mock_openai.return_value = mock_client
-        
+
         # Mock Playwright page
         mock_page = AsyncMock()
         mock_async_playwright = AsyncMock()
@@ -108,7 +108,7 @@ class TestLoginFlowIntegration:
         mock_async_playwright.chromium.launch.return_value = mock_browser
         mock_browser.new_page.return_value = mock_page
         mock_playwright.return_value.__aenter__.return_value = mock_async_playwright
-        
+
         # Mock CUA response with login actions
         click_response = Mock(
             id="resp_1",
@@ -123,13 +123,13 @@ class TestLoginFlowIntegration:
         )
         done_response = Mock(id="resp_2", output=[])
         mock_client.responses.create.side_effect = [click_response, done_response]
-        
+
         # Create browser
         browser = OpenAICUABrowser()
-        
+
         # Act
         await browser._ensure_logged_in_async()
-        
+
         # Assert
         # Verify Playwright was used to execute the click
         mock_page.mouse.click.assert_called_with(100, 200)
@@ -140,18 +140,18 @@ class TestLoginFlowIntegration:
         # Arrange
         mock_page = Mock()
         mock_playwright.return_value.start.return_value.chromium.launch.return_value.new_page.return_value = mock_page
-        
+
         # Mock logged in state
         mock_locator = Mock()
         mock_page.locator.return_value = mock_locator
         mock_locator.count.return_value = 1  # Found logout button = logged in
-        
+
         browser = BrowserPlaywright()
         browser.open("https://test.com")
-        
+
         # Act
         is_logged_in = browser.is_logged_in()
-        
+
         # Assert
         assert is_logged_in is True
         mock_page.locator.assert_called()  # Should check for login indicators
@@ -164,7 +164,7 @@ class TestLoginFlowIntegration:
         # Arrange
         mock_client = Mock()
         mock_openai.return_value = mock_client
-        
+
         # Mock failed login response
         error_response = Mock(
             id="resp_1",
@@ -172,13 +172,13 @@ class TestLoginFlowIntegration:
             content="Login failed: Invalid credentials"
         )
         mock_client.responses.create.return_value = error_response
-        
+
         browser = OpenAICUABrowser()
-        
+
         # Act & Assert
         with pytest.raises(Exception) as exc_info:
             browser.ensure_logged_in()
-        
+
         assert "login" in str(exc_info.value).lower()
 
 
@@ -191,18 +191,18 @@ class TestLoginPersistence:
         # Arrange
         mock_page = Mock()
         mock_playwright.return_value.start.return_value.chromium.launch.return_value.new_page.return_value = mock_page
-        
+
         # Initially logged in
         mock_page.locator.return_value.count.return_value = 1
-        
+
         browser = BrowserPlaywright()
         browser.open("https://test.com")
-        
+
         # Act
         initial_login = browser.is_logged_in()
         browser.open("https://test.com/other-page")  # Navigate
         after_nav_login = browser.is_logged_in()
-        
+
         # Assert
         assert initial_login is True
         assert after_nav_login is True  # Should still be logged in
@@ -217,7 +217,7 @@ class TestLoginPersistence:
         # Arrange
         mock_client = Mock()
         mock_openai.return_value = mock_client
-        
+
         # Mock Playwright
         mock_async_playwright = AsyncMock()
         mock_browser = AsyncMock()
@@ -225,13 +225,13 @@ class TestLoginPersistence:
         mock_async_playwright.chromium.launch.return_value = mock_browser
         mock_browser.new_page.return_value = mock_page
         mock_playwright.return_value.__aenter__.return_value = mock_async_playwright
-        
+
         browser = OpenAICUABrowser()
-        
+
         # Act
         page1 = await browser._ensure_browser()
         page2 = await browser._ensure_browser()
-        
+
         # Assert
         assert page1 is page2  # Should be the same instance
         # Browser should only be launched once

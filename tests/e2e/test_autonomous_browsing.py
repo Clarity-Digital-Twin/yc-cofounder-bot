@@ -31,12 +31,12 @@ class TestAutonomousBrowsingE2E:
         # Create temp .runs directory
         runs_dir = tmp_path / ".runs"
         runs_dir.mkdir()
-        
+
         # Create test files
         (runs_dir / "events.jsonl").touch()
         (runs_dir / "seen.sqlite").touch()
         (runs_dir / "quota.sqlite").touch()
-        
+
         # Set up environment
         with patch.dict(os.environ, {
             "YC_EMAIL": "test@example.com",
@@ -59,13 +59,13 @@ class TestAutonomousBrowsingE2E:
             "Profile 2: Designer looking for technical co-founder"
         ]
         mock_browser.skip.return_value = None
-        
+
         mock_evaluate = Mock(spec=EvaluateProfile)
         mock_evaluate.side_effect = [
             {"decision": "YES", "rationale": "Good match", "draft": "Hi!", "score": 0.8},
             {"decision": "NO", "rationale": "Not a match", "draft": "", "score": 0.3}
         ]
-        
+
         mock_send = Mock(spec=SendMessage)
         mock_logger = Mock(spec=JSONLLogger)
         mock_seen = Mock(spec=SQLiteSeenRepo)
@@ -73,7 +73,7 @@ class TestAutonomousBrowsingE2E:
         mock_quota = Mock(spec=SQLiteDailyWeeklyQuota)
         mock_stop = Mock(spec=FileStopFlag)
         mock_stop.is_stopped.return_value = False
-        
+
         # Create flow
         flow = AutonomousFlow(
             browser=mock_browser,
@@ -84,7 +84,7 @@ class TestAutonomousBrowsingE2E:
             stop=mock_stop,
             quota=mock_quota
         )
-        
+
         # Act
         results = flow.run(
             your_profile="Technical founder",
@@ -95,17 +95,17 @@ class TestAutonomousBrowsingE2E:
             shadow_mode=True,  # Shadow mode
             threshold=0.7
         )
-        
+
         # Assert
         assert results["total_evaluated"] == 2
         assert results["total_sent"] == 0  # Shadow mode, no actual sends
         assert len(results["results"]) == 2
         assert results["results"][0]["decision"] == "YES"
         assert results["results"][1]["decision"] == "NO"
-        
+
         # Verify no messages were sent (shadow mode)
         mock_send.assert_not_called()
-        
+
         # Verify profiles were marked as seen
         assert mock_seen.mark_seen.call_count == 2
 
@@ -119,7 +119,7 @@ class TestAutonomousBrowsingE2E:
         mock_browser.type_message.return_value = None
         mock_browser.send_message.return_value = None
         mock_browser.verify_sent.return_value = True
-        
+
         mock_evaluate = Mock(spec=EvaluateProfile)
         mock_evaluate.return_value = {
             "decision": "YES",
@@ -127,10 +127,10 @@ class TestAutonomousBrowsingE2E:
             "draft": "Let's connect!",
             "score": 0.9
         }
-        
+
         mock_send = Mock(spec=SendMessage)
         mock_send.return_value = True  # Success
-        
+
         mock_logger = Mock(spec=JSONLLogger)
         mock_seen = Mock(spec=SQLiteSeenRepo)
         mock_seen.is_seen.return_value = False
@@ -138,7 +138,7 @@ class TestAutonomousBrowsingE2E:
         mock_quota.can_send.return_value = True
         mock_stop = Mock(spec=FileStopFlag)
         mock_stop.is_stopped.return_value = False
-        
+
         flow = AutonomousFlow(
             browser=mock_browser,
             evaluate=mock_evaluate,
@@ -148,7 +148,7 @@ class TestAutonomousBrowsingE2E:
             stop=mock_stop,
             quota=mock_quota
         )
-        
+
         # Act
         results = flow.run(
             your_profile="Technical founder",
@@ -159,12 +159,12 @@ class TestAutonomousBrowsingE2E:
             shadow_mode=False,  # Real mode
             threshold=0.7
         )
-        
+
         # Assert
         assert results["total_evaluated"] == 1
         assert results["total_sent"] == 1  # Message was sent
         assert results["results"][0]["sent"] is True
-        
+
         # Verify message was sent
         mock_send.assert_called_once_with("Let's connect!", 1)
 
@@ -175,17 +175,17 @@ class TestAutonomousBrowsingE2E:
         mock_browser.is_logged_in.return_value = True
         mock_browser.click_view_profile.return_value = True
         mock_browser.read_profile_text.return_value = "Profile"
-        
+
         mock_evaluate = Mock(spec=EvaluateProfile)
         mock_send = Mock(spec=SendMessage)
         mock_logger = Mock(spec=JSONLLogger)
         mock_seen = Mock(spec=SQLiteSeenRepo)
         mock_quota = Mock(spec=SQLiteDailyWeeklyQuota)
-        
+
         # Stop flag becomes true after first profile
         mock_stop = Mock(spec=FileStopFlag)
         mock_stop.is_stopped.side_effect = [False, True]
-        
+
         flow = AutonomousFlow(
             browser=mock_browser,
             evaluate=mock_evaluate,
@@ -195,7 +195,7 @@ class TestAutonomousBrowsingE2E:
             stop=mock_stop,
             quota=mock_quota
         )
-        
+
         # Act
         results = flow.run(
             your_profile="Profile",
@@ -205,7 +205,7 @@ class TestAutonomousBrowsingE2E:
             limit=10,  # Would process 10 but stop flag will halt
             shadow_mode=True
         )
-        
+
         # Assert
         assert results["total_evaluated"] == 1  # Only 1 profile before stop
         mock_logger.emit.assert_any_call({
@@ -221,7 +221,7 @@ class TestAutonomousBrowsingE2E:
         mock_browser.is_logged_in.return_value = True
         mock_browser.click_view_profile.return_value = True
         mock_browser.read_profile_text.return_value = "Profile"
-        
+
         mock_evaluate = Mock(spec=EvaluateProfile)
         mock_evaluate.return_value = {
             "decision": "YES",
@@ -229,21 +229,21 @@ class TestAutonomousBrowsingE2E:
             "draft": "Message",
             "score": 0.8
         }
-        
+
         mock_send = Mock(spec=SendMessage)
         mock_send.side_effect = [True, False]  # First succeeds, second hits quota
-        
+
         mock_logger = Mock(spec=JSONLLogger)
         mock_seen = Mock(spec=SQLiteSeenRepo)
         mock_seen.is_seen.return_value = False
-        
+
         # Quota exhausted after first send
         mock_quota = Mock(spec=SQLiteDailyWeeklyQuota)
         mock_quota.can_send.side_effect = [True, False]
-        
+
         mock_stop = Mock(spec=FileStopFlag)
         mock_stop.is_stopped.return_value = False
-        
+
         flow = AutonomousFlow(
             browser=mock_browser,
             evaluate=mock_evaluate,
@@ -253,7 +253,7 @@ class TestAutonomousBrowsingE2E:
             stop=mock_stop,
             quota=mock_quota
         )
-        
+
         # Act
         results = flow.run(
             your_profile="Profile",
@@ -263,7 +263,7 @@ class TestAutonomousBrowsingE2E:
             limit=5,
             shadow_mode=False
         )
-        
+
         # Assert
         # Should evaluate multiple but only send one due to quota
         assert results["total_sent"] <= 1
@@ -278,7 +278,7 @@ class TestAutonomousBrowsingE2E:
             Exception("Network error"),  # First fails
             "Valid profile"  # Second succeeds
         ]
-        
+
         mock_evaluate = Mock(spec=EvaluateProfile)
         mock_evaluate.return_value = {
             "decision": "YES",
@@ -286,14 +286,14 @@ class TestAutonomousBrowsingE2E:
             "draft": "Hi",
             "score": 0.8
         }
-        
+
         mock_send = Mock(spec=SendMessage)
         mock_logger = Mock(spec=JSONLLogger)
         mock_seen = Mock(spec=SQLiteSeenRepo)
         mock_quota = Mock(spec=SQLiteDailyWeeklyQuota)
         mock_stop = Mock(spec=FileStopFlag)
         mock_stop.is_stopped.return_value = False
-        
+
         flow = AutonomousFlow(
             browser=mock_browser,
             evaluate=mock_evaluate,
@@ -303,7 +303,7 @@ class TestAutonomousBrowsingE2E:
             stop=mock_stop,
             quota=mock_quota
         )
-        
+
         # Act
         results = flow.run(
             your_profile="Profile",
@@ -313,7 +313,7 @@ class TestAutonomousBrowsingE2E:
             limit=5,
             shadow_mode=True
         )
-        
+
         # Assert
         # Should continue after error
         assert results["total_evaluated"] >= 1
@@ -330,19 +330,19 @@ class TestAutonomousBrowsingE2E:
         mock_browser.is_logged_in.return_value = True
         mock_browser.click_view_profile.side_effect = [True, True, False]
         mock_browser.read_profile_text.return_value = "Same profile text"  # Same every time
-        
+
         mock_evaluate = Mock(spec=EvaluateProfile)
         mock_send = Mock(spec=SendMessage)
         mock_logger = Mock(spec=JSONLLogger)
-        
+
         # Second profile is marked as seen
         mock_seen = Mock(spec=SQLiteSeenRepo)
         mock_seen.is_seen.side_effect = [False, True]  # First new, second duplicate
-        
+
         mock_quota = Mock(spec=SQLiteDailyWeeklyQuota)
         mock_stop = Mock(spec=FileStopFlag)
         mock_stop.is_stopped.return_value = False
-        
+
         flow = AutonomousFlow(
             browser=mock_browser,
             evaluate=mock_evaluate,
@@ -352,7 +352,7 @@ class TestAutonomousBrowsingE2E:
             stop=mock_stop,
             quota=mock_quota
         )
-        
+
         # Act
         results = flow.run(
             your_profile="Profile",
@@ -362,7 +362,7 @@ class TestAutonomousBrowsingE2E:
             limit=5,
             shadow_mode=True
         )
-        
+
         # Assert
         # Should only evaluate first profile, skip duplicate
         mock_evaluate.assert_called_once()
@@ -382,14 +382,14 @@ class TestLoginRequirement:
         mock_browser = Mock()
         mock_browser.is_logged_in.return_value = False  # Not logged in
         mock_browser.ensure_logged_in.side_effect = Exception("No credentials")
-        
+
         mock_evaluate = Mock(spec=EvaluateProfile)
         mock_send = Mock(spec=SendMessage)
         mock_logger = Mock(spec=JSONLLogger)
         mock_seen = Mock(spec=SQLiteSeenRepo)
         mock_quota = Mock(spec=SQLiteDailyWeeklyQuota)
         mock_stop = Mock(spec=FileStopFlag)
-        
+
         flow = AutonomousFlow(
             browser=mock_browser,
             evaluate=mock_evaluate,
@@ -399,7 +399,7 @@ class TestLoginRequirement:
             stop=mock_stop,
             quota=mock_quota
         )
-        
+
         # Act
         results = flow.run(
             your_profile="Profile",
@@ -409,7 +409,7 @@ class TestLoginRequirement:
             limit=5,
             shadow_mode=True
         )
-        
+
         # Assert
         assert results.get("error") is not None
         assert "login" in results["error"].lower()
