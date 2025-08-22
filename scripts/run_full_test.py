@@ -2,14 +2,14 @@
 """FINAL TEST - Simulates the EXACT flow a user would do."""
 
 import sys
-import os
-from pathlib import Path
 import time
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 # Load environment
 from dotenv import load_dotenv
+
 load_dotenv()
 
 print("="*70)
@@ -17,11 +17,11 @@ print("🚀 TESTING COMPLETE FLOW - EXACTLY LIKE A USER")
 print("="*70)
 
 # Import what we need
-from yc_matcher.interface.di import build_services
 from yc_matcher.application.autonomous_flow import AutonomousFlow
-from yc_matcher.infrastructure.sqlite_repo import SQLiteSeenRepo
 from yc_matcher.infrastructure.sqlite_quota import SQLiteDailyWeeklyQuota
+from yc_matcher.infrastructure.sqlite_repo import SQLiteSeenRepo
 from yc_matcher.infrastructure.stop_flag import FileStopFlag
+from yc_matcher.interface.di import build_services
 
 # User's inputs (from the UI)
 your_profile = """

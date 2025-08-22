@@ -97,7 +97,7 @@ class AutonomousFlow:
         # Navigate to YC matching page
         yc_url = os.getenv("YC_MATCH_URL", "https://www.startupschool.org/cofounder-matching")
         self.browser.open(yc_url)
-        
+
         # CRITICAL: Ensure logged in before proceeding
         max_login_attempts = 30  # 30 seconds timeout
         for i in range(max_login_attempts):

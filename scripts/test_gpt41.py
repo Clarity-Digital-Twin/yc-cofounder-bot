@@ -2,9 +2,11 @@
 """Test GPT-4.1 model."""
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 import os
+
 from openai import OpenAI
 
 client = OpenAI()
@@ -21,14 +23,14 @@ try:
         ],
         max_tokens=50
     )
-    
+
     print(f"✅ Success! Response: {response.choices[0].message.content}")
     print(f"Model used: {response.model}")
-    
+
 except Exception as e:
     print(f"❌ Error: {e}")
     print("Falling back to gpt-4o...")
-    
+
     # Try with gpt-4o as fallback
     response = client.chat.completions.create(
         model="gpt-4o",

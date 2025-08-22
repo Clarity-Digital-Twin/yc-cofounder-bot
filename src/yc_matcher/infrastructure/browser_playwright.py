@@ -48,7 +48,7 @@ class PlaywrightBrowser:
     def open(self, url: str) -> None:
         page = self._ensure_page()
         page.goto(url)
-    
+
     def is_logged_in(self) -> bool:
         """Check if user is logged into YC by looking for profile elements."""
         page = self._ensure_page()

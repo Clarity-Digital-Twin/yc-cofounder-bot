@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 """Test that browser singleton works correctly."""
 
-import sys
 import os
+import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 os.environ["PLAYWRIGHT_BROWSERS_PATH"] = ".ms-playwright"
-os.environ["ENABLE_PLAYWRIGHT"] = "1" 
+os.environ["ENABLE_PLAYWRIGHT"] = "1"
 os.environ["ENABLE_CUA"] = "0"
 os.environ["PLAYWRIGHT_HEADLESS"] = "0"
 
@@ -60,6 +60,7 @@ print("the SAME browser window that's already logged in!")
 
 # Keep browser open for observation
 import time
+
 print("\nKeeping browser open for 10 seconds...")
 time.sleep(10)
 

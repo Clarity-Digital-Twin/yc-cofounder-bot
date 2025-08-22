@@ -7,8 +7,8 @@ Follows the fallback chain documented in AUDIT_AND_PLAN.md.
 from __future__ import annotations
 
 import os
-import re
-from typing import Any, Optional
+from typing import Any
+
 
 def resolve_best_decision_model(client: Any) -> str:
     """Discover best GPT-5 model via Models API.
@@ -33,21 +33,21 @@ def resolve_best_decision_model(client: Any) -> str:
         ids = [m.id for m in models.data]
     except Exception as e:
         raise RuntimeError(f"Failed to list models: {e}")
-    
+
     # 1. Try GPT-5 thinking variants (preferred)
     gpt5_thinking = [m for m in ids if 'gpt-5' in m.lower() and 'thinking' in m.lower()]
     if gpt5_thinking:
         selected = sorted(gpt5_thinking, reverse=True)[0]
         print(f"✅ Found GPT-5 thinking model: {selected}")
         return selected
-    
+
     # 2. Try any GPT-5 model
     gpt5_any = [m for m in ids if m.lower().startswith('gpt-5')]
     if gpt5_any:
         selected = sorted(gpt5_any, reverse=True)[0]
         print(f"✅ Found GPT-5 model: {selected}")
         return selected
-    
+
     # 3. Fallback to GPT-4 variants (despite user preference for GPT-5)
     gpt4_variants = [m for m in ids if m.lower().startswith('gpt-4')]
     if gpt4_variants:
@@ -55,7 +55,7 @@ def resolve_best_decision_model(client: Any) -> str:
         selected = sorted(gpt4_variants, reverse=True)[0]
         print(f"⚠️ No GPT-5 available, using GPT-4 fallback: {selected}")
         return selected
-    
+
     # 4. Error if no suitable model
     raise RuntimeError(
         "No suitable GPT model found. Check API key and tier. "
@@ -63,7 +63,7 @@ def resolve_best_decision_model(client: Any) -> str:
     )
 
 
-def resolve_cua_model(client: Any) -> Optional[str]:
+def resolve_cua_model(client: Any) -> str | None:
     """Discover Computer Use model if available.
     
     Args:
@@ -78,14 +78,14 @@ def resolve_cua_model(client: Any) -> Optional[str]:
     except Exception as e:
         print(f"⚠️ Failed to list models for CUA: {e}")
         return None
-    
+
     # Look for computer-use variants
     cua_models = [m for m in ids if 'computer' in m.lower() or 'cua' in m.lower()]
     if cua_models:
         selected = cua_models[0]
         print(f"✅ Found Computer Use model: {selected}")
         return selected
-    
+
     print("⚠️ No Computer Use model found (may need tier 3-5 access)")
     return None
 
@@ -106,29 +106,29 @@ def resolve_and_set_models(logger: Any | None = None) -> dict[str, str | None]:
         from openai import OpenAI
     except ImportError:
         raise RuntimeError("openai package not installed")
-    
+
     # Create client
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY not set")
-    
+
     client = OpenAI(api_key=api_key)
-    
+
     # Resolve models
     decision_model = resolve_best_decision_model(client)
     cua_model = resolve_cua_model(client)
-    
+
     # Set environment variables for downstream use
     os.environ["DECISION_MODEL_RESOLVED"] = decision_model
     if cua_model:
         os.environ["CUA_MODEL_RESOLVED"] = cua_model
-    
+
     # Log what we're using
     result = {
         "decision_model": decision_model,
         "cua_model": cua_model
     }
-    
+
     if logger:
         logger.emit({
             "event": "models_resolved",
@@ -136,9 +136,9 @@ def resolve_and_set_models(logger: Any | None = None) -> dict[str, str | None]:
             "cua_model": cua_model or "none",
             "fallback_used": "gpt-4" in decision_model.lower()
         })
-    
-    print(f"\n📊 Model Resolution Complete:")
+
+    print("\n📊 Model Resolution Complete:")
     print(f"  Decision Model: {decision_model}")
     print(f"  CUA Model: {cua_model or 'Not available'}")
-    
+
     return result

@@ -211,7 +211,7 @@ Environment Settings:
 
     # Check if we have auto-login credentials
     has_credentials = bool(os.getenv("YC_EMAIL") and os.getenv("YC_PASSWORD"))
-    
+
     if has_credentials:
         # With credentials, we can do everything automatically
         st.success("✅ **Auto-login enabled** - credentials found in .env")
@@ -280,9 +280,9 @@ Environment Settings:
                     decision_mode=mode,  # Pass mode to DI
                     threshold=threshold,
                 )
-                
+
                 browser = send_use.browser
-                
+
                 # Store browser in session state for potential reuse
                 st.session_state["browser_instance"] = browser
 

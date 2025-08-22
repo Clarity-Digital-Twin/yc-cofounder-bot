@@ -2,8 +2,7 @@
 """Test the decision engine with GPT-5-thinking model."""
 
 import os
-import json
-from pathlib import Path
+
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -15,24 +14,26 @@ os.environ["DECISION_MODE"] = "hybrid"
 os.environ["OPENAI_DECISION_MODEL"] = "gpt-5-thinking"  # GPT-5-THINKING ONLY!
 
 from openai import OpenAI
+
+from src.yc_matcher.domain.entities import Criteria, Profile
 from src.yc_matcher.infrastructure.openai_decision import OpenAIDecisionAdapter
-from src.yc_matcher.domain.entities import Profile, Criteria
+
 
 def test_decision_with_message_generation():
     """Test that GPT-5-thinking generates actual message drafts."""
-    
+
     print("\n🤖 Testing GPT-5-THINKING Decision Engine (NO GPT-4 EVER!)...")
     print(f"Model: {os.getenv('OPENAI_DECISION_MODEL')}")
-    
+
     # Create OpenAI client
     client = OpenAI()
-    
+
     # Create decision adapter
     decision = OpenAIDecisionAdapter(
         client=client,
         model="gpt-5-thinking"  # GPT-5-THINKING ONLY!
     )
-    
+
     # Test profile (example)
     profile_text = """
     Name: John Smith
@@ -43,7 +44,7 @@ def test_decision_with_message_generation():
     Skills: Python, FastAPI, React, TypeScript, PostgreSQL, Docker, Kubernetes
     Looking for: Technical co-founder to build AI-powered dev tools startup
     """
-    
+
     # Test criteria and template
     criteria_text = """
     Looking for: Technical co-founder with backend expertise
@@ -62,29 +63,29 @@ def test_decision_with_message_generation():
     Best,
     JJ
     """
-    
+
     # Create entities
     profile = Profile(raw_text=profile_text)
     criteria = Criteria(text=criteria_text)
-    
+
     # Evaluate
     print("\n📝 Evaluating profile...")
     result = decision.evaluate(profile, criteria)
-    
+
     # Display results
     print("\n✅ RESULTS:")
     print(f"Decision: {result.get('decision')}")
     print(f"Score: {result.get('score', 0):.2f}")
     print(f"Confidence: {result.get('confidence', 0):.2f}")
     print(f"Rationale: {result.get('rationale')}")
-    
+
     if result.get('draft'):
         print(f"\n💬 Generated Message:\n{'-'*50}")
         print(result.get('draft'))
         print(f"{'-'*50}")
     else:
         print("\n⚠️ No message draft generated")
-    
+
     # Check if it actually worked
     if result.get('decision') == 'YES' and result.get('draft'):
         print("\n🎉 SUCCESS! GPT-5-thinking is generating personalized messages!")

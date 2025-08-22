@@ -2,6 +2,7 @@
 """Check what OpenAI models are available."""
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 from openai import OpenAI

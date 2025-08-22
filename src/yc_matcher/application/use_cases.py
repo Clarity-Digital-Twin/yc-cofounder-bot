@@ -74,12 +74,12 @@ class SendMessage:
             return False
 
         self.browser.send()
-        
+
         # Optional pacing delay (check PACE_BLOCKING env var)
         pace_blocking = os.getenv("PACE_BLOCKING", "1") == "1"
         if pace_seconds and pace_blocking:
             time.sleep(pace_seconds)
-        
+
         # Verify sent; retry once if needed
         if self.browser.verify_sent():
             self.logger.emit(
@@ -95,11 +95,11 @@ class SendMessage:
             return False
 
         self.browser.send()
-        
+
         # Apply pacing if blocking mode is enabled
         if pace_seconds and pace_blocking:
             time.sleep(pace_seconds)
-        
+
         if self.browser.verify_sent():
             self.logger.emit(
                 {

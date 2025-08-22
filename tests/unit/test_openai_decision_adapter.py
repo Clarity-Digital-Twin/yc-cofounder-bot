@@ -8,15 +8,20 @@ class FakeResp:
     def __init__(self, output: dict[str, Any], usage: dict[str, int] | None = None) -> None:
         self.output = output
         self.usage = usage or {"input_tokens": 123, "output_tokens": 456}
+        # For chat.completions API
+        self.choices = [
+            type('obj', (object,), {
+                'message': type('obj', (object,), {
+                    'content': '{"decision": "YES", "rationale": "fits", "draft": "Hello [Name]", "score": 0.9, "confidence": 0.95}'
+                })()
+            })()
+        ]
 
 
 class FakeClient:
-    class _RespC:
-        def __init__(self, outer: "FakeClient") -> None:
-            self.outer = outer
-
+    class _ChatCompletions:
         def create(self, **_: Any) -> FakeResp:
-            # Return a minimal, schema-like object
+            # Return a chat completion response
             return FakeResp(
                 {
                     "decision": "YES",
@@ -26,8 +31,14 @@ class FakeClient:
                 }
             )
 
+    class _Chat:
+        def __init__(self) -> None:
+            self.completions = FakeClient._ChatCompletions()
+
     def __init__(self) -> None:
-        self.responses = FakeClient._RespC(self)
+        self.chat = FakeClient._Chat()
+        # Keep old responses for backward compatibility if needed
+        self.responses = None
 
 
 class LoggerList:
