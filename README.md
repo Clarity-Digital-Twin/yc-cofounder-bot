@@ -1,6 +1,8 @@
 # YC Co-Founder Matcher Bot 🤖
 
-Autonomous browser automation for YC Startup School co-founder matching using OpenAI's Computer Use API (CUA) and GPT-5/GPT-4 models.
+Autonomous browser automation for YC Startup School co-founder matching using OpenAI GPT-5 (with GPT-4 fallback) and Playwright browser automation.
+
+⚠️ **GPT-5 Note**: Uses model ID `gpt-5` (NOT `gpt-5-thinking`). Requires Responses API. See GPT5_FACTS.md.
 
 ## 🎯 What It Does
 
@@ -10,13 +12,11 @@ This bot automates the tedious process of browsing YC Co-Founder Matching profil
 
 ### 🤖 Dual AI System
 - **OpenAI Computer Use API**: Analyzes screenshots and plans browser actions
-- **GPT-5/GPT-4 Decision Engine**: Evaluates profiles and generates personalized messages
+- **GPT-5 Decision Engine**: Evaluates profiles and generates personalized messages (falls back to GPT-4 if GPT-5 unavailable)
 - **Playwright Executor**: Performs actual browser automation based on CUA instructions
 
-### 🎮 Three Decision Modes
-1. **Advisor Mode**: AI suggests, you approve each message
-2. **Rubric Mode**: Rule-based scoring with auto-send above threshold
-3. **Hybrid Mode**: Combines AI confidence with rubric scores
+### 🎮 AI-Only Decision Mode
+**Simplified to single mode**: AI evaluates profiles and generates personalized messages based on your criteria
 
 ### 🛡️ Safety Features
 - **Shadow Mode**: Test without actually sending messages

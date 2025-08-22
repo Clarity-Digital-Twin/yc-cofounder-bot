@@ -34,18 +34,16 @@ def resolve_best_decision_model(client: Any) -> str:
     except Exception as e:
         raise RuntimeError(f"Failed to list models: {e}") from e
 
-    # 1. Try GPT-5 thinking variants (preferred)
-    gpt5_thinking = [m for m in ids if "gpt-5" in m.lower() and "thinking" in m.lower()]
-    if gpt5_thinking:
-        selected = sorted(gpt5_thinking, reverse=True)[0]
-        print(f"✅ Found GPT-5 thinking model: {selected}")
-        return str(selected)
-
-    # 2. Try any GPT-5 model
-    gpt5_any = [m for m in ids if m.lower().startswith("gpt-5")]
-    if gpt5_any:
-        selected = sorted(gpt5_any, reverse=True)[0]
-        print(f"✅ Found GPT-5 model: {selected}")
+    # 1. Try standard GPT-5 first (NOT gpt-5-thinking which doesn't exist!)
+    if "gpt-5" in ids:
+        print("✅ Found GPT-5 model!")
+        return "gpt-5"
+    
+    # 2. Try GPT-5 variants (mini, nano)
+    gpt5_variants = [m for m in ids if m.startswith("gpt-5-")]
+    if gpt5_variants:
+        selected = sorted(gpt5_variants)[0]  # Prefer gpt-5-mini over gpt-5-nano
+        print(f"✅ Found GPT-5 variant: {selected}")
         return str(selected)
 
     # 3. Fallback to GPT-4 variants (despite user preference for GPT-5)
