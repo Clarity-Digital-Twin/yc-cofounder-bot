@@ -155,7 +155,8 @@
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_decision_adapter.py::test_openai_decision_adapter_returns_schema_like_payload_and_logs_usage -xvs)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_decision_adapter.py -xvs)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py -k \"not cua_screenshot_loop and not cua_executes_actions and not previous_response_id\" -q)",
-      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_login_preflight.py tests/unit/test_hybrid_draft.py tests/unit/test_extract_candidate.py -v)"
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_login_preflight.py tests/unit/test_hybrid_draft.py tests/unit/test_extract_candidate.py -v)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_login_preflight.py tests/unit/test_hybrid_draft.py tests/unit/test_extract_candidate.py --tb=short --color=yes)"
     ],
     "deny": [],
     "ask": []
