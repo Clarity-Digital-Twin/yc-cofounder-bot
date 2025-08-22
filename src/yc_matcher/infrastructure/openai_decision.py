@@ -93,19 +93,35 @@ class OpenAIDecisionAdapter(DecisionPort):
 
         # Use the correct OpenAI chat completions API
         try:
-            resp = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": sys_prompt},
-                    {"role": "user", "content": user_text},
-                ],
-                response_format={"type": "json_object"},  # Force JSON response
-                temperature=0.7,  # Some creativity for message drafting
-                max_tokens=800,  # Enough for decision + message
-            )
-
-            # Parse the JSON response
-            content = resp.choices[0].message.content
+            # Use Responses API for GPT-5, Chat Completions for GPT-4
+            if self.model.startswith("gpt-5"):
+                resp = self.client.responses.create(
+                    model=self.model,
+                    input=[
+                        {"role": "system", "content": sys_prompt},
+                        {"role": "user", "content": user_text},
+                    ],
+                    response_format={"type": "json_object"},  # Force JSON response
+                    reasoning_effort="medium",  # GPT-5 specific parameter
+                    verbosity="normal",  # GPT-5 specific parameter
+                    max_completion_tokens=800,  # GPT-5 uses this instead of max_tokens
+                )
+                # Extract content from Responses API format
+                content = resp.output_text if hasattr(resp, 'output_text') else str(resp.output[0])
+            else:
+                # Fallback to Chat Completions for GPT-4 and older
+                resp = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "system", "content": sys_prompt},
+                        {"role": "user", "content": user_text},
+                    ],
+                    response_format={"type": "json_object"},  # Force JSON response
+                    temperature=0.7,  # Some creativity for message drafting
+                    max_tokens=800,  # Enough for decision + message
+                )
+                # Parse the JSON response
+                content = resp.choices[0].message.content
             payload = json.loads(content)
 
             # Ensure required fields

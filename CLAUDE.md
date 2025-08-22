@@ -4,9 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-YC Co-Founder Matching Bot - Autonomous browser automation for YC/Startup School cofounder matching using OpenAI Computer Use (CUA) + Playwright.
+YC Co-Founder Matching Bot - Autonomous browser automation for YC/Startup School cofounder matching using OpenAI GPT-5/GPT-4 + Playwright.
 
-The system takes 3 inputs (Your Profile, Match Criteria, Message Template) and autonomously browses YC Cofounder Matching, evaluates profiles using configurable decision modes, and sends messages when thresholds are met.
+The system takes 3 inputs (Your Profile, Match Criteria, Message Template) and autonomously browses YC Cofounder Matching, evaluates profiles using AI (GPT-5 when available, GPT-4 fallback), and sends messages when match quality exceeds threshold.
+
+⚠️ **IMPORTANT GPT-5 FACTS (August 2025)**:
+- GPT-5 model ID is `gpt-5` (NOT `gpt-5-thinking`)
+- GPT-5 uses Responses API (NOT Chat Completions)
+- Not all API keys have GPT-5 access - check with `client.models.list()`
+- See GPT5_FACTS.md for complete details
 
 ## Development Philosophy - Clean Code Principles
 
@@ -135,10 +141,10 @@ Required in `.env` (copy from `.env.example`):
 # Critical
 OPENAI_API_KEY=sk-...
 CUA_MODEL=<from your Models endpoint>      # e.g., "computer-use-preview"
-OPENAI_DECISION_MODEL=<your best LLM>      # For Advisor/Hybrid modes
+OPENAI_DECISION_MODEL=gpt-5                # Use gpt-5 (NOT gpt-5-thinking!)
 
 # Decision Configuration
-DECISION_MODE=hybrid                       # advisor|rubric|hybrid
+DECISION_MODE=ai                           # AI-only mode (simplified)
 THRESHOLD=0.72                             # Auto-send threshold
 ALPHA=0.50                                 # Hybrid weight (0=all rubric, 1=all LLM)
 
@@ -248,6 +254,8 @@ async def test_rubric_score_calculation() -> None:
 2. **"SEND_DELAY_MS undefined"**: Use PACE_MIN_SECONDS instead (45 seconds minimum)
 3. **Browser not launching**: Run `make browsers` to install Playwright locally
 4. **CUA not working**: Check `make check-cua` and verify CUA_MODEL in your OpenAI account
+5. **"model gpt-5-thinking not found"**: Use `gpt-5` instead (see GPT5_FACTS.md)
+6. **"unsupported parameter: max_tokens"**: GPT-5 uses `max_completion_tokens` with Responses API
 
 ## Key Invariants
 
