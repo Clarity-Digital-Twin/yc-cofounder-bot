@@ -15,8 +15,10 @@ from ..infrastructure.local_decision import LocalDecisionAdapter
 from ..infrastructure.logger_stamped import LoggerWithStamps
 from ..infrastructure.quota import FileQuota
 from ..infrastructure.sqlite_quota import SQLiteDailyWeeklyQuota
+from ..infrastructure.stop_flag import FileStopFlag
 from ..infrastructure.template_loader import load_default_template
 from ..infrastructure.templates import TemplateRenderer
+from ..infrastructure.model_resolver import resolve_and_set_models
 
 
 class RubricOnlyAdapter(DecisionPort):
@@ -138,6 +140,15 @@ def build_services(
     threshold: float = 4.0,
     decision_mode: str | None = None,
 ) -> tuple[EvaluateProfile, SendMessage, LoggerWithStamps]:
+    # Resolve models at startup (once per session)
+    # This sets DECISION_MODEL_RESOLVED and CUA_MODEL_RESOLVED env vars
+    if not os.getenv("DECISION_MODEL_RESOLVED"):
+        try:
+            resolve_and_set_models()
+        except Exception as e:
+            print(f"⚠️ Model resolution failed: {e}")
+            # Continue with fallback to env vars
+    
     # Scoring
     default_weights = {"python": 3.0, "fastapi": 2.0, "health": 2.0, "ny": 1.0, "crypto": -999.0}
     _w = weights or default_weights
@@ -206,7 +217,7 @@ def build_services(
 
     browser: BrowserPort
 
-    # PRIMARY: OpenAI CUA via Agents SDK
+    # PRIMARY: OpenAI CUA via Responses API (FIXED with AsyncLoopRunner)
     if os.getenv("ENABLE_CUA", "0") in {"1", "true", "True"}:
         try:
             from ..infrastructure.openai_cua_browser import OpenAICUABrowser
@@ -215,19 +226,24 @@ def build_services(
         except Exception:
             # Fallback to Playwright if CUA fails
             if os.getenv("ENABLE_PLAYWRIGHT_FALLBACK", "0") in {"1", "true", "True"}:
-                from ..infrastructure.browser_playwright import PlaywrightBrowser
+                # Use async-compatible version to avoid "Sync API in asyncio loop" error
+                from ..infrastructure.browser_playwright_async import PlaywrightBrowserAsync
 
-                browser = cast(BrowserPort, PlaywrightBrowser())
+                browser = cast(BrowserPort, PlaywrightBrowserAsync())
             else:
                 browser = cast(BrowserPort, _NullBrowser())
     # FALLBACK: Playwright when CUA not enabled
     elif os.getenv("ENABLE_PLAYWRIGHT", "0") in {"1", "true", "True"}:
-        from ..infrastructure.browser_playwright import PlaywrightBrowser
+        # Use async-compatible version to avoid "Sync API in asyncio loop" error
+        from ..infrastructure.browser_playwright_async import PlaywrightBrowserAsync
 
-        browser = cast(BrowserPort, PlaywrightBrowser())
+        browser = cast(BrowserPort, PlaywrightBrowserAsync())
     else:
         browser = cast(BrowserPort, _NullBrowser())
 
-    send_use = SendMessage(quota=quota, browser=browser, logger=logger)
+    # Create stop controller (shared between ProcessCandidate and SendMessage)
+    stop = FileStopFlag(Path(".runs/stop.flag"))
+
+    send_use = SendMessage(quota=quota, browser=browser, logger=logger, stop=stop)
 
     return eval_use, send_use, logger

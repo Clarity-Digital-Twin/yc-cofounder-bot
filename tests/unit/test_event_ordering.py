@@ -97,20 +97,11 @@ def test_decision_precedes_sent():
     eval_use = EvaluateProfile(decision=DecisionYes(), message=MessageEcho())
     send_use = SendMessage(quota=QuotaAlways(), browser=browser, logger=logger)
     pc = ProcessCandidate(
-        evaluate=eval_use,
-        send=send_use,
-        browser=browser,
-        seen=seen,
-        logger=logger
+        evaluate=eval_use, send=send_use, browser=browser, seen=seen, logger=logger
     )
 
     # Act
-    pc(
-        url="file://test",
-        criteria=Criteria(text="test"),
-        limit=1,
-        auto_send=True
-    )
+    pc(url="file://test", criteria=Criteria(text="test"), limit=1, auto_send=True)
 
     # Assert - decision must come before sent
     assert "decision" in logger.events, "Decision event not emitted"
@@ -132,6 +123,7 @@ def test_decision_without_sent_when_no():
     When decision is NO, we should still see the decision event,
     but no sent event should follow.
     """
+
     # Arrange
     class DecisionNo:
         def evaluate(self, profile: Profile, criteria: Criteria) -> Mapping[str, Any]:
@@ -144,20 +136,11 @@ def test_decision_without_sent_when_no():
     eval_use = EvaluateProfile(decision=DecisionNo(), message=MessageEcho())
     send_use = SendMessage(quota=QuotaAlways(), browser=browser, logger=logger)
     pc = ProcessCandidate(
-        evaluate=eval_use,
-        send=send_use,
-        browser=browser,
-        seen=seen,
-        logger=logger
+        evaluate=eval_use, send=send_use, browser=browser, seen=seen, logger=logger
     )
 
     # Act
-    pc(
-        url="file://test",
-        criteria=Criteria(text="test"),
-        limit=1,
-        auto_send=True
-    )
+    pc(url="file://test", criteria=Criteria(text="test"), limit=1, auto_send=True)
 
     # Assert
     assert "decision" in logger.events, "Decision event not emitted"
@@ -174,21 +157,12 @@ def test_multiple_profiles_maintain_ordering():
     eval_use = EvaluateProfile(decision=DecisionYes(), message=MessageEcho())
     send_use = SendMessage(quota=QuotaAlways(), browser=browser, logger=logger)
     pc = ProcessCandidate(
-        evaluate=eval_use,
-        send=send_use,
-        browser=browser,
-        seen=seen,
-        logger=logger
+        evaluate=eval_use, send=send_use, browser=browser, seen=seen, logger=logger
     )
 
     # Act - process 3 profiles with separate calls
     for _ in range(3):
-        pc(
-            url="file://test",
-            criteria=Criteria(text="test"),
-            limit=1,
-            auto_send=True
-        )
+        pc(url="file://test", criteria=Criteria(text="test"), limit=1, auto_send=True)
 
     # Assert - each decision should precede its corresponding sent
     decision_indices = [i for i, e in enumerate(logger.events) if e == "decision"]
@@ -212,9 +186,11 @@ def test_quota_block_emits_event():
 
     Following TDD: Test the observability requirement.
     """
+
     # Arrange
     class QuotaOnce:
         """Mock quota that allows only one send."""
+
         def __init__(self):
             self.count = 0
 
@@ -232,11 +208,7 @@ def test_quota_block_emits_event():
     eval_use = EvaluateProfile(decision=DecisionYes(), message=MessageEcho())
     send_use = SendMessage(quota=quota, browser=browser, logger=logger)
     pc = ProcessCandidate(
-        evaluate=eval_use,
-        send=send_use,
-        browser=browser,
-        seen=seen,
-        logger=logger
+        evaluate=eval_use, send=send_use, browser=browser, seen=seen, logger=logger
     )
 
     # Act - process 2 profiles, second should be blocked
@@ -251,4 +223,3 @@ def test_quota_block_emits_event():
 
     assert decision_count == 2, f"Expected 2 decisions, got {decision_count}"
     assert sent_count == 1, f"Expected 1 sent (quota blocked second), got {sent_count}"
-

@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from openai import OpenAI
-from playwright.async_api import Browser, Page, Playwright, async_playwright
+from playwright.async_api import Page
 
 
 class OpenAICUABrowser:
@@ -34,24 +34,27 @@ class OpenAICUABrowser:
         # OpenAI client for Responses API
         self.client: Any = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-        # Model configuration
-        self.model = os.getenv("CUA_MODEL")
+        # Model configuration - use resolved model first, then env var
+        self.model = os.getenv("CUA_MODEL_RESOLVED") or os.getenv("CUA_MODEL")
         if not self.model:
             raise ValueError(
-                "CUA_MODEL environment variable not set. "
+                "No Computer Use model available. "
+                "Either CUA_MODEL_RESOLVED (from auto-discovery) or CUA_MODEL env var not set. "
                 "Check your Models endpoint at platform.openai.com/account/models"
             )
 
         self.temperature = float(os.getenv("CUA_TEMPERATURE", "0.3"))
         self.max_tokens = int(os.getenv("CUA_MAX_TOKENS", "1200"))
 
-        # Playwright components (initialized on first use)
-        self.playwright: Playwright | None = None
-        self.browser: Browser | None = None
-        self.page: Page | None = None
+        # CRITICAL FIX: Use AsyncLoopRunner for single browser instance
+        from .async_loop_runner import AsyncLoopRunner
+
+        self._runner = AsyncLoopRunner()
 
         # Response chaining
-        self.prev_response_id: str | None = None
+        self._prev_response_id: str | None = None
+        self._turn_count = 0
+        self._max_turns = int(os.getenv("CUA_MAX_TURNS", "10"))
 
         # Fallback configuration
         self.fallback_enabled = os.getenv("ENABLE_PLAYWRIGHT_FALLBACK", "1") == "1"
@@ -68,14 +71,11 @@ class OpenAICUABrowser:
         # Screenshot callback for UI display
         self.screenshot_callback = None
 
-    async def _ensure_browser(self) -> None:
-        """Ensure Playwright browser is running (lazy initialization)."""
-        if not self.playwright:
-            self.playwright = await async_playwright().start()
-            self.browser = await self.playwright.chromium.launch(
-                headless=os.getenv("PLAYWRIGHT_HEADLESS", "0") == "1"
-            )
-            self.page = await self.browser.new_page()
+    async def _ensure_browser(self) -> Page:
+        """Ensure browser exists via runner (single instance)."""
+        # Runner handles browser lifecycle - returns the page
+        page = await self._runner.ensure_browser()
+        return page  # Return it, don't store it
 
     def _should_stop(self) -> bool:
         """Check if STOP flag exists."""
@@ -100,8 +100,8 @@ class OpenAICUABrowser:
         Args:
             action: Computer call action from CUA with type and parameters
         """
-        await self._ensure_browser()
-        assert self.page is not None  # Type narrowing for mypy
+        page = await self._ensure_browser()
+        # Use the returned page directly
 
         action_type = getattr(action, "type", "")
 
@@ -110,24 +110,24 @@ class OpenAICUABrowser:
             coords = getattr(action, "coordinates", {})
             if coords:
                 # Playwright expects selector or coordinates
-                await self.page.mouse.click(coords.get("x", 0), coords.get("y", 0))
+                await page.mouse.click(coords.get("x", 0), coords.get("y", 0))
 
         elif action_type == "type":
             # Type text
             text = getattr(action, "text", "")
             if text:
-                await self.page.keyboard.type(text)
+                await page.keyboard.type(text)
 
         elif action_type == "scroll":
             # Scroll page
             delta = getattr(action, "delta", 100)
-            await self.page.mouse.wheel(0, delta)
+            await page.mouse.wheel(0, delta)
 
         elif action_type == "key":
             # Press key
             key = getattr(action, "key", "")
             if key:
-                await self.page.keyboard.press(key)
+                await page.keyboard.press(key)
 
         elif action_type == "wait":
             # Wait for a moment
@@ -155,23 +155,24 @@ class OpenAICUABrowser:
         Returns:
             Text output from CUA if any
         """
-        await self._ensure_browser()
-        assert self.page is not None  # Type narrowing for mypy
+        page = await self._ensure_browser()
+        # Use the returned page directly
 
         # Build input content
         input_content = [{"type": "input_text", "text": instruction}]
 
         # Only include screenshot if we have navigated somewhere
-        current_url = await self.page.evaluate("() => window.location.href")
+        current_url = await page.evaluate("() => window.location.href")
         if current_url and current_url != "about:blank":
-            screenshot = await self.page.screenshot()
+            screenshot = await page.screenshot()
             screenshot_b64 = base64.b64encode(screenshot).decode()
             input_content.append(
                 {"type": "input_image", "image_url": f"data:image/png;base64,{screenshot_b64}"}
             )
 
-        # 1) First turn (plan)
-        response = self.client.responses.create(
+        # 1) First turn (plan) - Use asyncio.to_thread to avoid blocking
+        response = await asyncio.to_thread(
+            self.client.responses.create,
             model=self.model,
             tools=[
                 {
@@ -183,11 +184,10 @@ class OpenAICUABrowser:
             ],
             input=[{"role": "user", "content": input_content}],
             truncation="auto",
-            previous_response_id=self.prev_response_id,
+            previous_response_id=self._prev_response_id,
             temperature=self.temperature,
-            max_tokens=self.max_tokens,
         )
-        self.prev_response_id = response.id
+        self._prev_response_id = response.id
 
         # 2) Loop until no computer_call items (with turn cap for safety)
         MAX_TURNS = int(os.getenv("CUA_MAX_TURNS", "40"))
@@ -222,7 +222,7 @@ class OpenAICUABrowser:
             await self._execute_action(action)
 
             # New screenshot after action
-            screenshot = await self.page.screenshot()
+            screenshot = await page.screenshot()
             screenshot_b64 = base64.b64encode(screenshot).decode()
 
             # Store screenshot for UI display if callback set
@@ -255,12 +255,13 @@ class OpenAICUABrowser:
                     return None
 
             # Get current URL for better context
-            current_url = await self.page.evaluate("() => window.location.href")
+            current_url = await page.evaluate("() => window.location.href")
 
-            # Respond with computer_call_output
-            response = self.client.responses.create(
+            # Respond with computer_call_output - Use asyncio.to_thread to avoid blocking
+            response = await asyncio.to_thread(
+                self.client.responses.create,
                 model=self.model,
-                previous_response_id=self.prev_response_id,
+                previous_response_id=self._prev_response_id,
                 tools=[
                     {
                         "type": "computer_use_preview",
@@ -283,7 +284,7 @@ class OpenAICUABrowser:
                 ],
                 truncation="auto",
             )
-            self.prev_response_id = response.id
+            self._prev_response_id = response.id
 
         # 3) Extract any text output (robust parsing)
         text_output = None
@@ -299,34 +300,44 @@ class OpenAICUABrowser:
     # The AutonomousFlow expects sync methods, so we wrap async ones
     # We'll override the async method names with sync versions
 
-    def open(self, url: str) -> None:  # type: ignore[override]
-        """Sync wrapper for async open."""
-        asyncio.run(self._open_async(url))
+    def open(self, url: str) -> None:
+        """Navigate to URL using single browser instance."""
+        # Reset session state for new profile
+        self._profile_text_cache = ""
+        self._prev_response_id = None
+        self._turn_count = 0
+
+        # Use runner instead of asyncio.run() - NO NEW EVENT LOOPS!
+        self._runner.submit(self._open_async(url))
 
     async def _open_async(self, url: str) -> None:
         """Navigate to URL using CUA or fallback to Playwright."""
+        # Reset session state for new profile
+        self._profile_text_cache = ""
+        self._prev_response_id = None  # Reset CUA session
+        self._turn_count = 0  # Reset turn counter
+
         try:
             await self._cua_action(f"Navigate to {url}")
         except Exception as e:
             if self.fallback_enabled:
-                await self._ensure_browser()
-                assert self.page is not None
-                await self.page.goto(url)
+                page = await self._ensure_browser()
+                await page.goto(url)
             else:
                 raise e
 
-    def click_view_profile(self) -> bool:  # type: ignore[override]
-        """Sync wrapper. Returns True for compatibility."""
-        asyncio.run(self._click_view_profile_async())
+    def click_view_profile(self) -> bool:
+        """Click view profile using single browser instance."""
+        self._runner.submit(self._click_view_profile_async())
         return True
 
     async def _click_view_profile_async(self) -> None:
         """Click on view profile button."""
         await self._cua_action("Click the 'View profile' button")
 
-    def read_profile_text(self) -> str:  # type: ignore[override]
-        """Sync wrapper for read_profile_text."""
-        return asyncio.run(self._read_profile_text_async())
+    def read_profile_text(self) -> str:
+        """Read profile text using single browser instance."""
+        return self._runner.submit(self._read_profile_text_async())
 
     async def _read_profile_text_async(self) -> str:
         """Extract and return profile text from current page."""
@@ -339,25 +350,25 @@ class OpenAICUABrowser:
             return result
         return self._profile_text_cache or ""
 
-    def focus_message_box(self) -> None:  # type: ignore[override]
-        """Sync wrapper for focus_message_box."""
-        asyncio.run(self._focus_message_box_async())
+    def focus_message_box(self) -> None:
+        """Focus message box using single browser instance."""
+        self._runner.submit(self._focus_message_box_async())
 
     async def _focus_message_box_async(self) -> None:
         """Focus on the message input box."""
         await self._cua_action("Click on the message input box to focus it")
 
-    def fill_message(self, text: str) -> None:  # type: ignore[override]
-        """Sync wrapper for fill_message."""
-        asyncio.run(self._fill_message_async(text))
+    def fill_message(self, text: str) -> None:
+        """Fill message using single browser instance."""
+        self._runner.submit(self._fill_message_async(text))
 
     async def _fill_message_async(self, text: str) -> None:
         """Fill message box with text."""
         await self._cua_action(f"Type the following message: {text}")
 
-    def send(self) -> None:  # type: ignore[override]
-        """Sync wrapper for send."""
-        asyncio.run(self._send_async())
+    def send(self) -> None:
+        """Send message using single browser instance."""
+        self._runner.submit(self._send_async())
 
     async def _send_async(self) -> None:
         """Click send button to send the message."""
@@ -367,9 +378,16 @@ class OpenAICUABrowser:
         """Alias for send() for compatibility."""
         self.send()
 
-    def verify_sent(self) -> bool:  # type: ignore[override]
-        """Sync wrapper for verify_sent."""
-        return asyncio.run(self._verify_sent_async())
+    def verify_sent(self) -> bool:
+        """Verify sent using single browser instance."""
+        sent_ok = self._runner.submit(self._verify_sent_async())
+        if sent_ok:
+            self._clear_profile_cache_after_send()
+        return sent_ok
+
+    def _clear_profile_cache_after_send(self) -> None:
+        """Clear profile cache after successful send."""
+        self._profile_text_cache = ""
 
     async def _verify_sent_async(self) -> bool:
         """Verify that message was sent successfully."""
@@ -378,47 +396,55 @@ class OpenAICUABrowser:
             "Look for a confirmation toast, banner, or an emptied message box."
         )
         if result and result.strip().lower() in {"true", "yes"}:
+            self._profile_text_cache = ""  # Clear cache on successful send
             return True
-        
-        if self.page:
+
+        # Try fallback check with Playwright
+        try:
+            page = await self._ensure_browser()
             try:
-                message_box_empty = await self.page.evaluate("""
+                message_box_empty = await page.evaluate("""
                     () => {
                         const input = document.querySelector('textarea[placeholder*="message"]');
                         return input ? input.value === '' : false;
                     }
                 """)
                 if message_box_empty:
+                    self._profile_text_cache = ""  # Clear cache on successful send
                     return True
             except Exception:
                 pass
-        
-        self._log_event({
-            "event": "error",
-            "type": "verify_sent_failed",
-            "reason": "could_not_confirm_sent",
-            "cua_result": result if result else None,
-            "message": "Message send could not be verified"
-        })
+        except Exception:
+            pass
+
+        self._log_event(
+            {
+                "event": "error",
+                "type": "verify_sent_failed",
+                "reason": "could_not_confirm_sent",
+                "cua_result": result if result else None,
+                "message": "Message send could not be verified",
+            }
+        )
         return False
 
-    def skip(self) -> None:  # type: ignore[override]
-        """Sync wrapper for skip."""
-        asyncio.run(self._skip_async())
+    def skip(self) -> None:
+        """Skip using single browser instance."""
+        self._profile_text_cache = ""  # Clear cache
+        self._runner.submit(self._skip_async())
 
     async def _skip_async(self) -> None:
         """Skip current profile and go to next."""
+        # Clear profile cache when skipping to avoid carrying over data
+        self._profile_text_cache = ""
         await self._cua_action("Click Skip or Next to go to the next profile")
 
-    def close(self) -> None:  # type: ignore[override]
-        """Sync wrapper for close."""
-        asyncio.run(self._close_async())
+    def close(self) -> None:
+        """Close browser properly."""
+        self._runner.submit(self._close_async())
+        self._runner.cleanup()
 
     async def _close_async(self) -> None:
         """Clean up browser resources."""
-        if self.page:
-            await self.page.close()
-        if self.browser:
-            await self.browser.close()
-        if self.playwright:
-            await self.playwright.stop()
+        # Runner handles browser cleanup
+        await self._runner.close_browser()

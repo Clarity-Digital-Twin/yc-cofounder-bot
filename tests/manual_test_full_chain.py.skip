@@ -17,12 +17,13 @@ print("=" * 50)
 # Test 1: Import all modules
 print("\n1️⃣ Testing imports...")
 try:
-    from yc_matcher.interface.di import build_services
-    from yc_matcher.domain.entities import Criteria, Profile
     from yc_matcher.application.autonomous_flow import AutonomousFlow
-    from yc_matcher.infrastructure.sqlite_repo import SQLiteSeenRepo
+    from yc_matcher.domain.entities import Criteria, Profile
     from yc_matcher.infrastructure.sqlite_quota import SQLiteDailyWeeklyQuota
+    from yc_matcher.infrastructure.sqlite_repo import SQLiteSeenRepo
     from yc_matcher.infrastructure.stop_flag import FileStopFlag
+    from yc_matcher.interface.di import build_services
+
     print("✅ All imports successful")
 except Exception as e:
     print(f"❌ Import failed: {e}")
@@ -35,7 +36,7 @@ try:
         criteria_text="Python, FastAPI",
         template_text="Hi {name}",
         decision_mode="rubric",
-        threshold=4.0
+        threshold=4.0,
     )
     print("✅ Services built")
     print(f"   - Evaluator: {type(eval_use)}")
@@ -73,7 +74,7 @@ try:
     seen_repo = SQLiteSeenRepo(db_path=Path(".runs/seen.sqlite"))
     quota = SQLiteDailyWeeklyQuota(Path(".runs/quota.sqlite"))
     stop_flag = FileStopFlag(Path(".runs/stop.flag"))
-    
+
     flow = AutonomousFlow(
         browser=send_use.browser,
         evaluate=eval_use,
@@ -81,12 +82,13 @@ try:
         seen=seen_repo,
         logger=logger,
         stop=stop_flag,
-        quota=quota
+        quota=quota,
     )
     print("✅ Autonomous flow created")
 except Exception as e:
     print(f"❌ Flow creation failed: {e}")
     import traceback
+
     traceback.print_exc()
 
 # Test 6: Check what browser we actually got
