@@ -7,9 +7,6 @@ from typing import Any
 import streamlit as st
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
-
 from yc_matcher.application.autonomous_flow import AutonomousFlow
 from yc_matcher.application.use_cases import ProcessCandidate
 from yc_matcher.config import load_settings
@@ -20,6 +17,9 @@ from yc_matcher.infrastructure.stop_flag import FileStopFlag
 from yc_matcher.infrastructure.storage import read_count
 from yc_matcher.infrastructure.template_loader import load_default_template
 from yc_matcher.interface.di import build_services
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 def render_three_input_mode() -> None:
