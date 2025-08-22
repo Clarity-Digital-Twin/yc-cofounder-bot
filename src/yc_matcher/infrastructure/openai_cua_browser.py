@@ -575,8 +575,13 @@ class OpenAICUABrowser:
         self._runner.submit(self._ensure_logged_in_async())
     
     async def _ensure_logged_in_async(self) -> None:
-        """Perform login if not already logged in."""
+        """Perform login if not already logged in using CUA."""
+        if self.logger:
+            self.logger.emit({"event": "cua_login_check", "checking": True})
+        
         if await self._is_logged_in_async():
+            if self.logger:
+                self.logger.emit({"event": "cua_already_logged_in"})
             return
         
         # Check for credentials
@@ -584,27 +589,127 @@ class OpenAICUABrowser:
         password = os.getenv("YC_PASSWORD")
         
         if not email or not password:
+            if self.logger:
+                self.logger.emit({"event": "cua_login_no_credentials"})
             raise ValueError("YC_EMAIL and YC_PASSWORD environment variables required for auto-login")
+        
+        if self.logger:
+            self.logger.emit({"event": "cua_login_attempt", "email": email[:3] + "***"})
         
         # Navigate to login page if needed
         page = await self._ensure_browser()
         current_url = page.url
-        if "login" not in current_url.lower():
+        
+        if self.logger:
+            self.logger.emit({"event": "cua_current_url", "url": current_url})
+        
+        if "sign_in" not in current_url.lower() and "login" not in current_url.lower():
             await page.goto("https://www.startupschool.org/users/sign_in")
             await page.wait_for_load_state("networkidle", timeout=5000)
+            if self.logger:
+                self.logger.emit({"event": "cua_navigated_to_login"})
         
-        # Fill in login form
-        await page.fill('input[type="email"], input[name="email"], #user_email', email)
-        await page.fill('input[type="password"], input[name="password"], #user_password', password)
+        # Use CUA to perform the login via Responses API
+        try:
+            # Take screenshot of login page
+            screenshot = await page.screenshot()
+            screenshot_b64 = base64.b64encode(screenshot).decode('utf-8')
+            
+            # Ask CUA to fill in the login form
+            login_instruction = f"""Please log into YC Startup School:
+1. Fill the email field with: {email}
+2. Fill the password field with: {password}
+3. Click the Sign In button
+Complete the login process."""
+            
+            # Use CUA to perform login actions
+            response = self.client.responses.create(
+                model=self.model_name,
+                tools=[{
+                    "type": "computer_use_preview",
+                    "display_width": 1280,
+                    "display_height": 800,
+                    "environment": "browser"
+                }],
+                input=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "input_text", "text": login_instruction},
+                            {"type": "input_image", "image_url": f"data:image/png;base64,{screenshot_b64}"}
+                        ]
+                    }
+                ],
+                truncation="auto"
+            )
+            
+            # Execute CUA's suggested actions
+            max_login_attempts = 10
+            for _ in range(max_login_attempts):
+                computer_calls = [item for item in response.output if item.type == "computer_call"]
+                
+                if not computer_calls:
+                    # No more actions, check if logged in
+                    break
+                
+                # Execute the suggested action
+                computer_call = computer_calls[0]
+                action = computer_call.action
+                
+                # Execute action with Playwright
+                if action.type == "click":
+                    await page.mouse.click(action.x, action.y)
+                elif action.type == "type":
+                    await page.keyboard.type(action.text)
+                elif action.type == "keypress":
+                    for key in action.keys:
+                        await page.keyboard.press(key)
+                elif action.type == "wait":
+                    await page.wait_for_timeout(2000)
+                
+                # Take screenshot after action
+                await page.wait_for_timeout(500)  # Small delay for action to complete
+                screenshot = await page.screenshot()
+                screenshot_b64 = base64.b64encode(screenshot).decode('utf-8')
+                
+                # Send result back to CUA
+                response = self.client.responses.create(
+                    model=self.model_name,
+                    previous_response_id=response.id,
+                    tools=[{
+                        "type": "computer_use_preview",
+                        "display_width": 1280,
+                        "display_height": 800,
+                        "environment": "browser"
+                    }],
+                    input=[
+                        {
+                            "call_id": computer_call.call_id,
+                            "type": "computer_call_output",
+                            "output": {
+                                "type": "input_image",
+                                "image_url": f"data:image/png;base64,{screenshot_b64}"
+                            }
+                        }
+                    ],
+                    truncation="auto"
+                )
+                
+                # Check if we're logged in now
+                if await self._is_logged_in_async():
+                    if self.logger:
+                        self.logger.emit({"event": "cua_login_success", "final_url": page.url})
+                    return
+            
+        except Exception as e:
+            if self.logger:
+                self.logger.emit({"event": "cua_login_error", "error": str(e)})
+            raise
         
-        # Submit login form
-        await page.click('button[type="submit"], input[type="submit"], button:has-text("Sign in")')
-        
-        # Wait for login to complete
-        await page.wait_for_load_state("networkidle", timeout=10000)
-        
-        # Verify login succeeded
+        # Final check
         if not await self._is_logged_in_async():
+            if self.logger:
+                self.logger.emit({"event": "cua_login_failed", "final_url": page.url})
             raise RuntimeError("Login failed - unable to find logged-in indicators")
 
     def skip(self) -> None:
