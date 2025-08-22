@@ -40,7 +40,7 @@ class AsyncLoopRunner:
         if os.getenv("PYTEST_CURRENT_TEST"):
             print("⚠️ AsyncLoopRunner: Test mode detected, not starting browser")
             return  # Tests should mock this entirely
-        
+
         # Start the event loop in a thread
         self._start_loop()
 

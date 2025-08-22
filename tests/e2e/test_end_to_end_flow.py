@@ -138,7 +138,7 @@ class TestEndToEndFlow:
         # Process should exit immediately due to stop flag
         criteria = Criteria(text="test")
         url = "https://www.startupschool.org/cofounder-matching"
-        result = processor(url=url, limit=10, criteria=criteria)
+        processor(url=url, limit=10, criteria=criteria)
 
         # Verify browser was never opened (stopped before navigation)
         mock_browser.open.assert_not_called()

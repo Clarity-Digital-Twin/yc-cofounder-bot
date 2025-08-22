@@ -12,19 +12,19 @@ from typing import Any
 
 def resolve_best_decision_model(client: Any) -> str:
     """Discover best GPT-5 model via Models API.
-    
+
     Fallback chain:
     1. GPT-5 thinking variants (gpt-5-thinking, etc.)
-    2. Any GPT-5 model 
+    2. Any GPT-5 model
     3. GPT-4 variants (gpt-4o, gpt-4.1, etc.)
     4. Raise error if no suitable model
-    
+
     Args:
         client: OpenAI client with models.list() method
-        
+
     Returns:
         Best available model ID
-        
+
     Raises:
         RuntimeError: If no suitable model found
     """
@@ -65,10 +65,10 @@ def resolve_best_decision_model(client: Any) -> str:
 
 def resolve_cua_model(client: Any) -> str | None:
     """Discover Computer Use model if available.
-    
+
     Args:
         client: OpenAI client with models.list() method
-        
+
     Returns:
         Computer Use model ID if available, None otherwise
     """
@@ -92,13 +92,13 @@ def resolve_cua_model(client: Any) -> str | None:
 
 def resolve_and_set_models(logger: Any | None = None) -> dict[str, str | None]:
     """Main entry point: Resolve models and set environment variables.
-    
+
     This should be called once at application startup.
     Sets DECISION_MODEL_RESOLVED and CUA_MODEL_RESOLVED env vars.
-    
+
     Args:
         logger: Optional logger for emitting events
-        
+
     Returns:
         Dict with 'decision_model' and 'cua_model' keys
     """

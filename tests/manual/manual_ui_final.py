@@ -22,7 +22,7 @@ from yc_matcher.interface.di import build_services
 
 # Sample inputs matching the UI
 your_profile = """
-Hey I'm Dr. Jung, a psychiatrist and builder. I'm currently shipping Brain Go Brrr: 
+Hey I'm Dr. Jung, a psychiatrist and builder. I'm currently shipping Brain Go Brrr:
 a clinical-grade EEG analysis platform for neurologists and psychiatrists.
 """
 

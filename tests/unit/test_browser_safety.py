@@ -2,7 +2,6 @@
 """Quick test to verify browser safety in different modes."""
 
 import os
-import sys
 
 print("Testing browser launch safety...")
 
@@ -22,10 +21,10 @@ del os.environ["PYTEST_CURRENT_TEST"]
 
 # Test 2: In normal mode, should be able to launch browser
 print("\n2. Normal mode (should be able to launch browser):")
-from yc_matcher.infrastructure.browser_playwright_async import _shared_runner, _get_shared_runner
 
 # Reset the global
 import yc_matcher.infrastructure.browser_playwright_async as browser_module
+
 browser_module._shared_runner = None
 
 # Create new browser

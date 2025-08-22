@@ -212,7 +212,7 @@ Environment Settings:
     # Status Panel - Show current system state
     with st.expander("🔍 System Status", expanded=True):
         col1, col2, col3 = st.columns(3)
-        
+
         with col1:
             # Login status
             has_credentials = bool(os.getenv("YC_EMAIL") and os.getenv("YC_PASSWORD"))
@@ -223,39 +223,38 @@ Environment Settings:
                     is_logged_in = browser.is_logged_in()
                 except:
                     pass
-            
+
             if is_logged_in:
                 st.success("✅ **Logged In**")
             elif has_credentials:
                 st.info("🔑 **Credentials Available** (will auto-login)")
             else:
                 st.warning("⚠️ **Manual Login Required**")
-        
+
         with col2:
             # Model info
             decision_model = os.getenv("DECISION_MODEL_RESOLVED") or os.getenv("OPENAI_DECISION_MODEL") or "gpt-4o"
             st.info(f"🤖 **Model**: {decision_model}")
-            
+
             # Engine type
             engine = "CUA + Playwright" if enable_cua else "Playwright Only"
             st.info(f"⚙️ **Engine**: {engine}")
-        
+
         with col3:
             # Headless mode
             headless = os.getenv("PLAYWRIGHT_HEADLESS", "0") == "1"
             mode_str = "Headless" if headless else "Headful (visible)"
             st.info(f"👁️ **Browser**: {mode_str}")
-            
+
             # Decision mode
             st.info(f"📊 **Decision**: {mode.capitalize()}")
-    
+
     # Last Events Panel
     if os.path.exists(".runs/events.jsonl"):
         with st.expander("📝 Recent Events", expanded=False):
             try:
                 import json
-                from pathlib import Path
-                
+
                 # Read last 10 events
                 events_path = Path(".runs/events.jsonl")
                 lines = events_path.read_text().strip().split('\n')
@@ -267,12 +266,12 @@ Environment Settings:
                             recent_events.append(event)
                         except:
                             pass
-                
+
                 # Display in reverse order (newest first)
                 for event in reversed(recent_events):
                     event_type = event.get("event", "unknown")
                     timestamp = event.get("timestamp", "")
-                    
+
                     # Color-code by event type
                     if event_type == "sent":
                         st.success(f"✅ {timestamp} - {event_type}")

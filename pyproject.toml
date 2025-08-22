@@ -81,8 +81,9 @@ addopts = """
     --cov-branch
     --color=yes
 """
-testpaths = ["tests"]
+testpaths = ["tests/unit", "tests/integration", "tests/e2e"]
 pythonpath = ["src"]
+norecursedirs = ["tests/manual", "*.egg", ".eggs", "dist", "build", "docs", ".tox", ".git", "__pycache__"]
 markers = [
   "integration: marks tests that require browsers or external UI (deselected by default)",
   "asyncio: marks async tests",

@@ -15,11 +15,11 @@ _shared_runner: AsyncLoopRunner | None = None
 def _get_shared_runner() -> AsyncLoopRunner | None:
     """Get or create the shared AsyncLoopRunner singleton."""
     global _shared_runner
-    
+
     # CRITICAL: Don't launch real browser during tests
     if os.getenv("PYTEST_CURRENT_TEST"):
         return None  # Tests should mock this
-    
+
     if _shared_runner is None:
         _shared_runner = AsyncLoopRunner()
     return _shared_runner
@@ -27,7 +27,7 @@ def _get_shared_runner() -> AsyncLoopRunner | None:
 
 class PlaywrightBrowserAsync:
     """Async Playwright adapter using AsyncLoopRunner for proper async/sync bridging.
-    
+
     This solves the "Playwright Sync API inside asyncio loop" error by:
     1. Using async Playwright API internally
     2. Running all operations through AsyncLoopRunner
@@ -40,7 +40,7 @@ class PlaywrightBrowserAsync:
         # Use the shared runner - ensures single browser instance
         self._runner = _get_shared_runner()
         self._page: Page | None = None
-        
+
         # In test mode, runner will be None - tests must mock appropriately
         if os.getenv("PYTEST_CURRENT_TEST") and self._runner is None:
             return  # Don't initialize anything else in test mode

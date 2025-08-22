@@ -38,8 +38,8 @@ def test_decision_with_message_generation():
     profile_text = """
     Name: John Smith
     Location: San Francisco, CA
-    Background: Full-stack engineer with 5 years experience at Google. 
-    Built ML infrastructure for YouTube recommendations. 
+    Background: Full-stack engineer with 5 years experience at Google.
+    Built ML infrastructure for YouTube recommendations.
     Passionate about developer tools and AI applications.
     Skills: Python, FastAPI, React, TypeScript, PostgreSQL, Docker, Kubernetes
     Looking for: Technical co-founder to build AI-powered dev tools startup
@@ -51,15 +51,15 @@ def test_decision_with_message_generation():
     Required Skills: Python, FastAPI, database design
     Nice to have: ML/AI experience, big tech background
     Location: San Francisco or remote
-    
+
     Message Template:
-    Hey [Name], 
-    
-    I noticed your experience with [specific skill/project] - that's exactly the kind of expertise I'm looking for. 
+    Hey [Name],
+
+    I noticed your experience with [specific skill/project] - that's exactly the kind of expertise I'm looking for.
     I'm building [your startup idea] and your background in [relevant experience] would be perfect.
-    
+
     Would love to chat about potentially partnering up. Are you free for a quick call this week?
-    
+
     Best,
     JJ
     """

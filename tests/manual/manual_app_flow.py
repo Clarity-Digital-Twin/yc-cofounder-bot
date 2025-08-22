@@ -20,10 +20,6 @@ async def test_flow():
     """Test the complete application flow."""
 
     # Sample inputs (same as in the UI)
-    your_profile = """
-    Hey I'm Dr. Jung, a psychiatrist and builder. 
-    I'm currently shipping Brain Go Brrr: a clinical-grade EEG analysis platform.
-    """
 
     criteria_text = """
     Stack fit: Python + PyTorch, FastAPI, Docker/K8s, CI/CD, AWS/GCP/Azure.
@@ -32,7 +28,7 @@ async def test_flow():
 
     template_text = """
     Hey {name},
-    Your {project} shows the skills I need. 
+    Your {project} shows the skills I need.
     I'm John, shipping clinical AI. Quick call?
     """
 
@@ -54,7 +50,7 @@ async def test_flow():
     stop_flag = FileStopFlag(Path(".runs/stop.flag"))
 
     # Create autonomous flow
-    flow = AutonomousFlow(
+    AutonomousFlow(
         browser=send_use.browser,
         evaluate=eval_use,
         send=send_use,
