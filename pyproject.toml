@@ -47,6 +47,11 @@ ignore = [
   "E501",  # allow longer lines where helpful; formatter will handle
 ]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/manual/*.py" = ["E402"]  # dev helpers; import after runtime prints
+"tests/unit/test_browser_safety.py" = ["E402"]  # sets env before importing module under test
+"scripts/*.py" = ["E402"]  # scripts may need runtime setup before imports
+
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
