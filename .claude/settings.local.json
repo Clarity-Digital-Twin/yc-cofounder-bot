@@ -171,7 +171,8 @@
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_hybrid_draft.py -xvs)",
       "Bash(kill:*)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_cua_session_hygiene.py -xvs --timeout=5)",
-      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src timeout 5 uv run pytest tests/unit/test_cua_session_hygiene.py::TestCUASessionHygiene::test_cache_clears_after_successful_send -xvs)"
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src timeout 5 uv run pytest tests/unit/test_cua_session_hygiene.py::TestCUASessionHygiene::test_cache_clears_after_successful_send -xvs)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_decision_modes.py::TestHybridMode::test_hybrid_gates_with_rubric_first -xvs)"
     ],
     "deny": [],
     "ask": []

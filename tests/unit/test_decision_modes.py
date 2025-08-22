@@ -161,8 +161,8 @@ class TestHybridMode:
         assert (
             "Below threshold" in result["rationale"]
         )  # Actual message is "Below threshold or red flags"
-        # AI decision should not be called when gated
-        mock_decision.evaluate.assert_not_called()
+        # AI is still called to generate draft (hybrid always generates drafts)
+        mock_decision.evaluate.assert_called_once()
 
     def test_hybrid_calls_ai_when_rubric_passes(self) -> None:
         """Test hybrid mode calls AI when rubric score passes."""
