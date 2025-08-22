@@ -71,13 +71,14 @@ class OpenAIDecisionAdapter(DecisionPort):
         sys_prompt = (
             "You are an expert recruiter evaluating potential co-founder matches. "
             "You will analyze a candidate profile against specific criteria and make a decision. "
-            "Return a JSON object with these exact keys:\n"
+            "You MUST return a valid JSON object with these exact keys:\n"
             "- decision: string 'YES' or 'NO'\n"
             "- rationale: string explaining your reasoning in 1-2 sentences\n"
             "- draft: if YES, a personalized message to the candidate (if NO, empty string)\n"
             "- score: float between 0.0 and 1.0 indicating match strength\n"
             "- confidence: float between 0.0 and 1.0 indicating your confidence\n\n"
-            "Be specific and reference actual details from their profile in the draft message."
+            "Be specific and reference actual details from their profile in the draft message.\n"
+            "Your entire response must be valid JSON - no other text before or after the JSON object."
         )
 
         user_text = f"MY CRITERIA:\n{criteria_text}\n\nCANDIDATE PROFILE:\n{profile.raw_text}\n\n"
@@ -103,8 +104,6 @@ class OpenAIDecisionAdapter(DecisionPort):
                         {"role": "system", "content": sys_prompt},
                         {"role": "user", "content": user_text + "\n\nIMPORTANT: Return your response as valid JSON."},
                     ],
-                    reasoning_effort="medium",  # GPT-5 specific parameter
-                    verbosity="normal",  # GPT-5 specific parameter
                     max_output_tokens=800,  # Responses API uses max_output_tokens
                 )
                 # Extract content from Responses API format
