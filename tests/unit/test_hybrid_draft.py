@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 from yc_matcher.application.gating import GatedDecision
 from yc_matcher.application.ports import DecisionPort, ScoringPort
 from yc_matcher.domain.entities import Criteria, Profile
-from yc_matcher.domain.scoring import Score
+from yc_matcher.domain.entities import Score
 
 
 class TestHybridDraft:
