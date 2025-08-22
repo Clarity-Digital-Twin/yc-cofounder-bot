@@ -244,22 +244,54 @@ Environment Settings:
     # Last Events Panel
     if os.path.exists(".runs/events.jsonl"):
         with st.expander("📝 Recent Events", expanded=False):
+            col1, col2 = st.columns([3, 1])
+            with col2:
+                if st.button("🗑️ Clear", key="clear_events"):
+                    # Clear the events file
+                    with open(".runs/events.jsonl", "w") as f:
+                        f.write("")
+                    st.rerun()
+            
             try:
                 import json
+                from datetime import datetime, timedelta
 
-                # Read last 10 events
+                # Read last 20 events (more context)
                 events_path = Path(".runs/events.jsonl")
-                lines = events_path.read_text().strip().split("\n")
-                recent_events = []
-                for line in lines[-10:]:
-                    if line.strip():
-                        try:
-                            event = json.loads(line)
-                            recent_events.append(event)
-                        except Exception:
-                            pass
+                content = events_path.read_text().strip()
+                if not content:
+                    st.info("No recent events")
+                else:
+                    lines = content.split("\n")
+                    recent_events = []
+                    
+                    # Get only recent events (last hour)
+                    cutoff_time = datetime.now() - timedelta(hours=1)
+                    
+                    for line in lines[-20:]:
+                        if line.strip():
+                            try:
+                                event = json.loads(line)
+                                # Try to parse timestamp
+                                timestamp_str = event.get("timestamp", "")
+                                if timestamp_str:
+                                    try:
+                                        event_time = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+                                        # Only include recent events
+                                        if event_time.replace(tzinfo=None) > cutoff_time:
+                                            recent_events.append(event)
+                                    except:
+                                        # If can't parse time, include it anyway (for backwards compat)
+                                        recent_events.append(event)
+                                else:
+                                    recent_events.append(event)
+                            except Exception:
+                                pass
 
                 # Display in reverse order (newest first)
+                if not recent_events:
+                    st.info("No events in the last hour. Events are cleared after 1 hour.")
+                    
                 for event in reversed(recent_events):
                     event_type = event.get("event", "unknown")
                     timestamp = event.get("timestamp", "")
