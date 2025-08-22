@@ -35,26 +35,26 @@ def resolve_best_decision_model(client: Any) -> str:
         raise RuntimeError(f"Failed to list models: {e}") from e
 
     # 1. Try GPT-5 thinking variants (preferred)
-    gpt5_thinking = [m for m in ids if 'gpt-5' in m.lower() and 'thinking' in m.lower()]
+    gpt5_thinking = [m for m in ids if "gpt-5" in m.lower() and "thinking" in m.lower()]
     if gpt5_thinking:
         selected = sorted(gpt5_thinking, reverse=True)[0]
         print(f"✅ Found GPT-5 thinking model: {selected}")
-        return selected
+        return str(selected)
 
     # 2. Try any GPT-5 model
-    gpt5_any = [m for m in ids if m.lower().startswith('gpt-5')]
+    gpt5_any = [m for m in ids if m.lower().startswith("gpt-5")]
     if gpt5_any:
         selected = sorted(gpt5_any, reverse=True)[0]
         print(f"✅ Found GPT-5 model: {selected}")
-        return selected
+        return str(selected)
 
     # 3. Fallback to GPT-4 variants (despite user preference for GPT-5)
-    gpt4_variants = [m for m in ids if m.lower().startswith('gpt-4')]
+    gpt4_variants = [m for m in ids if m.lower().startswith("gpt-4")]
     if gpt4_variants:
         # Sort to get newest (gpt-4o, gpt-4.1, etc)
         selected = sorted(gpt4_variants, reverse=True)[0]
         print(f"⚠️ No GPT-5 available, using GPT-4 fallback: {selected}")
-        return selected
+        return str(selected)
 
     # 4. Error if no suitable model
     raise RuntimeError(
@@ -80,11 +80,11 @@ def resolve_cua_model(client: Any) -> str | None:
         return None
 
     # Look for computer-use variants
-    cua_models = [m for m in ids if 'computer' in m.lower() or 'cua' in m.lower()]
+    cua_models = [m for m in ids if "computer" in m.lower() or "cua" in m.lower()]
     if cua_models:
         selected = cua_models[0]
         print(f"✅ Found Computer Use model: {selected}")
-        return selected
+        return str(selected)
 
     print("⚠️ No Computer Use model found (may need tier 3-5 access)")
     return None
@@ -124,18 +124,17 @@ def resolve_and_set_models(logger: Any | None = None) -> dict[str, str | None]:
         os.environ["CUA_MODEL_RESOLVED"] = cua_model
 
     # Log what we're using
-    result = {
-        "decision_model": decision_model,
-        "cua_model": cua_model
-    }
+    result = {"decision_model": decision_model, "cua_model": cua_model}
 
     if logger:
-        logger.emit({
-            "event": "models_resolved",
-            "decision_model": decision_model,
-            "cua_model": cua_model or "none",
-            "fallback_used": "gpt-4" in decision_model.lower()
-        })
+        logger.emit(
+            {
+                "event": "models_resolved",
+                "decision_model": decision_model,
+                "cua_model": cua_model or "none",
+                "fallback_used": "gpt-4" in decision_model.lower(),
+            }
+        )
 
     print("\n📊 Model Resolution Complete:")
     print(f"  Decision Model: {decision_model}")

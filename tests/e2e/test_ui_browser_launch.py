@@ -25,6 +25,7 @@ class TestUIBrowserLaunch:
         try:
             # This will fail if there are import errors
             from yc_matcher.interface.web.ui_streamlit import render_three_input_mode
+
             assert callable(render_three_input_mode)
         except Exception as e:
             pytest.fail(f"Import failed: {e}")
@@ -35,16 +36,18 @@ class TestUIBrowserLaunch:
         import yc_matcher.interface.web.ui_streamlit as ui_module
 
         # Check os is available at module level
-        assert hasattr(ui_module, 'os')
+        assert hasattr(ui_module, "os")
 
         # Check that os.getenv works
         test_val = os.getenv("PLAYWRIGHT_HEADLESS", "0")
         assert test_val in ["0", "1"]
 
-    @patch('streamlit.button')
-    @patch('streamlit.info')
-    @patch('subprocess.Popen')
-    def test_browser_launch_button_works(self, mock_popen: Mock, mock_info: Mock, mock_button: Mock) -> None:
+    @patch("streamlit.button")
+    @patch("streamlit.info")
+    @patch("subprocess.Popen")
+    def test_browser_launch_button_works(
+        self, mock_popen: Mock, mock_info: Mock, mock_button: Mock
+    ) -> None:
         """Test that browser launch button actually launches browser."""
         # Setup mocks
         mock_button.return_value = True  # Simulate button click
@@ -52,8 +55,7 @@ class TestUIBrowserLaunch:
         mock_popen.return_value = mock_process
 
         # Import after mocking
-        with patch('streamlit.session_state', {}):
-
+        with patch("streamlit.session_state", {}):
             # This should trigger the browser launch code
             try:
                 # We can't fully run render_three_input_mode without a full Streamlit context
@@ -76,14 +78,16 @@ with sync_playwright() as p:
     browser.close()
 """
                 # Write script to temp file
-                with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+                with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
                     f.write(browser_script)
                     script_path = f.name
 
                 # Launch browser in subprocess
                 env = os.environ.copy()
-                env["PLAYWRIGHT_BROWSERS_PATH"] = os.getenv("PLAYWRIGHT_BROWSERS_PATH", ".ms-playwright")
-                subprocess.Popen(['python', script_path], env=env)
+                env["PLAYWRIGHT_BROWSERS_PATH"] = os.getenv(
+                    "PLAYWRIGHT_BROWSERS_PATH", ".ms-playwright"
+                )
+                subprocess.Popen(["python", script_path], env=env)
 
                 # Verify Popen was called
                 mock_popen.assert_called_once()
@@ -114,7 +118,7 @@ with sync_playwright() as p:
             async with async_playwright() as p:
                 # This would actually launch browser if not mocked
                 # In test we just verify the API is callable
-                assert hasattr(p, 'chromium')
+                assert hasattr(p, "chromium")
                 assert callable(p.chromium.launch)
         except Exception as e:
             if "Executable doesn't exist" in str(e):
@@ -128,7 +132,7 @@ with sync_playwright() as p:
         import tempfile
 
         # Test creating temp file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write("print('test')")
             script_path = f.name
 
@@ -148,7 +152,7 @@ with sync_playwright() as p:
 
         start = time.time()
         # Popen should return immediately (non-blocking)
-        process = subprocess.Popen(['python', '-c', script])
+        process = subprocess.Popen(["python", "-c", script])
         elapsed = time.time() - start
 
         # Should return almost immediately (< 0.05 seconds)
@@ -163,15 +167,16 @@ class TestUIErrorHandling:
 
     def test_browser_launch_error_handling(self) -> None:
         """Test that browser launch errors are handled gracefully."""
-        with patch('subprocess.Popen') as mock_popen:
+        with patch("subprocess.Popen") as mock_popen:
             # Simulate subprocess error
             mock_popen.side_effect = Exception("Failed to launch")
 
             # The UI should handle this gracefully
             try:
                 import subprocess
+
                 env = os.environ.copy()
-                subprocess.Popen(['python', 'nonexistent.py'], env=env)
+                subprocess.Popen(["python", "nonexistent.py"], env=env)
             except Exception as e:
                 # Should be caught and handled
                 assert "Failed to launch" in str(e)
@@ -184,5 +189,7 @@ class TestUIErrorHandling:
         assert "Executable doesn't exist" in error_msg
 
         # The fix should be suggested
-        fix_command = "PLAYWRIGHT_BROWSERS_PATH=.ms-playwright uv run python -m playwright install chromium"
+        fix_command = (
+            "PLAYWRIGHT_BROWSERS_PATH=.ms-playwright uv run python -m playwright install chromium"
+        )
         assert "playwright install" in fix_command

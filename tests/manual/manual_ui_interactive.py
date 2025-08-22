@@ -9,6 +9,7 @@ from playwright.async_api import async_playwright
 # Set browser path
 os.environ["PLAYWRIGHT_BROWSERS_PATH"] = ".ms-playwright"
 
+
 async def test_ui():
     """Test the Streamlit UI interactively."""
     async with async_playwright() as p:
@@ -30,16 +31,18 @@ async def test_ui():
         print("📝 Filling in form fields...")
 
         # Find and fill "Your Profile" textarea
-        profile_input = page.locator('textarea').first
+        profile_input = page.locator("textarea").first
         await profile_input.fill("I'm a technical founder with 10 years in ML/AI")
 
         # Find and fill "Match Criteria"
-        criteria_input = page.locator('textarea').nth(1)
+        criteria_input = page.locator("textarea").nth(1)
         await criteria_input.fill("Python, Machine Learning, San Francisco")
 
         # Find and fill "Message Template"
-        template_input = page.locator('textarea').nth(2)
-        await template_input.fill("Hi {name}, I noticed your experience in {skill}. Would love to connect!")
+        template_input = page.locator("textarea").nth(2)
+        await template_input.fill(
+            "Hi {name}, I noticed your experience in {skill}. Would love to connect!"
+        )
 
         await page.wait_for_timeout(1000)
 
@@ -69,6 +72,7 @@ async def test_ui():
 
         await browser.close()
         print("✅ Test complete!")
+
 
 if __name__ == "__main__":
     asyncio.run(test_ui())

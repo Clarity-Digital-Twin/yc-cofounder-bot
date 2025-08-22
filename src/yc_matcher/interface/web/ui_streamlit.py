@@ -218,7 +218,7 @@ Environment Settings:
             has_credentials = bool(os.getenv("YC_EMAIL") and os.getenv("YC_PASSWORD"))
             browser = st.session_state.get("browser_instance")
             is_logged_in = False
-            if browser and hasattr(browser, 'is_logged_in'):
+            if browser and hasattr(browser, "is_logged_in"):
                 try:
                     is_logged_in = browser.is_logged_in()
                 except Exception:
@@ -233,7 +233,11 @@ Environment Settings:
 
         with col2:
             # Model info
-            decision_model = os.getenv("DECISION_MODEL_RESOLVED") or os.getenv("OPENAI_DECISION_MODEL") or "gpt-4o"
+            decision_model = (
+                os.getenv("DECISION_MODEL_RESOLVED")
+                or os.getenv("OPENAI_DECISION_MODEL")
+                or "gpt-4o"
+            )
             st.info(f"🤖 **Model**: {decision_model}")
 
             # Engine type
@@ -257,7 +261,7 @@ Environment Settings:
 
                 # Read last 10 events
                 events_path = Path(".runs/events.jsonl")
-                lines = events_path.read_text().strip().split('\n')
+                lines = events_path.read_text().strip().split("\n")
                 recent_events = []
                 for line in lines[-10:]:
                     if line.strip():

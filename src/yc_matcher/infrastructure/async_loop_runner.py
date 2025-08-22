@@ -109,6 +109,7 @@ class AsyncLoopRunner:
                 # Can't use asyncio.run() in running loop
                 # Create new loop in thread
                 import concurrent.futures
+
                 with concurrent.futures.ThreadPoolExecutor() as executor:
                     future = executor.submit(asyncio.run, coro)
                     return future.result(timeout=30)
@@ -130,9 +131,11 @@ class AsyncLoopRunner:
         """
         # In test mode, don't launch real browser
         import os
+
         if os.getenv("PYTEST_CURRENT_TEST"):
             # Return a mock page for tests
             from unittest.mock import AsyncMock
+
             mock_page = AsyncMock()
             mock_page.url = "https://test.com"
             mock_page.is_closed.return_value = False

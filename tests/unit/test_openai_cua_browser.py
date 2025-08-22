@@ -218,7 +218,9 @@ class TestOpenAICUABrowserResponsesAPI:
                 browser = OpenAICUABrowser()
 
                 # Patch _ensure_browser to return our test mock
-                with patch.object(browser, "_ensure_browser", new_callable=AsyncMock) as mock_ensure:
+                with patch.object(
+                    browser, "_ensure_browser", new_callable=AsyncMock
+                ) as mock_ensure:
                     mock_ensure.return_value = page_mock
 
                     # Act - test click

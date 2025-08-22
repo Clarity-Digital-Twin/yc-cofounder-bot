@@ -14,9 +14,9 @@ from yc_matcher.interface.di import build_services
 
 def test_browser_login_flow():
     """Test browser login flow."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TESTING BROWSER LOGIN FLOW")
-    print("="*60)
+    print("=" * 60)
 
     # Build minimal services just for browser
     eval_use, send_use, logger = build_services(
@@ -47,16 +47,18 @@ def test_browser_login_flow():
 
         # Check again
         is_logged = browser.is_logged_in()
-        print(f"Login status after wait: {'✅ Logged in' if is_logged else '❌ Still not logged in'}")
+        print(
+            f"Login status after wait: {'✅ Logged in' if is_logged else '❌ Still not logged in'}"
+        )
 
     return browser, is_logged
 
 
 def test_profile_operations(browser):
     """Test profile reading and navigation."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TESTING PROFILE OPERATIONS")
-    print("="*60)
+    print("=" * 60)
 
     try:
         # Try to click View Profile
@@ -94,9 +96,9 @@ def test_profile_operations(browser):
 
 def test_message_operations(browser):
     """Test message box operations."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TESTING MESSAGE OPERATIONS (SHADOW MODE)")
-    print("="*60)
+    print("=" * 60)
 
     try:
         # Focus message box
@@ -119,9 +121,9 @@ def test_message_operations(browser):
 
 def main():
     """Run all browser tests."""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print(" YC MATCHER - BROWSER INTEGRATION TEST")
-    print("="*70)
+    print("=" * 70)
 
     # Test 1: Browser and login
     browser, is_logged = test_browser_login_flow()
@@ -139,16 +141,16 @@ def main():
     else:
         print("\n⚠️ Not logged in - skipping profile and message tests")
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print(" TEST COMPLETE")
-    print("="*70)
+    print("=" * 70)
 
     # Keep browser open for 5 seconds to see results
     print("\nKeeping browser open for 5 seconds...")
     time.sleep(5)
 
     # Cleanup
-    if hasattr(browser, 'cleanup'):
+    if hasattr(browser, "cleanup"):
         browser.cleanup()
         print("✅ Browser cleaned up")
 

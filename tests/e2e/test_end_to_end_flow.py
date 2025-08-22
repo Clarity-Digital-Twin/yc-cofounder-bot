@@ -181,19 +181,23 @@ class TestEndToEndFlow:
         logger = JSONLLogger(log_path)
 
         # Log decision event
-        logger.emit({
-            "event": "decision",
-            "profile_id": "test123",
-            "decision": "YES",
-            "score": 0.85,
-        })
+        logger.emit(
+            {
+                "event": "decision",
+                "profile_id": "test123",
+                "decision": "YES",
+                "score": 0.85,
+            }
+        )
 
         # Log sent event
-        logger.emit({
-            "event": "sent",
-            "profile_id": "test123",
-            "success": True,
-        })
+        logger.emit(
+            {
+                "event": "sent",
+                "profile_id": "test123",
+                "success": True,
+            }
+        )
 
         # Read and verify events
         lines = log_path.read_text().strip().split("\n")

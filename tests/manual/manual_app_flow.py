@@ -80,6 +80,7 @@ async def test_flow():
     except Exception as e:
         print(f"❌ Error: {e}")
         import traceback
+
         traceback.print_exc()
 
     print("\nTest complete!")

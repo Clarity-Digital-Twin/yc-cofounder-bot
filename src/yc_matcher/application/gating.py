@@ -29,9 +29,10 @@ class GatedDecision:
                 "draft": ai_result.get("draft", ""),  # Keep AI-generated draft
                 "score": s.value,
                 "ai_decision": ai_result.get("decision"),  # Track what AI would have said
-                "ai_rationale": ai_result.get("rationale", "")
+                "ai_rationale": ai_result.get("rationale", ""),
             }
 
         # Above threshold - use full AI result with score added
-        ai_result["score"] = s.value
-        return ai_result
+        result = dict(ai_result)  # Create mutable copy
+        result["score"] = s.value
+        return result

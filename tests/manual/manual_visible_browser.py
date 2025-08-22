@@ -9,6 +9,7 @@ from playwright.async_api import async_playwright
 os.environ["PLAYWRIGHT_BROWSERS_PATH"] = ".ms-playwright"
 os.environ["PLAYWRIGHT_HEADLESS"] = "0"  # VISIBLE!
 
+
 async def test_visible_browser():
     """Test visible browser for YC login flow."""
     async with async_playwright() as p:
@@ -23,9 +24,9 @@ async def test_visible_browser():
         await ui_page.wait_for_timeout(2000)
 
         # Fill form quickly
-        await ui_page.locator('textarea').first.fill("Test profile")
-        await ui_page.locator('textarea').nth(1).fill("Test criteria")
-        await ui_page.locator('textarea').nth(2).fill("Hi {name}!")
+        await ui_page.locator("textarea").first.fill("Test profile")
+        await ui_page.locator("textarea").nth(1).fill("Test criteria")
+        await ui_page.locator("textarea").nth(2).fill("Hi {name}!")
 
         print("🚀 Clicking Start button...")
         # Look for the actual button text
@@ -42,7 +43,7 @@ async def test_visible_browser():
         await ui_page.wait_for_timeout(10000)
 
         # Check for any status
-        status = ui_page.locator('.stAlert')
+        status = ui_page.locator(".stAlert")
         if await status.count() > 0:
             texts = await status.all_inner_texts()
             for text in texts[:3]:  # First 3 messages
@@ -51,6 +52,7 @@ async def test_visible_browser():
         await ui_browser.close()
         print("\n✅ Test complete!")
         print("Did you see a browser window open? That's where login happens!")
+
 
 if __name__ == "__main__":
     asyncio.run(test_visible_browser())

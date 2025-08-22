@@ -54,10 +54,10 @@ class PlaywrightBrowser:
         page = self._ensure_page()
         # Check for elements that only appear when logged in
         # Either "View profile" buttons or profile cards
-        return (
-            page.locator('button:has-text("View profile")').count() > 0 or
-            page.locator('.profile-card').count() > 0 or
-            page.locator('[data-test="profile"]').count() > 0
+        return bool(
+            page.locator('button:has-text("View profile")').count() > 0
+            or page.locator(".profile-card").count() > 0
+            or page.locator('[data-test="profile"]').count() > 0
         )
 
     # Convenience internal helper

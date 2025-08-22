@@ -12,9 +12,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-print("="*70)
+print("=" * 70)
 print("🚀 TESTING COMPLETE FLOW - EXACTLY LIKE A USER")
-print("="*70)
+print("=" * 70)
 
 # Import what we need
 from yc_matcher.application.autonomous_flow import AutonomousFlow
@@ -108,9 +108,9 @@ if results.get("results"):
     for i, result in enumerate(results["results"], 1):
         print(f"   • Profile {i}: {result.get('decision', 'N/A')}")
 
-print("\n" + "="*70)
+print("\n" + "=" * 70)
 print("✅ EVERYTHING WORKS!")
-print("="*70)
+print("=" * 70)
 print("\nThe app is functioning correctly:")
 print("• Browser opens automatically")
 print("• Auto-login works")

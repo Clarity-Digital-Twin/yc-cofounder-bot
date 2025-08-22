@@ -13,9 +13,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-print("="*70)
+print("=" * 70)
 print("🚀 FULL AUTOMATION TEST - WITH AUTO-LOGIN")
-print("="*70)
+print("=" * 70)
 
 # Check credentials
 email = os.getenv("YC_EMAIL")
@@ -123,9 +123,9 @@ else:
     print("   2. YC login page structure hasn't changed")
     print("   3. Network is working")
 
-print("\n" + "="*70)
+print("\n" + "=" * 70)
 print("TEST COMPLETE")
-print("="*70)
+print("=" * 70)
 
 # Keep browser open
 print("\nKeeping browser open for 10 seconds...")

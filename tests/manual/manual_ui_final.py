@@ -47,9 +47,9 @@ shadow_mode = True  # Safety mode
 threshold = 0.72
 alpha = 0.50
 
-print("="*70)
+print("=" * 70)
 print("🚀 YC MATCHER - COMPREHENSIVE APPLICATION TEST")
-print("="*70)
+print("=" * 70)
 
 print(f"""
 📋 Configuration:
@@ -114,6 +114,7 @@ try:
         print("   ⚠️ Not logged in - please log in manually in the browser")
         print("   Waiting 15 seconds for manual login...")
         import time
+
         time.sleep(15)
         is_logged = send_use.browser.is_logged_in()
         if is_logged:
@@ -150,7 +151,7 @@ try:
                 print(f"\n   Profile {i}:")
                 print(f"   • Decision: {result.get('decision', 'N/A')}")
                 print(f"   • Score: {result.get('score', 'N/A')}")
-                if result.get('rationale'):
+                if result.get("rationale"):
                     print(f"   • Rationale: {result['rationale'][:100]}...")
     else:
         print("\n⚠️ Cannot run autonomous flow without login")
@@ -159,12 +160,13 @@ try:
 except Exception as e:
     print(f"\n❌ Error: {e}")
     import traceback
+
     print("\nFull traceback:")
     traceback.print_exc()
 
-print("\n" + "="*70)
+print("\n" + "=" * 70)
 print("🎉 TEST COMPLETE")
-print("="*70)
+print("=" * 70)
 print("\n💡 Next Steps:")
 print("1. If not logged in, run the test again and log in manually")
 print("2. To run with real sending, set SHADOW_MODE=0 in .env")

@@ -19,9 +19,9 @@ try:
         model=model,
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": "Say 'Hello from GPT-4.1!' if you're working."}
+            {"role": "user", "content": "Say 'Hello from GPT-4.1!' if you're working."},
         ],
-        max_tokens=50
+        max_tokens=50,
     )
 
     print(f"✅ Success! Response: {response.choices[0].message.content}")
@@ -36,8 +36,8 @@ except Exception as e:
         model="gpt-4o",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": "Say 'Hello from GPT-4o!' if you're working."}
+            {"role": "user", "content": "Say 'Hello from GPT-4o!' if you're working."},
         ],
-        max_tokens=50
+        max_tokens=50,
     )
     print(f"✅ Fallback worked: {response.choices[0].message.content}")

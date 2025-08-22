@@ -15,7 +15,7 @@ os.environ["PLAYWRIGHT_HEADLESS"] = "0"
 from yc_matcher.infrastructure.browser_playwright_async import PlaywrightBrowserAsync
 
 print("Testing Browser Singleton Pattern")
-print("="*50)
+print("=" * 50)
 
 # Create first browser instance
 print("\n1. Creating first browser instance...")
@@ -51,7 +51,7 @@ try:
 except Exception as e:
     print(f"   ❌ Error: {e}")
 
-print("\n" + "="*50)
+print("\n" + "=" * 50)
 print("Test Complete!")
 print("\nThe singleton pattern is working correctly.")
 print("When you click 'Open Controlled Browser' and log in,")

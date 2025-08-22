@@ -51,15 +51,20 @@ class PlaywrightBrowserAsync:
             return self._page
 
         # Get or create the page via runner
-        self._page = await self._runner.ensure_browser()
-        return self._page
+        if self._runner:
+            self._page = await self._runner.ensure_browser()
+            return self._page
+        raise RuntimeError("Runner not initialized")
 
     def _ensure_page(self) -> Page:
         """Ensure browser page exists (sync wrapper)."""
-        return self._runner.submit(self._ensure_page_async())
+        if self._runner:
+            return self._runner.submit(self._ensure_page_async())
+        raise RuntimeError("Runner not initialized")
 
     def open(self, url: str) -> None:
         """Open URL in browser (sync method)."""
+
         async def _open() -> None:
             page = await self._ensure_page_async()
             await page.goto(url)
@@ -68,7 +73,8 @@ class PlaywrightBrowserAsync:
             if "startupschool.org" in url:
                 await self._auto_login_if_needed(page)
 
-        self._runner.submit(_open())
+        if self._runner:
+            self._runner.submit(_open())
 
     async def _auto_login_if_needed(self, page: Page) -> None:
         """Automatically log in to YC if credentials are provided."""
@@ -90,7 +96,9 @@ class PlaywrightBrowserAsync:
                 return
 
             # Look for sign in link/button
-            sign_in = page.locator('a:has-text("Sign in"), button:has-text("Sign in"), a:has-text("Log in"), button:has-text("Log in")')
+            sign_in = page.locator(
+                'a:has-text("Sign in"), button:has-text("Sign in"), a:has-text("Log in"), button:has-text("Log in")'
+            )
             if await sign_in.count() > 0:
                 print("🔐 Clicking sign in button...")
                 await sign_in.first.click()
@@ -100,7 +108,9 @@ class PlaywrightBrowserAsync:
             await page.wait_for_timeout(1000)
 
             # Fill username/email field - look for VISIBLE text input
-            email_input = page.locator('input[type="text"]:visible, input[type="email"]:visible').first
+            email_input = page.locator(
+                'input[type="text"]:visible, input[type="email"]:visible'
+            ).first
             if await email_input.count() > 0:
                 print(f"📧 Entering email: {email}")
                 await email_input.fill(email)
@@ -114,7 +124,9 @@ class PlaywrightBrowserAsync:
                 await page.wait_for_timeout(500)  # Small delay
 
             # Submit the form - look for the Log In button
-            submit_btn = page.locator('button:has-text("Log In"):visible, button:has-text("Log in"):visible, button[type="submit"]:visible').first
+            submit_btn = page.locator(
+                'button:has-text("Log In"):visible, button:has-text("Log in"):visible, button[type="submit"]:visible'
+            ).first
             if await submit_btn.count() > 0:
                 print("🚀 Submitting login form...")
                 await submit_btn.click()
@@ -139,6 +151,7 @@ class PlaywrightBrowserAsync:
 
     def is_logged_in(self) -> bool:
         """Check if user is logged into YC."""
+
         async def _check() -> bool:
             page = await self._ensure_page_async()
 
@@ -149,7 +162,7 @@ class PlaywrightBrowserAsync:
             selectors = [
                 'button:has-text("View profile")',
                 'button:has-text("Skip")',
-                '.profile-card',
+                ".profile-card",
                 '[data-test="profile"]',
                 'a:has-text("Sign out")',
                 'a:has-text("Log out")',
@@ -169,13 +182,18 @@ class PlaywrightBrowserAsync:
                 return False
 
             # Check for absence of login buttons
-            login_count = await page.locator('a:has-text("Sign in"), button:has-text("Sign in")').count()
-            return login_count == 0
+            login_count = await page.locator(
+                'a:has-text("Sign in"), button:has-text("Sign in")'
+            ).count()
+            return bool(login_count == 0)
 
-        return self._runner.submit(_check())
+        if self._runner:
+            return self._runner.submit(_check())
+        return False
 
     def click_view_profile(self) -> bool:
         """Click View Profile button or detect if already on profile."""
+
         async def _click() -> bool:
             page = await self._ensure_page_async()
 
@@ -193,7 +211,9 @@ class PlaywrightBrowserAsync:
             # CHECK 2: Are we on the dashboard? Need to click "View Profiles" first
             if "dashboard" in current_url.lower() or "cofounder-matching" in current_url:
                 # Look for the main "View Profiles" button (like in your screenshot)
-                view_profiles_btn = page.locator('button:has-text("View Profiles"), a:has-text("View Profiles")')
+                view_profiles_btn = page.locator(
+                    'button:has-text("View Profiles"), a:has-text("View Profiles")'
+                )
                 if await view_profiles_btn.count() > 0:
                     print("📋 Found 'View Profiles' button on dashboard, clicking...")
                     await view_profiles_btn.first.click()
@@ -209,8 +229,8 @@ class PlaywrightBrowserAsync:
                 'a:has-text("View profile")',
                 'a:has-text("View Profile")',
                 '[data-test*="view"]',
-                'button.profile-button',
-                '.profile-card button',
+                "button.profile-button",
+                ".profile-card button",
             ]
 
             for selector in selectors:
@@ -244,10 +264,13 @@ class PlaywrightBrowserAsync:
 
             return False
 
-        return self._runner.submit(_click())
+        if self._runner:
+            return self._runner.submit(_click())
+        return False
 
     def read_profile_text(self) -> str:
         """Read profile text from candidate profile page."""
+
         async def _read() -> str:
             page = await self._ensure_page_async()
             await page.wait_for_load_state("networkidle", timeout=5000)
@@ -261,14 +284,16 @@ class PlaywrightBrowserAsync:
                 "h1",
                 "h2.font-bold",
                 ".profile-name",
-                "[data-test='name']"
+                "[data-test='name']",
             ]
             for sel in name_selectors:
                 try:
                     elem = page.locator(sel).first
                     if await elem.count() > 0:
                         name = await elem.inner_text()
-                        if name and len(name) < 100 and not name.startswith("View"):  # Filter out button text
+                        if (
+                            name and len(name) < 100 and not name.startswith("View")
+                        ):  # Filter out button text
                             profile_data.append(f"Name: {name}")
                             break
                 except Exception:
@@ -276,10 +301,12 @@ class PlaywrightBrowserAsync:
 
             # Try to get bio/about section
             bio_selectors = [
-                ".bio", ".about", "[data-test='bio']",
+                ".bio",
+                ".about",
+                "[data-test='bio']",
                 "section:has-text('About')",
                 "div:has-text('Background')",
-                "p"  # Fallback to paragraphs
+                "p",  # Fallback to paragraphs
             ]
 
             for sel in bio_selectors:
@@ -301,8 +328,13 @@ class PlaywrightBrowserAsync:
 
             # Fallback: get all visible text from main content area
             main_selectors = [
-                "main", ".profile-content", "#profile",
-                "[role='main']", ".container", "article", "body"
+                "main",
+                ".profile-content",
+                "#profile",
+                "[role='main']",
+                ".container",
+                "article",
+                "body",
             ]
 
             for selector in main_selectors:
@@ -312,19 +344,22 @@ class PlaywrightBrowserAsync:
                         text = await elem.inner_text()
                         if text and len(text) > 100:
                             print(f"📄 Extracted {len(text)} chars from {selector}")
-                            return text
+                            return str(text)
                 except Exception:
                     continue
 
             # Last resort - full page text
             full_text = await page.locator("body").inner_text()
             print(f"📄 Extracted full page: {len(full_text)} chars")
-            return full_text
+            return str(full_text)
 
-        return self._runner.submit(_read())
+        if self._runner:
+            return self._runner.submit(_read())
+        return ""
 
     def skip(self) -> None:
         """Skip current profile."""
+
         async def _skip() -> None:
             page = await self._ensure_page_async()
             labels = ["Skip", "SKIP", "Next", "NEXT", "Pass", "PASS"]
@@ -338,17 +373,20 @@ class PlaywrightBrowserAsync:
                 except Exception:
                     pass
 
-        self._runner.submit(_skip())
+        if self._runner:
+            self._runner.submit(_skip())
 
     def focus_message_box(self) -> None:
         """Focus the message input box."""
+
         async def _focus() -> None:
             page = await self._ensure_page_async()
             selectors = [
                 "textarea[placeholder*='message']",
                 "textarea[placeholder*='Message']",
                 "input[type='text'][placeholder*='message']",
-                "#message", "[name='message']"
+                "#message",
+                "[name='message']",
             ]
 
             for selector in selectors:
@@ -360,17 +398,20 @@ class PlaywrightBrowserAsync:
                 except Exception:
                     pass
 
-        self._runner.submit(_focus())
+        if self._runner:
+            self._runner.submit(_focus())
 
     def fill_message(self, text: str) -> None:
         """Fill message in the input box."""
+
         async def _fill() -> None:
             page = await self._ensure_page_async()
             selectors = [
                 "textarea[placeholder*='message']",
                 "textarea[placeholder*='Message']",
                 "input[type='text'][placeholder*='message']",
-                "#message", "[name='message']"
+                "#message",
+                "[name='message']",
             ]
 
             for selector in selectors:
@@ -382,10 +423,12 @@ class PlaywrightBrowserAsync:
                 except Exception:
                     pass
 
-        self._runner.submit(_fill())
+        if self._runner:
+            self._runner.submit(_fill())
 
     def send(self) -> None:
         """Send the message."""
+
         async def _send() -> None:
             page = await self._ensure_page_async()
             labels = ["Send", "SEND", "Send message", "Send Message", "Submit"]
@@ -399,16 +442,22 @@ class PlaywrightBrowserAsync:
                 except Exception:
                     pass
 
-        self._runner.submit(_send())
+        if self._runner:
+            self._runner.submit(_send())
 
     def verify_sent(self) -> bool:
         """Verify message was sent."""
+
         async def _verify() -> bool:
             page = await self._ensure_page_async()
             # Look for success indicators
             success_patterns = [
-                "Message sent", "Successfully sent", "Sent!",
-                "Your message has been sent", "✓", "✅"
+                "Message sent",
+                "Successfully sent",
+                "Sent!",
+                "Your message has been sent",
+                "✓",
+                "✅",
             ]
 
             page_text = await page.locator("body").inner_text()
@@ -420,7 +469,9 @@ class PlaywrightBrowserAsync:
 
             return False
 
-        return self._runner.submit(_verify())
+        if self._runner:
+            return self._runner.submit(_verify())
+        return False
 
     def cleanup(self) -> None:
         """Clean up browser resources."""

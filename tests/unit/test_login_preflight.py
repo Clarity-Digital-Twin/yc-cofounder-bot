@@ -57,16 +57,16 @@ class TestLoginPreflight:
         mock_browser.open.assert_not_called()
 
         # Should have logged the event
-        mock_logger.emit.assert_any_call({
-            "event": "login_required",
-            "has_credentials": False
-        })
+        mock_logger.emit.assert_any_call({"event": "login_required", "has_credentials": False})
 
     def test_login_preflight_auto_login_with_credentials(self) -> None:
         """Test that flow attempts auto-login when credentials are available."""
         # Arrange
         mock_browser = MagicMock()
-        mock_browser.is_logged_in.side_effect = [False, True]  # Not logged in, then logged in after ensure_logged_in
+        mock_browser.is_logged_in.side_effect = [
+            False,
+            True,
+        ]  # Not logged in, then logged in after ensure_logged_in
         mock_browser.ensure_logged_in = MagicMock()
         mock_browser.click_view_profile.return_value = False  # No profiles to process
 
@@ -89,7 +89,9 @@ class TestLoginPreflight:
         )
 
         # Set credentials
-        with patch.dict("os.environ", {"YC_EMAIL": "test@example.com", "YC_PASSWORD": "password123"}):
+        with patch.dict(
+            "os.environ", {"YC_EMAIL": "test@example.com", "YC_PASSWORD": "password123"}
+        ):
             # Act
             result = flow.run(
                 your_profile="Test profile",
@@ -150,10 +152,7 @@ class TestLoginPreflight:
         assert result.get("sent") == 0
 
         # Should have logged failure
-        mock_logger.emit.assert_any_call({
-            "event": "auto_login_failed",
-            "error": "Login failed"
-        })
+        mock_logger.emit.assert_any_call({"event": "auto_login_failed", "error": "Login failed"})
 
     def test_login_check_after_navigation(self) -> None:
         """Test that login is verified after navigating to YC page."""

@@ -10,11 +10,19 @@ class FakeResp:
         self.usage = usage or {"input_tokens": 123, "output_tokens": 456}
         # For chat.completions API
         self.choices = [
-            type('obj', (object,), {
-                'message': type('obj', (object,), {
-                    'content': '{"decision": "YES", "rationale": "fits", "draft": "Hello [Name]", "score": 0.9, "confidence": 0.95}'
-                })()
-            })()
+            type(
+                "obj",
+                (object,),
+                {
+                    "message": type(
+                        "obj",
+                        (object,),
+                        {
+                            "content": '{"decision": "YES", "rationale": "fits", "draft": "Hello [Name]", "score": 0.9, "confidence": 0.95}'
+                        },
+                    )()
+                },
+            )()
         ]
 
 

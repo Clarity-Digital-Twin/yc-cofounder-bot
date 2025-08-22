@@ -28,7 +28,7 @@ class TestExtractCandidate:
             mock_page.wait_for_timeout = AsyncMock()
 
             # Mock _ensure_page_async to return our mock page
-            with patch.object(browser, '_ensure_page_async', return_value=mock_page):
+            with patch.object(browser, "_ensure_page_async", return_value=mock_page):
                 # Call the actual async method
                 return await browser._runner.submit.call_args[0][0]()
 
@@ -62,7 +62,7 @@ class TestExtractCandidate:
 
             mock_page.locator = MagicMock(return_value=mock_button)
 
-            with patch.object(browser, '_ensure_page_async', return_value=mock_page):
+            with patch.object(browser, "_ensure_page_async", return_value=mock_page):
                 return await browser._runner.submit.call_args[0][0]()
 
         mock_runner.submit.return_value = True
@@ -93,16 +93,18 @@ class TestExtractCandidate:
 
             mock_bio = AsyncMock()
             mock_bio.count = AsyncMock(return_value=1)
-            mock_bio.all_text_contents = AsyncMock(return_value=[
-                "ML Engineer with 5 years at Google",
-                "Building AI tools for developers"
-            ])
+            mock_bio.all_text_contents = AsyncMock(
+                return_value=[
+                    "ML Engineer with 5 years at Google",
+                    "Building AI tools for developers",
+                ]
+            )
 
             mock_skills = AsyncMock()
             mock_skills.count = AsyncMock(return_value=1)
-            mock_skills.all_text_contents = AsyncMock(return_value=[
-                "Python", "TensorFlow", "React", "TypeScript"
-            ])
+            mock_skills.all_text_contents = AsyncMock(
+                return_value=["Python", "TensorFlow", "React", "TypeScript"]
+            )
 
             def locator_side_effect(selector):
                 if "h1" in selector:
@@ -118,7 +120,7 @@ class TestExtractCandidate:
             # Fallback text content
             mock_page.text_content = AsyncMock(return_value="Full page text content")
 
-            with patch.object(browser, '_ensure_page_async', return_value=mock_page):
+            with patch.object(browser, "_ensure_page_async", return_value=mock_page):
                 return await browser._runner.submit.call_args[0][0]()
 
         mock_runner.submit.return_value = "Name: John Smith\nML Engineer with 5 years at Google"
@@ -150,7 +152,7 @@ class TestExtractCandidate:
             mock_page.locator = MagicMock(return_value=mock_skip_btn)
             mock_page.wait_for_load_state = AsyncMock()
 
-            with patch.object(browser, '_ensure_page_async', return_value=mock_page):
+            with patch.object(browser, "_ensure_page_async", return_value=mock_page):
                 return await browser._runner.submit.call_args[0][0]()
 
         mock_runner.submit.return_value = None  # skip returns nothing
@@ -182,7 +184,7 @@ class TestExtractCandidate:
             # Try navigation fallback
             mock_page.goto = AsyncMock()
 
-            with patch.object(browser, '_ensure_page_async', return_value=mock_page):
+            with patch.object(browser, "_ensure_page_async", return_value=mock_page):
                 return await browser._runner.submit.call_args[0][0]()
 
         mock_runner.submit.return_value = False  # No profiles found

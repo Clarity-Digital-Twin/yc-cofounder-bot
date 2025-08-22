@@ -20,6 +20,7 @@ load_dotenv()
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
+
 def test_model_resolution():
     """Test model discovery and resolution."""
 
@@ -81,6 +82,7 @@ def test_model_resolution():
         print("\n4️⃣ Testing CUA Adapter...")
         try:
             from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
+
             cua = OpenAICUABrowser()
 
             if cua.model == cua_resolved:
@@ -115,6 +117,7 @@ def test_model_resolution():
     print(f"  • Fallback Used: {'Yes' if 'gpt-4' in decision_resolved.lower() else 'No'}")
 
     return True
+
 
 if __name__ == "__main__":
     success = test_model_resolution()

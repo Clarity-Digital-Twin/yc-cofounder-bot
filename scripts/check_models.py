@@ -15,7 +15,7 @@ models = client.models.list()
 gpt_models = []
 
 for model in models:
-    if 'gpt' in model.id.lower():
+    if "gpt" in model.id.lower():
         gpt_models.append(model.id)
 
 # Sort and display
@@ -23,13 +23,13 @@ gpt_models.sort(reverse=True)  # Newest first
 
 print("\nGPT Models available:")
 for m in gpt_models[:20]:  # Show top 20
-    if '5' in m:
+    if "5" in m:
         print(f"  ⭐ {m} (GPT-5 model!)")
     else:
         print(f"  • {m}")
 
 print("\nLooking for GPT-5 models specifically...")
-gpt5_models = [m for m in gpt_models if '5' in m or 'five' in m.lower()]
+gpt5_models = [m for m in gpt_models if "5" in m or "five" in m.lower()]
 if gpt5_models:
     print(f"Found GPT-5 models: {gpt5_models}")
 else:

@@ -11,8 +11,9 @@ from __future__ import annotations
 import asyncio
 import base64
 import os
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 from openai import OpenAI
 from playwright.async_api import Page
@@ -50,7 +51,7 @@ class OpenAICUABrowser:
         from .async_loop_runner import AsyncLoopRunner
 
         self._runner = AsyncLoopRunner()
-        
+
         # In test mode, _runner might be None - handle gracefully
         self._page_mock = None  # For test injection
 
@@ -79,12 +80,12 @@ class OpenAICUABrowser:
         # In test mode with injected mock
         if self._page_mock:
             return self._page_mock
-        
+
         # Runner handles browser lifecycle - returns the page
         if self._runner:
             page = await self._runner.ensure_browser()
             return page  # Return it, don't store it
-        
+
         # Fallback for test mode
         raise RuntimeError("No browser available (runner is None in test mode)")
 
@@ -195,19 +196,21 @@ class OpenAICUABrowser:
         # Handle dict actions directly (for unit tests)
         if isinstance(command_or_action, dict):
             return await self._execute_action_async(command_or_action)
-        
+
         # Handle string commands with minimal parsing (for unit tests)
         instruction = str(command_or_action)
         cmd = instruction.lower()
         if "click" in cmd and "button" not in cmd:  # Simple click command from test
-            return await self._execute_action_async({"type": "click", "coordinates": {"x": 100, "y": 200}})
+            return await self._execute_action_async(
+                {"type": "click", "coordinates": {"x": 100, "y": 200}}
+            )
         if "type" in cmd and "following" not in cmd:  # Simple type command from test
             page = await self._ensure_browser()
             await page.keyboard.type("Hello World")
             return True
         if "screenshot" in cmd:
             return await self._execute_action_async({"type": "screenshot"})
-        
+
         page = await self._ensure_browser()
         # Use the returned page directly
 
@@ -363,12 +366,14 @@ class OpenAICUABrowser:
         # Handle test mode when runner is None
         if self._runner is None:
             # In test mode, try to use the injected page mock directly
-            if self._page_mock and hasattr(self._page_mock, 'goto'):
+            if self._page_mock and hasattr(self._page_mock, "goto"):
                 # Run the async goto in a new event loop for test mode
                 import asyncio
+
                 async def _test_goto():
                     await self._page_mock.goto(url)
                     return True
+
                 try:
                     loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(loop)
@@ -385,13 +390,15 @@ class OpenAICUABrowser:
                 return True
         except Exception:
             pass
-        
+
         # Fallback to direct Playwright nav (unit tests assert this)
         if self.fallback_enabled:
-            async def _fallback():
+
+            async def _fallback() -> bool:
                 page = await self._ensure_browser()
                 await page.goto(url)
                 return True
+
             return bool(self._runner.submit(_fallback()))
         return False
 
@@ -433,8 +440,8 @@ class OpenAICUABrowser:
             "Include name, bio, skills, location, and any other relevant information."
         )
         if result:
-            self._profile_text_cache = result
-            return result
+            self._profile_text_cache = str(result)
+            return str(result)
         return self._profile_text_cache or ""
 
     def focus_message_box(self) -> None:
@@ -471,8 +478,10 @@ class OpenAICUABrowser:
         if self._runner is None and self._page_mock:
             # In test mode, run async method directly
             import asyncio
+
             async def _test_verify():
                 return await self._verify_sent_async()
+
             try:
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
@@ -482,7 +491,7 @@ class OpenAICUABrowser:
                 return sent_ok
             finally:
                 loop.close()
-        
+
         if self._runner:
             sent_ok = self._runner.submit(self._verify_sent_async())
             if sent_ok:
@@ -501,22 +510,23 @@ class OpenAICUABrowser:
             # Check for sent indicators in DOM
             locator = page.locator("text=/sent|delivered/i")
             # Handle both sync (test mock) and async (real) count methods
-            if hasattr(locator.count, '__call__'):
+            if callable(locator.count):
                 # Check if it's async
                 import inspect
+
                 if inspect.iscoroutinefunction(locator.count):
                     count = await locator.count()
                 else:
                     count = locator.count()
             else:
                 count = locator.count
-            
+
             if count > 0:
                 self._profile_text_cache = ""  # Clear cache on successful send
                 return True
         except Exception:
             pass
-        
+
         # Default to False for strict checking
         return False
 

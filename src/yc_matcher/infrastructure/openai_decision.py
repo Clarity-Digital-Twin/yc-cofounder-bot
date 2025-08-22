@@ -31,8 +31,8 @@ class OpenAIDecisionAdapter(DecisionPort):
         self.model = (
             model
             or os.getenv("DECISION_MODEL_RESOLVED")  # From model resolver
-            or os.getenv("OPENAI_DECISION_MODEL")     # From .env (legacy)
-            or "gpt-4o"                                # Ultimate fallback
+            or os.getenv("OPENAI_DECISION_MODEL")  # From .env (legacy)
+            or "gpt-4o"  # Ultimate fallback
         )
         self.prompt_ver = prompt_ver
         self.rubric_ver = rubric_ver
@@ -85,10 +85,7 @@ class OpenAIDecisionAdapter(DecisionPort):
             "Be specific and reference actual details from their profile in the draft message."
         )
 
-        user_text = (
-            f"MY CRITERIA:\n{criteria_text}\n\n"
-            f"CANDIDATE PROFILE:\n{profile.raw_text}\n\n"
-        )
+        user_text = f"MY CRITERIA:\n{criteria_text}\n\nCANDIDATE PROFILE:\n{profile.raw_text}\n\n"
 
         if template:
             user_text += f"MESSAGE TEMPLATE (use this style but personalize it):\n{template}\n\n"
@@ -109,7 +106,7 @@ class OpenAIDecisionAdapter(DecisionPort):
                 ],
                 response_format={"type": "json_object"},  # Force JSON response
                 temperature=0.7,  # Some creativity for message drafting
-                max_tokens=800,   # Enough for decision + message
+                max_tokens=800,  # Enough for decision + message
             )
 
             # Parse the JSON response
@@ -136,7 +133,7 @@ class OpenAIDecisionAdapter(DecisionPort):
                 "rationale": f"Error evaluating: {str(e)}",
                 "draft": "",
                 "score": 0.0,
-                "confidence": 0.0
+                "confidence": 0.0,
             }
 
         # Stamp versions to the payload for downstream use
@@ -144,6 +141,6 @@ class OpenAIDecisionAdapter(DecisionPort):
         payload.setdefault("rubric_ver", self.rubric_ver)
 
         # Log usage if present
-        self._log_usage(resp if 'resp' in locals() else None)
+        self._log_usage(resp if "resp" in locals() else None)
 
-        return payload
+        return dict(payload)

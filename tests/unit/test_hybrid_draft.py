@@ -17,7 +17,9 @@ class TestHybridDraft:
         """Test that hybrid mode returns draft when above threshold."""
         # Arrange
         mock_scoring = MagicMock(spec=ScoringPort)
-        mock_scoring.score.return_value = Score(value=5.0, reasons=[], details={})  # Above threshold
+        mock_scoring.score.return_value = Score(
+            value=5.0, reasons=[], details={}
+        )  # Above threshold
 
         mock_decision = MagicMock(spec=DecisionPort)
         mock_decision.evaluate.return_value = {
@@ -52,7 +54,9 @@ class TestHybridDraft:
         """Test that hybrid mode returns AI draft even when forcing NO due to threshold."""
         # Arrange
         mock_scoring = MagicMock(spec=ScoringPort)
-        mock_scoring.score.return_value = Score(value=2.0, reasons=[], details={})  # Below threshold
+        mock_scoring.score.return_value = Score(
+            value=2.0, reasons=[], details={}
+        )  # Below threshold
 
         mock_decision = MagicMock(spec=DecisionPort)
         mock_decision.evaluate.return_value = {
@@ -76,7 +80,9 @@ class TestHybridDraft:
 
         # Assert
         assert result["decision"] == "NO"  # Overridden to NO due to threshold
-        assert result["draft"] == "Hey, your background in ML is exactly what I need..."  # Still has draft
+        assert (
+            result["draft"] == "Hey, your background in ML is exactly what I need..."
+        )  # Still has draft
         assert result["score"] == 2.0
         assert "Below threshold" in result["rationale"]
         assert result["ai_decision"] == "YES"  # Track what AI originally said
@@ -89,7 +95,9 @@ class TestHybridDraft:
         """Test that hybrid mode handles red flags properly."""
         # Arrange
         mock_scoring = MagicMock(spec=ScoringPort)
-        mock_scoring.score.return_value = Score(value=-999.0, reasons=["crypto"], details={"crypto": -999})  # Red flag
+        mock_scoring.score.return_value = Score(
+            value=-999.0, reasons=["crypto"], details={"crypto": -999}
+        )  # Red flag
 
         mock_decision = MagicMock(spec=DecisionPort)
         mock_decision.evaluate.return_value = {

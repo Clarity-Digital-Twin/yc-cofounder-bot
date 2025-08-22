@@ -98,9 +98,9 @@ class AutonomousFlow:
         has_credentials = bool(os.getenv("YC_EMAIL") and os.getenv("YC_PASSWORD"))
 
         # Check if already logged in or can auto-login
-        if hasattr(self.browser, 'is_logged_in'):
+        if hasattr(self.browser, "is_logged_in"):
             if not self.browser.is_logged_in():
-                if has_credentials and hasattr(self.browser, 'ensure_logged_in'):
+                if has_credentials and hasattr(self.browser, "ensure_logged_in"):
                     self.logger.emit({"event": "auto_login_attempt"})
                     try:
                         self.browser.ensure_logged_in()
@@ -109,15 +109,21 @@ class AutonomousFlow:
                         self.logger.emit({"event": "auto_login_failed", "error": str(e)})
                         return {"error": "Auto-login failed", "evaluated": 0, "sent": 0}
                 else:
-                    self.logger.emit({"event": "login_required", "has_credentials": has_credentials})
-                    return {"error": "Manual login required - no credentials in .env", "evaluated": 0, "sent": 0}
+                    self.logger.emit(
+                        {"event": "login_required", "has_credentials": has_credentials}
+                    )
+                    return {
+                        "error": "Manual login required - no credentials in .env",
+                        "evaluated": 0,
+                        "sent": 0,
+                    }
 
         # Navigate to YC matching page
         yc_url = os.getenv("YC_MATCH_URL", "https://www.startupschool.org/cofounder-matching")
         self.browser.open(yc_url)
 
         # Verify login after navigation
-        if hasattr(self.browser, 'is_logged_in') and not self.browser.is_logged_in():
+        if hasattr(self.browser, "is_logged_in") and not self.browser.is_logged_in():
             self.logger.emit({"event": "login_lost_after_navigation"})
             return {"error": "Login required after navigation", "evaluated": 0, "sent": 0}
 

@@ -31,7 +31,7 @@ def test_decision_with_message_generation():
     # Create decision adapter
     decision = OpenAIDecisionAdapter(
         client=client,
-        model="gpt-5-thinking"  # GPT-5-THINKING ONLY!
+        model="gpt-5-thinking",  # GPT-5-THINKING ONLY!
     )
 
     # Test profile (example)
@@ -79,20 +79,21 @@ def test_decision_with_message_generation():
     print(f"Confidence: {result.get('confidence', 0):.2f}")
     print(f"Rationale: {result.get('rationale')}")
 
-    if result.get('draft'):
-        print(f"\n💬 Generated Message:\n{'-'*50}")
-        print(result.get('draft'))
-        print(f"{'-'*50}")
+    if result.get("draft"):
+        print(f"\n💬 Generated Message:\n{'-' * 50}")
+        print(result.get("draft"))
+        print(f"{'-' * 50}")
     else:
         print("\n⚠️ No message draft generated")
 
     # Check if it actually worked
-    if result.get('decision') == 'YES' and result.get('draft'):
+    if result.get("decision") == "YES" and result.get("draft"):
         print("\n🎉 SUCCESS! GPT-5-thinking is generating personalized messages!")
         return True
     else:
         print("\n❌ ISSUE: Decision engine not generating messages properly")
         return False
+
 
 if __name__ == "__main__":
     success = test_decision_with_message_generation()
