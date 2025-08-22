@@ -397,11 +397,11 @@ Environment Settings:
                 
                 col_metrics1, col_metrics2, col_metrics3, col_metrics4 = st.columns(4)
                 with col_metrics1:
-                    st.metric("Evaluated", results["total_evaluated"])
+                    st.metric("Evaluated", results.get("total_evaluated", 0))
                 with col_metrics2:
-                    st.metric("Sent", results["total_sent"])
+                    st.metric("Sent", results.get("total_sent", 0))
                 with col_metrics3:
-                    st.metric("Skipped", results["total_skipped"])
+                    st.metric("Skipped", results.get("total_skipped", 0))
                 with col_metrics4:
                     st.metric("⚠️ Errors", error_count)
                 
