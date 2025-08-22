@@ -253,7 +253,6 @@ Environment Settings:
     # Main action button
     st.markdown("---")
     if st.button("🚀 Start Autonomous Browsing", type="primary", use_container_width=True):
-
         # Store configuration in session state
         st.session_state["auto_config"] = {
             "your_profile": your_profile,
@@ -357,7 +356,9 @@ Environment Settings:
                 st.success("✅ Autonomous browsing complete!")
 
                 # Count errors
-                error_count = sum(1 for r in results.get("results", []) if r.get("decision") == "ERROR")
+                error_count = sum(
+                    1 for r in results.get("results", []) if r.get("decision") == "ERROR"
+                )
 
                 col_metrics1, col_metrics2, col_metrics3, col_metrics4 = st.columns(4)
                 with col_metrics1:
@@ -375,7 +376,9 @@ Environment Settings:
                     with st.expander("🔴 Error Details", expanded=True):
                         for r in results.get("results", []):
                             if r.get("decision") == "ERROR":
-                                st.error(f"Profile {r.get('profile_num')}: {r.get('rationale', 'Unknown error')}")
+                                st.error(
+                                    f"Profile {r.get('profile_num')}: {r.get('rationale', 'Unknown error')}"
+                                )
                                 if "error" in r:
                                     st.code(r["error"])
 
@@ -387,7 +390,9 @@ Environment Settings:
                         profile = r.get("profile_num", "?")
 
                         if decision == "YES":
-                            st.success(f"Profile {profile}: ✅ {decision} - {r.get('rationale', '')}")
+                            st.success(
+                                f"Profile {profile}: ✅ {decision} - {r.get('rationale', '')}"
+                            )
                         elif decision == "NO":
                             st.info(f"Profile {profile}: ❌ {decision} - {r.get('rationale', '')}")
                         elif decision == "ERROR":
@@ -451,7 +456,9 @@ def render_events_panel() -> None:
 
                             if timestamp_str:
                                 try:
-                                    event_time = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+                                    event_time = datetime.fromisoformat(
+                                        timestamp_str.replace("Z", "+00:00")
+                                    )
                                     # Only include recent events
                                     if event_time.replace(tzinfo=None) > cutoff_time:
                                         recent_events.append(event)
@@ -464,7 +471,9 @@ def render_events_panel() -> None:
                                     event_time = datetime.fromtimestamp(ts_unix)
                                     if event_time > cutoff_time:
                                         # Convert ts to readable timestamp for display
-                                        event["timestamp"] = event_time.strftime("%Y-%m-%d %H:%M:%S")
+                                        event["timestamp"] = event_time.strftime(
+                                            "%Y-%m-%d %H:%M:%S"
+                                        )
                                         recent_events.append(event)
                                 except Exception:
                                     recent_events.append(event)
@@ -485,7 +494,14 @@ def render_events_panel() -> None:
                 # Color-code by event type with more detail
                 if event_type == "sent":
                     st.success(f"✅ {timestamp} - {event_type}")
-                elif event_type in ["error", "stopped", "login_failed", "evaluation_error", "profile_processing_error", "openai_error"]:
+                elif event_type in [
+                    "error",
+                    "stopped",
+                    "login_failed",
+                    "evaluation_error",
+                    "profile_processing_error",
+                    "openai_error",
+                ]:
                     error_msg = event.get("error", "Unknown error")
                     st.error(f"❌ {timestamp} - {event_type}: {error_msg[:100]}")
                 elif event_type == "decision":
@@ -600,7 +616,10 @@ def render_paste_mode() -> None:
                             seen=seen,
                             logger=logger2,
                         )
-                        url = getattr(settings, "yc_match_url", None) or "https://www.startupschool.org/cofounder-matching"
+                        url = (
+                            getattr(settings, "yc_match_url", None)
+                            or "https://www.startupschool.org/cofounder-matching"
+                        )
                         pc(
                             url=str(url),
                             criteria=Criteria(text=criteria_text),

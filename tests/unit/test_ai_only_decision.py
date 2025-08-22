@@ -17,7 +17,14 @@ class TestAIOnlyDecision:
         mock_response = Mock()
         # For GPT-5 responses API format
         mock_response.output = [
-            Mock(type='message', content=[Mock(text='{"decision": "YES", "rationale": "Strong match", "draft": "Hi!", "score": 0.85, "confidence": 0.9}')])
+            Mock(
+                type="message",
+                content=[
+                    Mock(
+                        text='{"decision": "YES", "rationale": "Strong match", "draft": "Hi!", "score": 0.85, "confidence": 0.9}'
+                    )
+                ],
+            )
         ]
         mock_response.usage = Mock(input_tokens=100, output_tokens=50)
         mock_client.responses.create.return_value = mock_response
@@ -44,7 +51,14 @@ class TestAIOnlyDecision:
         mock_response = Mock()
         # For GPT-5 responses API format
         mock_response.output = [
-            Mock(type='message', content=[Mock(text=f'{{"decision": "YES", "rationale": "Match", "draft": "{personalized_draft}", "score": 0.8, "confidence": 0.85}}')])
+            Mock(
+                type="message",
+                content=[
+                    Mock(
+                        text=f'{{"decision": "YES", "rationale": "Match", "draft": "{personalized_draft}", "score": 0.8, "confidence": 0.85}}'
+                    )
+                ],
+            )
         ]
         mock_response.usage = Mock(input_tokens=150, output_tokens=80)
         mock_client.responses.create.return_value = mock_response
@@ -69,7 +83,14 @@ class TestAIOnlyDecision:
         mock_response = Mock()
         # For GPT-5 responses API format
         mock_response.output = [
-            Mock(type='message', content=[Mock(text='{"decision": "NO", "rationale": "Not a match", "draft": "", "score": 0.3, "confidence": 0.8}')])
+            Mock(
+                type="message",
+                content=[
+                    Mock(
+                        text='{"decision": "NO", "rationale": "Not a match", "draft": "", "score": 0.3, "confidence": 0.8}'
+                    )
+                ],
+            )
         ]
         mock_response.usage = Mock(input_tokens=200, output_tokens=100)
         mock_client.responses.create.return_value = mock_response
@@ -135,7 +156,14 @@ class TestAIOnlyDecision:
         mock_response = Mock()
         # For GPT-5 responses API format
         mock_response.output = [
-            Mock(type='message', content=[Mock(text='{"decision": "YES", "rationale": "Match", "draft": "Message", "score": 0.8, "confidence": 0.85}')])
+            Mock(
+                type="message",
+                content=[
+                    Mock(
+                        text='{"decision": "YES", "rationale": "Match", "draft": "Message", "score": 0.8, "confidence": 0.85}'
+                    )
+                ],
+            )
         ]
         mock_response.usage = None
         mock_client.responses.create.return_value = mock_response
@@ -159,7 +187,14 @@ class TestAIOnlyDecision:
         mock_response = Mock()
         # For GPT-5 responses API format
         mock_response.output = [
-            Mock(type='message', content=[Mock(text='{"decision": "YES", "rationale": "Match", "draft": "Hi", "score": 0.8, "confidence": 0.85}')])
+            Mock(
+                type="message",
+                content=[
+                    Mock(
+                        text='{"decision": "YES", "rationale": "Match", "draft": "Hi", "score": 0.8, "confidence": 0.85}'
+                    )
+                ],
+            )
         ]
         mock_response.usage = None
         mock_client.responses.create.return_value = mock_response

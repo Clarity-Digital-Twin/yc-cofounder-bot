@@ -20,12 +20,15 @@ class TestLoginFlowIntegration:
     """Integration tests for login functionality."""
 
     @pytest.mark.asyncio
-    @patch.dict(os.environ, {
-        "YC_EMAIL": "test@example.com", 
-        "YC_PASSWORD": "test123",
-        "OPENAI_API_KEY": "test-key",
-        "CUA_MODEL": "test-model"
-    })
+    @patch.dict(
+        os.environ,
+        {
+            "YC_EMAIL": "test@example.com",
+            "YC_PASSWORD": "test123",
+            "OPENAI_API_KEY": "test-key",
+            "CUA_MODEL": "test-model",
+        },
+    )
     @patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI")
     async def test_cua_browser_performs_login(self, mock_openai: Mock) -> None:
         """Test that CUA browser can perform login with credentials."""
@@ -37,7 +40,7 @@ class TestLoginFlowIntegration:
         login_response = Mock(
             id="resp_1",
             output=[],  # No computer calls, just completion
-            content="Login successful"
+            content="Login successful",
         )
         mock_client.responses.create.return_value = login_response
 
@@ -94,12 +97,15 @@ class TestLoginFlowIntegration:
         assert "credentials" in str(exc_info.value).lower()
 
     @pytest.mark.asyncio
-    @patch.dict(os.environ, {
-        "YC_EMAIL": "test@example.com", 
-        "YC_PASSWORD": "test123",
-        "OPENAI_API_KEY": "test-key",
-        "CUA_MODEL": "test-model"
-    })
+    @patch.dict(
+        os.environ,
+        {
+            "YC_EMAIL": "test@example.com",
+            "YC_PASSWORD": "test123",
+            "OPENAI_API_KEY": "test-key",
+            "CUA_MODEL": "test-model",
+        },
+    )
     @patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI")
     @patch("playwright.async_api.async_playwright")
     async def test_cua_browser_uses_playwright_for_login_execution(
@@ -166,12 +172,15 @@ class TestLoginFlowIntegration:
         mock_page.locator.assert_called()  # Should check for login indicators
 
     @pytest.mark.asyncio
-    @patch.dict(os.environ, {
-        "YC_EMAIL": "test@example.com", 
-        "YC_PASSWORD": "wrong",
-        "OPENAI_API_KEY": "test-key",
-        "CUA_MODEL": "test-model"
-    })
+    @patch.dict(
+        os.environ,
+        {
+            "YC_EMAIL": "test@example.com",
+            "YC_PASSWORD": "wrong",
+            "OPENAI_API_KEY": "test-key",
+            "CUA_MODEL": "test-model",
+        },
+    )
     @patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI")
     async def test_login_handles_invalid_credentials(self, mock_openai: Mock) -> None:
         """Test that invalid credentials are handled gracefully."""
@@ -180,11 +189,7 @@ class TestLoginFlowIntegration:
         mock_openai.return_value = mock_client
 
         # Mock failed login response
-        error_response = Mock(
-            id="resp_1",
-            output=[],
-            content="Login failed: Invalid credentials"
-        )
+        error_response = Mock(id="resp_1", output=[], content="Login failed: Invalid credentials")
         mock_client.responses.create.return_value = error_response
 
         browser = OpenAICUABrowser()
@@ -222,10 +227,7 @@ class TestLoginPersistence:
         assert after_nav_login is True  # Should still be logged in
 
     @pytest.mark.asyncio
-    @patch.dict(os.environ, {
-        "OPENAI_API_KEY": "test-key",
-        "CUA_MODEL": "test-model"
-    })
+    @patch.dict(os.environ, {"OPENAI_API_KEY": "test-key", "CUA_MODEL": "test-model"})
     @patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI")
     @patch("playwright.async_api.async_playwright")
     async def test_cua_browser_reuses_single_browser_instance(

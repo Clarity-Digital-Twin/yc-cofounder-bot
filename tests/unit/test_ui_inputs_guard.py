@@ -24,9 +24,13 @@ class TestUIInputsGuard:
         render_three_input_mode()
 
         # Assert - Should show warning
-        mock_st.warning.assert_called_with("Please fill both your profile and match criteria to start.")
+        mock_st.warning.assert_called_with(
+            "Please fill both your profile and match criteria to start."
+        )
         # Should not attempt to show Start button
-        assert not any("Start Autonomous Browsing" in str(call) for call in mock_st.button.call_args_list)
+        assert not any(
+            "Start Autonomous Browsing" in str(call) for call in mock_st.button.call_args_list
+        )
 
     @patch("yc_matcher.interface.web.ui_streamlit.st")
     def test_whitespace_only_inputs_shows_warning(self, mock_st: Mock) -> None:
@@ -46,7 +50,9 @@ class TestUIInputsGuard:
         render_three_input_mode()
 
         # Assert
-        mock_st.warning.assert_called_with("Please fill both your profile and match criteria to start.")
+        mock_st.warning.assert_called_with(
+            "Please fill both your profile and match criteria to start."
+        )
 
     @patch("yc_matcher.interface.web.ui_streamlit.st")
     @patch("yc_matcher.interface.web.ui_streamlit.config")
@@ -71,6 +77,9 @@ class TestUIInputsGuard:
         render_three_input_mode()
 
         # Assert - Should show Start button
-        button_calls = [call for call in mock_st.button.call_args_list
-                       if "Start Autonomous Browsing" in str(call)]
+        button_calls = [
+            call
+            for call in mock_st.button.call_args_list
+            if "Start Autonomous Browsing" in str(call)
+        ]
         assert len(button_calls) > 0, "Start button should be shown with valid inputs"

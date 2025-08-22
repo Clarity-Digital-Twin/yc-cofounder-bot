@@ -591,7 +591,9 @@ class OpenAICUABrowser:
         if not email or not password:
             if self.logger:
                 self.logger.emit({"event": "cua_login_no_credentials"})
-            raise ValueError("YC_EMAIL and YC_PASSWORD environment variables required for auto-login")
+            raise ValueError(
+                "YC_EMAIL and YC_PASSWORD environment variables required for auto-login"
+            )
 
         if self.logger:
             self.logger.emit({"event": "cua_login_attempt", "email": email[:3] + "***"})
@@ -613,7 +615,7 @@ class OpenAICUABrowser:
         try:
             # Take screenshot of login page
             screenshot = await page.screenshot()
-            screenshot_b64 = base64.b64encode(screenshot).decode('utf-8')
+            screenshot_b64 = base64.b64encode(screenshot).decode("utf-8")
 
             # Ask CUA to fill in the login form
             login_instruction = f"""Please log into YC Startup School:
@@ -625,22 +627,27 @@ Complete the login process."""
             # Use CUA to perform login actions
             response = self.client.responses.create(
                 model=self.model_name,
-                tools=[{
-                    "type": "computer_use_preview",
-                    "display_width": 1280,
-                    "display_height": 800,
-                    "environment": "browser"
-                }],
+                tools=[
+                    {
+                        "type": "computer_use_preview",
+                        "display_width": 1280,
+                        "display_height": 800,
+                        "environment": "browser",
+                    }
+                ],
                 input=[
                     {
                         "role": "user",
                         "content": [
                             {"type": "input_text", "text": login_instruction},
-                            {"type": "input_image", "image_url": f"data:image/png;base64,{screenshot_b64}"}
-                        ]
+                            {
+                                "type": "input_image",
+                                "image_url": f"data:image/png;base64,{screenshot_b64}",
+                            },
+                        ],
                     }
                 ],
-                truncation="auto"
+                truncation="auto",
             )
 
             # Execute CUA's suggested actions
@@ -670,29 +677,31 @@ Complete the login process."""
                 # Take screenshot after action
                 await page.wait_for_timeout(500)  # Small delay for action to complete
                 screenshot = await page.screenshot()
-                screenshot_b64 = base64.b64encode(screenshot).decode('utf-8')
+                screenshot_b64 = base64.b64encode(screenshot).decode("utf-8")
 
                 # Send result back to CUA
                 response = self.client.responses.create(
                     model=self.model_name,
                     previous_response_id=response.id,
-                    tools=[{
-                        "type": "computer_use_preview",
-                        "display_width": 1280,
-                        "display_height": 800,
-                        "environment": "browser"
-                    }],
+                    tools=[
+                        {
+                            "type": "computer_use_preview",
+                            "display_width": 1280,
+                            "display_height": 800,
+                            "environment": "browser",
+                        }
+                    ],
                     input=[
                         {
                             "call_id": computer_call.call_id,
                             "type": "computer_call_output",
                             "output": {
                                 "type": "input_image",
-                                "image_url": f"data:image/png;base64,{screenshot_b64}"
-                            }
+                                "image_url": f"data:image/png;base64,{screenshot_b64}",
+                            },
                         }
                     ],
-                    truncation="auto"
+                    truncation="auto",
                 )
 
                 # Check if we're logged in now

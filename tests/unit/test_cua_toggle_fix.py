@@ -28,8 +28,12 @@ class TestCUAToggleFix:
 
     def test_enable_cua_parameter_overrides_env_true(self) -> None:
         """Test that enable_cua=False works even when env var is True."""
-        with patch.dict(os.environ, {"ENABLE_CUA": "1", "ENABLE_PLAYWRIGHT": "1", "OPENAI_API_KEY": "test"}):
-            with patch("yc_matcher.infrastructure.browser_playwright_async.PlaywrightBrowserAsync") as mock_playwright:
+        with patch.dict(
+            os.environ, {"ENABLE_CUA": "1", "ENABLE_PLAYWRIGHT": "1", "OPENAI_API_KEY": "test"}
+        ):
+            with patch(
+                "yc_matcher.infrastructure.browser_playwright_async.PlaywrightBrowserAsync"
+            ) as mock_playwright:
                 mock_browser = Mock()
                 mock_playwright.return_value = mock_browser
 
@@ -62,8 +66,12 @@ class TestCUAToggleFix:
 
     def test_enable_cua_not_passed_uses_env_var(self) -> None:
         """Test that not passing enable_cua falls back to env var."""
-        with patch.dict(os.environ, {"ENABLE_CUA": "0", "ENABLE_PLAYWRIGHT": "1", "OPENAI_API_KEY": "test"}):
-            with patch("yc_matcher.infrastructure.browser_playwright_async.PlaywrightBrowserAsync") as mock_playwright:
+        with patch.dict(
+            os.environ, {"ENABLE_CUA": "0", "ENABLE_PLAYWRIGHT": "1", "OPENAI_API_KEY": "test"}
+        ):
+            with patch(
+                "yc_matcher.infrastructure.browser_playwright_async.PlaywrightBrowserAsync"
+            ) as mock_playwright:
                 mock_browser = Mock()
                 mock_playwright.return_value = mock_browser
 

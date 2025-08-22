@@ -38,13 +38,16 @@ class TestAutonomousBrowsingE2E:
         (runs_dir / "quota.sqlite").touch()
 
         # Set up environment
-        with patch.dict(os.environ, {
-            "YC_EMAIL": "test@example.com",
-            "YC_PASSWORD": "test123",
-            "ENABLE_PLAYWRIGHT": "1",
-            "SHADOW_MODE": "1",  # Safety: test mode
-            "PACE_MIN_SECONDS": "0"  # Speed up tests
-        }):
+        with patch.dict(
+            os.environ,
+            {
+                "YC_EMAIL": "test@example.com",
+                "YC_PASSWORD": "test123",
+                "ENABLE_PLAYWRIGHT": "1",
+                "SHADOW_MODE": "1",  # Safety: test mode
+                "PACE_MIN_SECONDS": "0",  # Speed up tests
+            },
+        ):
             yield runs_dir
 
     def test_full_autonomous_flow_shadow_mode(self, setup_test_env: Path) -> None:
@@ -56,14 +59,14 @@ class TestAutonomousBrowsingE2E:
         mock_browser.click_view_profile.side_effect = [True, True, False]  # 2 profiles then stop
         mock_browser.read_profile_text.side_effect = [
             "Profile 1: Developer with 5 years experience",
-            "Profile 2: Designer looking for technical co-founder"
+            "Profile 2: Designer looking for technical co-founder",
         ]
         mock_browser.skip.return_value = None
 
         mock_evaluate = Mock(spec=EvaluateProfile)
         mock_evaluate.side_effect = [
             {"decision": "YES", "rationale": "Good match", "draft": "Hi!", "score": 0.8},
-            {"decision": "NO", "rationale": "Not a match", "draft": "", "score": 0.3}
+            {"decision": "NO", "rationale": "Not a match", "draft": "", "score": 0.3},
         ]
 
         mock_send = Mock(spec=SendMessage)
@@ -82,7 +85,7 @@ class TestAutonomousBrowsingE2E:
             seen=mock_seen,
             logger=mock_logger,
             stop=mock_stop,
-            quota=mock_quota
+            quota=mock_quota,
         )
 
         # Act
@@ -93,7 +96,7 @@ class TestAutonomousBrowsingE2E:
             mode="ai",
             limit=10,
             shadow_mode=True,  # Shadow mode
-            threshold=0.7
+            threshold=0.7,
         )
 
         # Assert
@@ -125,7 +128,7 @@ class TestAutonomousBrowsingE2E:
             "decision": "YES",
             "rationale": "Perfect match",
             "draft": "Let's connect!",
-            "score": 0.9
+            "score": 0.9,
         }
 
         mock_send = Mock(spec=SendMessage)
@@ -146,7 +149,7 @@ class TestAutonomousBrowsingE2E:
             seen=mock_seen,
             logger=mock_logger,
             stop=mock_stop,
-            quota=mock_quota
+            quota=mock_quota,
         )
 
         # Act
@@ -157,7 +160,7 @@ class TestAutonomousBrowsingE2E:
             mode="ai",
             limit=5,
             shadow_mode=False,  # Real mode
-            threshold=0.7
+            threshold=0.7,
         )
 
         # Assert
@@ -193,7 +196,7 @@ class TestAutonomousBrowsingE2E:
             seen=mock_seen,
             logger=mock_logger,
             stop=mock_stop,
-            quota=mock_quota
+            quota=mock_quota,
         )
 
         # Act
@@ -203,16 +206,14 @@ class TestAutonomousBrowsingE2E:
             template="Template",
             mode="ai",
             limit=10,  # Would process 10 but stop flag will halt
-            shadow_mode=True
+            shadow_mode=True,
         )
 
         # Assert
         assert results["total_evaluated"] == 1  # Only 1 profile before stop
-        mock_logger.emit.assert_any_call({
-            "event": "stopped",
-            "at_profile": 1,
-            "reason": "stop_flag"
-        })
+        mock_logger.emit.assert_any_call(
+            {"event": "stopped", "at_profile": 1, "reason": "stop_flag"}
+        )
 
     def test_quota_limits_respected(self, setup_test_env: Path) -> None:
         """Test that daily/weekly quotas are respected."""
@@ -227,7 +228,7 @@ class TestAutonomousBrowsingE2E:
             "decision": "YES",
             "rationale": "Match",
             "draft": "Message",
-            "score": 0.8
+            "score": 0.8,
         }
 
         mock_send = Mock(spec=SendMessage)
@@ -251,7 +252,7 @@ class TestAutonomousBrowsingE2E:
             seen=mock_seen,
             logger=mock_logger,
             stop=mock_stop,
-            quota=mock_quota
+            quota=mock_quota,
         )
 
         # Act
@@ -261,7 +262,7 @@ class TestAutonomousBrowsingE2E:
             template="Template",
             mode="ai",
             limit=5,
-            shadow_mode=False
+            shadow_mode=False,
         )
 
         # Assert
@@ -276,7 +277,7 @@ class TestAutonomousBrowsingE2E:
         mock_browser.click_view_profile.side_effect = [True, True, False]
         mock_browser.read_profile_text.side_effect = [
             Exception("Network error"),  # First fails
-            "Valid profile"  # Second succeeds
+            "Valid profile",  # Second succeeds
         ]
 
         mock_evaluate = Mock(spec=EvaluateProfile)
@@ -284,7 +285,7 @@ class TestAutonomousBrowsingE2E:
             "decision": "YES",
             "rationale": "Match",
             "draft": "Hi",
-            "score": 0.8
+            "score": 0.8,
         }
 
         mock_send = Mock(spec=SendMessage)
@@ -301,7 +302,7 @@ class TestAutonomousBrowsingE2E:
             seen=mock_seen,
             logger=mock_logger,
             stop=mock_stop,
-            quota=mock_quota
+            quota=mock_quota,
         )
 
         # Act
@@ -311,17 +312,14 @@ class TestAutonomousBrowsingE2E:
             template="Template",
             mode="ai",
             limit=5,
-            shadow_mode=True
+            shadow_mode=True,
         )
 
         # Assert
         # Should continue after error
         assert results["total_evaluated"] >= 1
         # Should log the error
-        assert any(
-            r.get("decision") == "ERROR"
-            for r in results["results"]
-        )
+        assert any(r.get("decision") == "ERROR" for r in results["results"])
 
     def test_duplicate_profiles_skipped(self, setup_test_env: Path) -> None:
         """Test that duplicate profiles are not processed twice."""
@@ -350,7 +348,7 @@ class TestAutonomousBrowsingE2E:
             seen=mock_seen,
             logger=mock_logger,
             stop=mock_stop,
-            quota=mock_quota
+            quota=mock_quota,
         )
 
         # Act
@@ -360,7 +358,7 @@ class TestAutonomousBrowsingE2E:
             template="Template",
             mode="ai",
             limit=5,
-            shadow_mode=True
+            shadow_mode=True,
         )
 
         # Assert
@@ -368,10 +366,12 @@ class TestAutonomousBrowsingE2E:
         mock_evaluate.assert_called_once()
         assert results["total_evaluated"] >= 1  # At least one evaluated
         # Should log duplicate event
-        mock_logger.emit.assert_any_call({
-            "event": "duplicate",
-            "hash": mock_seen.mark_seen.call_args[0][0]  # Get the hash used
-        })
+        mock_logger.emit.assert_any_call(
+            {
+                "event": "duplicate",
+                "hash": mock_seen.mark_seen.call_args[0][0],  # Get the hash used
+            }
+        )
 
 
 class TestLoginRequirement:
@@ -398,7 +398,7 @@ class TestLoginRequirement:
             seen=mock_seen,
             logger=mock_logger,
             stop=mock_stop,
-            quota=mock_quota
+            quota=mock_quota,
         )
 
         # Act
@@ -408,7 +408,7 @@ class TestLoginRequirement:
             template="Template",
             mode="ai",
             limit=5,
-            shadow_mode=True
+            shadow_mode=True,
         )
 
         # Assert

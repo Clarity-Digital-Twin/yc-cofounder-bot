@@ -13,6 +13,7 @@ from dataclasses import dataclass
 @dataclass
 class Settings:
     """Legacy settings for backward compatibility."""
+
     openai_api_key: str | None
     yc_match_url: str
     max_send: int
@@ -32,6 +33,7 @@ def load_settings() -> Settings:
 # Single source of truth for all environment variables
 # ============================================================================
 
+
 def get_decision_model() -> str:
     """Get the AI decision model to use.
 
@@ -40,11 +42,7 @@ def get_decision_model() -> str:
     2. OPENAI_DECISION_MODEL (from .env)
     3. Default to gpt-4o
     """
-    return (
-        os.getenv("DECISION_MODEL_RESOLVED") or
-        os.getenv("OPENAI_DECISION_MODEL") or
-        "gpt-4o"
-    )
+    return os.getenv("DECISION_MODEL_RESOLVED") or os.getenv("OPENAI_DECISION_MODEL") or "gpt-4o"
 
 
 def get_cua_model() -> str | None:

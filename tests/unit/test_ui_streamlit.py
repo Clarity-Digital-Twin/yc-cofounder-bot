@@ -228,8 +228,10 @@ class TestStreamlitUI:
         # Act
         render_three_input_mode()
 
-        # Assert
-        mock_st.error.assert_called_once_with("Please fill in Your Profile and Match Criteria")
+        # Assert - expecting warning, not error, with correct message
+        mock_st.warning.assert_called_once_with(
+            "Please fill both your profile and match criteria to start."
+        )
         mock_build.assert_not_called()
 
     @patch("yc_matcher.interface.web.ui_streamlit.st")

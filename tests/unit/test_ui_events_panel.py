@@ -20,7 +20,9 @@ class TestRecentEventsPanel:
     @patch("yc_matcher.interface.web.ui_streamlit.st")
     @patch("yc_matcher.interface.web.ui_streamlit.Path")
     @patch("yc_matcher.interface.web.ui_streamlit.os.path.exists")
-    def test_empty_events_file_does_not_crash(self, mock_exists: Mock, mock_path: Mock, mock_st: Mock) -> None:
+    def test_empty_events_file_does_not_crash(
+        self, mock_exists: Mock, mock_path: Mock, mock_st: Mock
+    ) -> None:
         """Empty events file should show 'No recent events' without crashing."""
         # Arrange - Empty file exists
         mock_exists.return_value = True
@@ -54,7 +56,9 @@ class TestRecentEventsPanel:
 
         # Assert - Should show empty state message (but actually renders inside expander)
         # When file is empty, it shows "No events in the last hour"
-        mock_st.info.assert_called_with("No events in the last hour. Events are cleared after 1 hour.")
+        mock_st.info.assert_called_with(
+            "No events in the last hour. Events are cleared after 1 hour."
+        )
 
     @patch("yc_matcher.interface.web.ui_streamlit.st")
     @patch("yc_matcher.interface.web.ui_streamlit.Path")
@@ -130,7 +134,7 @@ class TestRecentEventsPanel:
 
         events = [
             json.dumps({"ts": old_time, "event": "old_event"}),
-            json.dumps({"ts": recent_time, "event": "recent_event"})
+            json.dumps({"ts": recent_time, "event": "recent_event"}),
         ]
         mock_path.return_value.read_text.return_value = "\n".join(events)
         # Setup expander as context manager
@@ -215,7 +219,9 @@ class TestEventsPanelButtons:
     @patch("yc_matcher.interface.web.ui_streamlit.st")
     @patch("yc_matcher.interface.web.ui_streamlit.Path")
     @patch("builtins.open", create=True)
-    def test_clear_button_empties_file(self, mock_open: Mock, mock_path: Mock, mock_st: Mock) -> None:
+    def test_clear_button_empties_file(
+        self, mock_open: Mock, mock_path: Mock, mock_st: Mock
+    ) -> None:
         """Clear button should empty the events file."""
         # Arrange
         mock_path.return_value.read_text.return_value = '{"event": "test"}'

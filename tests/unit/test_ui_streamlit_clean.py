@@ -20,6 +20,7 @@ class TestUIStreamlitClean:
         """Test that Start button requires both profile and criteria."""
         # 1) columns/expander behave as context managers
         mock_st.expander.return_value = _cm()
+
         # columns returns different number based on input
         def columns_side_effect(spec):
             if isinstance(spec, int):
@@ -27,6 +28,7 @@ class TestUIStreamlitClean:
             elif isinstance(spec, list):
                 return [_cm() for _ in range(len(spec))]
             return [_cm(), _cm(), _cm()]  # default
+
         mock_st.columns.side_effect = columns_side_effect
 
         # 2) simplest defaults for UI calls used before the guard
@@ -46,7 +48,7 @@ class TestUIStreamlitClean:
         # 3) three text areas — profile / criteria empty, template present
         mock_st.text_area.side_effect = ["", "", "template"]
         mock_st.button.return_value = False  # not clicking Start
-        
+
         # Session state
         mock_st.session_state = {"hil_pending": None}
 
@@ -66,10 +68,13 @@ class TestUIStreamlitClean:
         mock_config.get_yc_credentials.return_value = ("user@example.com", "x")
 
         from yc_matcher.interface.web.ui_streamlit import render_three_input_mode
+
         render_three_input_mode()
 
         # Should warn and not run
-        mock_st.warning.assert_called_with("Please fill both your profile and match criteria to start.")
+        mock_st.warning.assert_called_with(
+            "Please fill both your profile and match criteria to start."
+        )
         # No exceptions = pass
 
     @patch("yc_matcher.interface.web.ui_streamlit.st")
@@ -78,6 +83,7 @@ class TestUIStreamlitClean:
         """Test that valid inputs allow Start button to appear."""
         # Setup context managers
         mock_st.expander.return_value = _cm()
+
         # columns returns different number based on input
         def columns_side_effect(spec):
             if isinstance(spec, int):
@@ -85,8 +91,9 @@ class TestUIStreamlitClean:
             elif isinstance(spec, list):
                 return [_cm() for _ in range(len(spec))]
             return [_cm(), _cm(), _cm()]  # default
+
         mock_st.columns.side_effect = columns_side_effect
-        
+
         # UI defaults
         mock_st.toggle.return_value = False
         mock_st.number_input.return_value = 20
@@ -95,13 +102,13 @@ class TestUIStreamlitClean:
         mock_st.subheader.return_value = None
         mock_st.markdown.return_value = None
         mock_st.button.return_value = False
-        
+
         # Session state - no pending HIL check
         mock_st.session_state = {"hil_pending": None}
-        
+
         # Valid inputs
         mock_st.text_area.side_effect = ["Technical founder", "Business co-founder", "template"]
-        
+
         # Config
         mock_config.is_headless.return_value = True
         mock_config.get_playwright_browsers_path.return_value = None
@@ -116,10 +123,11 @@ class TestUIStreamlitClean:
         mock_config.get_auto_send_default.return_value = False
         mock_config.get_yc_credentials.return_value = ("", "")
         mock_config.use_three_input_ui.return_value = True
-        
+
         from yc_matcher.interface.web.ui_streamlit import render_three_input_mode
+
         render_three_input_mode()
-        
+
         # Should NOT warn
         mock_st.warning.assert_not_called()
         # Should show Start button
@@ -140,20 +148,25 @@ class TestEventsPanelClean:
 
         # context managers
         mock_st.expander.return_value = _cm()
+
         def columns_side_effect(spec):
             if isinstance(spec, int):
                 return [_cm() for _ in range(spec)]
             elif isinstance(spec, list):
                 return [_cm() for _ in range(len(spec))]
             return [_cm(), _cm()]  # default
+
         mock_st.columns.side_effect = columns_side_effect
         mock_st.button.return_value = False
 
         from yc_matcher.interface.web.ui_streamlit import render_events_panel
+
         render_events_panel()
 
         # When file is empty, shows this message
-        mock_st.info.assert_called_with("No events in the last hour. Events are cleared after 1 hour.")
+        mock_st.info.assert_called_with(
+            "No events in the last hour. Events are cleared after 1 hour."
+        )
 
     @patch("yc_matcher.interface.web.ui_streamlit.st")
     @patch("yc_matcher.interface.web.ui_streamlit.Path")
@@ -162,21 +175,24 @@ class TestEventsPanelClean:
         """Test event with Unix timestamp only gets normalized and displayed."""
         import json
         import time
-        
+
         mock_exists.return_value = True
         event = {"ts": time.time(), "event": "test_event"}
         mock_path.return_value.read_text.return_value = json.dumps(event)
         mock_st.expander.return_value = _cm()
+
         def columns_side_effect(spec):
             if isinstance(spec, int):
                 return [_cm() for _ in range(spec)]
             elif isinstance(spec, list):
                 return [_cm() for _ in range(len(spec))]
             return [_cm(), _cm()]  # default
+
         mock_st.columns.side_effect = columns_side_effect
         mock_st.button.return_value = False
 
         from yc_matcher.interface.web.ui_streamlit import render_events_panel
+
         render_events_panel()
 
         # generic event → st.text line rendered
@@ -189,25 +205,24 @@ class TestEventsPanelClean:
         """Test decision YES event shows as info."""
         import json
         import time
-        
+
         mock_exists.return_value = True
-        event = {
-            "ts": time.time(), 
-            "event": "decision",
-            "data": {"decision": "YES"}
-        }
+        event = {"ts": time.time(), "event": "decision", "data": {"decision": "YES"}}
         mock_path.return_value.read_text.return_value = json.dumps(event)
         mock_st.expander.return_value = _cm()
+
         def columns_side_effect(spec):
             if isinstance(spec, int):
                 return [_cm() for _ in range(spec)]
             elif isinstance(spec, list):
                 return [_cm() for _ in range(len(spec))]
             return [_cm(), _cm()]  # default
+
         mock_st.columns.side_effect = columns_side_effect
         mock_st.button.return_value = False
 
         from yc_matcher.interface.web.ui_streamlit import render_events_panel
+
         render_events_panel()
 
         # Decision YES → st.info with thumbs up

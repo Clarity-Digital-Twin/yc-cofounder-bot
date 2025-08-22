@@ -148,6 +148,7 @@ class AutonomousFlow:
 
                 # Extract profile text
                 import time
+
                 extract_start = time.time()
                 profile_text = self.browser.read_profile_text()
                 extract_ms = int((time.time() - extract_start) * 1000)
@@ -162,25 +163,29 @@ class AutonomousFlow:
                         engine = "playwright"
 
                 if not profile_text:
-                    self.logger.emit({
-                        "event": "empty_profile",
-                        "at_profile": i,
-                        "engine": engine,
-                        "skip_reason": "No profile text extracted",
-                        "extract_ms": extract_ms
-                    })
+                    self.logger.emit(
+                        {
+                            "event": "empty_profile",
+                            "at_profile": i,
+                            "engine": engine,
+                            "skip_reason": "No profile text extracted",
+                            "extract_ms": extract_ms,
+                        }
+                    )
                     self.browser.skip()
                     skipped_count += 1
                     continue
 
                 # Log extraction metrics
-                self.logger.emit({
-                    "event": "profile_extracted",
-                    "profile": i,
-                    "extracted_len": len(profile_text),
-                    "engine": engine,
-                    "extract_ms": extract_ms
-                })
+                self.logger.emit(
+                    {
+                        "event": "profile_extracted",
+                        "profile": i,
+                        "extracted_len": len(profile_text),
+                        "engine": engine,
+                        "extract_ms": extract_ms,
+                    }
+                )
 
                 # Check if seen (DRY - reuse deduplication)
                 profile_hash = hash_profile_text(profile_text)

@@ -14,11 +14,7 @@ class JSONLLogger:
     def emit(self, event: Mapping[str, Any]) -> None:
         # Always emit both ts (Unix) and timestamp (ISO) for compatibility
         now = datetime.now(UTC)
-        row = {
-            "ts": now.timestamp(),
-            "timestamp": now.isoformat(),
-            **event
-        }
+        row = {"ts": now.timestamp(), "timestamp": now.isoformat(), **event}
         line = json.dumps(row, ensure_ascii=False)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.path.open("a", encoding="utf-8") as f:

@@ -166,9 +166,9 @@ class PreflightChecker:
 
     def run_all_checks(self) -> bool:
         """Run all pre-flight checks."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("🚀 PRE-FLIGHT CHECKS")
-        print("="*60)
+        print("=" * 60)
 
         checks = [
             ("Environment", self.check_environment),
@@ -189,9 +189,9 @@ class PreflightChecker:
                 all_passed = False
 
         # Print summary
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("📊 PRE-FLIGHT SUMMARY")
-        print("="*60)
+        print("=" * 60)
 
         if self.info:
             print("\n✅ PASSED:")
@@ -226,6 +226,7 @@ if __name__ == "__main__":
     import sys
 
     from dotenv import load_dotenv
+
     load_dotenv()  # Load .env file
     success = run_preflight_checks()
     sys.exit(0 if success else 1)
