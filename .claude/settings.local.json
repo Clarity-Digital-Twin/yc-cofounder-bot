@@ -205,7 +205,8 @@
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_ui_events_panel.py -xvs)",
       "Bash(sed:*)",
       "Bash(git checkout:*)",
-      "Bash(do [ -f \"$f\" ])"
+      "Bash(do [ -f \"$f\" ])",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_ui_events_panel.py -xvs --tb=short)"
     ],
     "deny": [],
     "ask": []
