@@ -67,16 +67,17 @@ class TestCUASessionHygiene:
         """Test profile cache is cleared after a successful send."""
         # Arrange
         mock_client = Mock()
-        mock_output_item = Mock()
-        mock_output_item.type = "output_text"
-        mock_output_item.text = "true"
-        mock_client.responses.create.return_value = Mock(id="resp-1", output=[mock_output_item])
+        mock_page = Mock()
+        mock_locator = Mock()
+        mock_locator.count = Mock(return_value=1)  # Indicate sent
+        mock_page.locator = Mock(return_value=mock_locator)
 
         with patch.dict(os.environ, {"CUA_MODEL": "test-model", "OPENAI_API_KEY": "test-key"}):
             with patch(
                 "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_client
             ):
                 browser = OpenAICUABrowser()
+                browser._page_mock = mock_page  # Inject page mock
 
             # Set some cached profile text
             browser._profile_text_cache = "Old profile data"
