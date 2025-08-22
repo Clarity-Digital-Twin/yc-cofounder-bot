@@ -435,14 +435,33 @@ class OpenAICUABrowser:
         return self._runner.submit(self._read_profile_text_async())
 
     async def _read_profile_text_async(self) -> str:
-        """Extract and return profile text from current page."""
-        result = await self._cua_action(
-            "Read and extract all the profile text from the current page. "
-            "Include name, bio, skills, location, and any other relevant information."
-        )
-        if result:
-            self._profile_text_cache = str(result)
-            return str(result)
+        """Extract and return profile text from current page using DOM extraction.
+        
+        We use Playwright to extract ALL text from the DOM, not just visible text,
+        to avoid truncation issues with long profiles that require scrolling.
+        """
+        page = await self._ensure_browser()
+        
+        try:
+            # Try to get all text from main content area first
+            main = page.locator("main").first
+            if await main.count() > 0:
+                text = await main.inner_text()
+                if text:
+                    self._profile_text_cache = text
+                    return text
+        except Exception:
+            pass
+        
+        # Fallback to full body text
+        try:
+            body_text = await page.inner_text("body")
+            if body_text:
+                self._profile_text_cache = body_text
+                return body_text
+        except Exception as e:
+            self._log_event({"event": "profile_text_extraction_error", "error": str(e)})
+        
         return self._profile_text_cache or ""
 
     def focus_message_box(self) -> None:

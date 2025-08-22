@@ -342,6 +342,7 @@ Environment Settings:
                     template_text=template_text,
                     prompt_ver="v1",
                     rubric_ver="v1",
+                    enable_cua=enable_cua,  # Pass UI toggle value
                 )
 
                 browser = send_use.browser
@@ -496,6 +497,7 @@ def render_paste_mode() -> None:
             template_text=template_text,
             prompt_ver="v1",
             rubric_ver="v1",
+            enable_cua=False,  # Paste mode doesn't use CUA
         )
         data = eval_use(Profile(raw_text=profile_text), Criteria(text=criteria_text))
 
@@ -523,6 +525,7 @@ def render_paste_mode() -> None:
                             template_text=template_text,
                             prompt_ver="v1",
                             rubric_ver="v1",
+                            enable_cua=False,  # Paste mode doesn't use CUA
                         )
                         browser = send_use2.browser
                         pc = ProcessCandidate(

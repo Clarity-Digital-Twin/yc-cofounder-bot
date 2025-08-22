@@ -147,12 +147,40 @@ class AutonomousFlow:
                     break
 
                 # Extract profile text
+                import time
+                extract_start = time.time()
                 profile_text = self.browser.read_profile_text()
+                extract_ms = int((time.time() - extract_start) * 1000)
+                
+                # Determine engine type
+                engine = "unknown"
+                if hasattr(self.browser, "__class__"):
+                    class_name = self.browser.__class__.__name__
+                    if "CUA" in class_name:
+                        engine = "cua"
+                    elif "Playwright" in class_name:
+                        engine = "playwright"
+                
                 if not profile_text:
-                    self.logger.emit({"event": "empty_profile", "at_profile": i})
+                    self.logger.emit({
+                        "event": "empty_profile", 
+                        "at_profile": i,
+                        "engine": engine,
+                        "skip_reason": "No profile text extracted",
+                        "extract_ms": extract_ms
+                    })
                     self.browser.skip()
                     skipped_count += 1
                     continue
+                
+                # Log extraction metrics
+                self.logger.emit({
+                    "event": "profile_extracted",
+                    "profile": i,
+                    "extracted_len": len(profile_text),
+                    "engine": engine,
+                    "extract_ms": extract_ms
+                })
 
                 # Check if seen (DRY - reuse deduplication)
                 profile_hash = hash_profile_text(profile_text)
@@ -182,6 +210,9 @@ class AutonomousFlow:
                             "error": error_msg,
                             "error_type": evaluation.get("error_type", "Unknown"),
                             "rationale": evaluation.get("rationale", ""),
+                            "skip_reason": f"Decision error: {error_msg[:100]}",
+                            "engine": engine,
+                            "extracted_len": len(profile_text),
                         }
                     )
                     # Store error in results for UI visibility
@@ -210,6 +241,9 @@ class AutonomousFlow:
                         "rationale": evaluation.get("rationale", ""),
                         "score": evaluation.get("score"),
                         "auto_send": evaluation.get("auto_send", False),
+                        "engine": engine,
+                        "extracted_len": len(profile_text),
+                        "decision_json_ok": evaluation.get("decision") in ["YES", "NO"],
                     }
                 )
 

@@ -26,6 +26,7 @@ def build_services(
     prompt_ver: str = "v1",
     rubric_ver: str = "v1",
     criteria_preset: str | None = None,
+    enable_cua: bool | None = None,  # Override CUA setting from UI
 ) -> tuple[EvaluateProfile, SendMessage, LoggerWithStamps]:
     # Resolve models at startup (once per session)
     # This sets DECISION_MODEL_RESOLVED and CUA_MODEL_RESOLVED env vars
@@ -103,7 +104,9 @@ def build_services(
     browser: BrowserPort
 
     # PRIMARY: OpenAI CUA via Responses API (FIXED with AsyncLoopRunner)
-    if config.is_cua_enabled():
+    # Use UI toggle if provided, otherwise fall back to config
+    use_cua = enable_cua if enable_cua is not None else config.is_cua_enabled()
+    if use_cua:
         try:
             from ..infrastructure.openai_cua_browser import OpenAICUABrowser
 

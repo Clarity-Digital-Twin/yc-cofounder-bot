@@ -100,22 +100,84 @@ class OpenAIDecisionAdapter(DecisionPort):
             logger=self.logger,
         )
         
+        # Track latency
+        import time
+        decision_start = time.time()
+        
         # Use the correct OpenAI chat completions API
         try:
             # Define API call functions for retry wrapper
             def call_gpt5() -> tuple[Any, str]:
-                # Note: Responses API doesn't support response_format parameter
-                # We instruct JSON format in the prompt instead
-                r = self.client.responses.create(
-                    model=self.model,
-                    input=[
-                        {"role": "system", "content": sys_prompt},
-                        {"role": "user", "content": user_text + "\n\nIMPORTANT: Return your response as valid JSON."},
-                    ],
-                    max_output_tokens=800,  # Responses API uses max_output_tokens
-                )
+                # Try with response_format first (per feedback this may be supported now)
+                # Fall back to prompt-based JSON if it fails
+                try:
+                    r = self.client.responses.create(
+                        model=self.model,
+                        input=[
+                            {"role": "system", "content": sys_prompt},
+                            {"role": "user", "content": user_text},
+                        ],
+                        response_format={
+                            "type": "json_schema",
+                            "json_schema": {
+                                "name": "decision_response",
+                                "strict": True,
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "decision": {"type": "string", "enum": ["YES", "NO"]},
+                                        "rationale": {"type": "string"},
+                                        "draft": {"type": "string"},
+                                        "score": {"type": "number", "minimum": 0, "maximum": 1},
+                                        "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+                                    },
+                                    "required": ["decision", "rationale", "draft", "score", "confidence"],
+                                    "additionalProperties": False
+                                }
+                            }
+                        },
+                        max_output_tokens=800,  # Responses API uses max_output_tokens
+                    )
+                except Exception as format_err:
+                    # Fallback: instruct JSON format in the prompt
+                    if self.logger:
+                        self.logger.emit({
+                            "event": "response_format_fallback",
+                            "error": str(format_err),
+                            "model": self.model
+                        })
+                    r = self.client.responses.create(
+                        model=self.model,
+                        input=[
+                            {"role": "system", "content": sys_prompt},
+                            {"role": "user", "content": user_text + "\n\nIMPORTANT: Return your response as valid JSON."},
+                        ],
+                        max_output_tokens=800,  # Responses API uses max_output_tokens
+                    )
                 # Extract content from Responses API format
-                c = r.output_text if hasattr(r, 'output_text') else str(r.output[0])
+                # GPT-5 returns output array: [reasoning_item, message_item]
+                # We need the text from the message item (type='message')
+                c = None
+                if hasattr(r, 'output') and isinstance(r.output, list):
+                    for item in r.output:
+                        # Look specifically for the message item (not reasoning)
+                        if getattr(item, 'type', None) == 'message':
+                            # Found the message item, extract text from its content
+                            if hasattr(item, 'content') and item.content:
+                                for content_item in item.content:
+                                    if hasattr(content_item, 'text'):
+                                        c = content_item.text
+                                        break
+                            break
+                
+                if not c:
+                    # Fallback if structure is different
+                    raise ValueError(
+                        f"Could not extract text from GPT-5 response. "
+                        f"Output items: {len(r.output) if hasattr(r, 'output') else 0}, "
+                        f"Types: {[getattr(item, 'type', 'unknown') for item in r.output] if hasattr(r, 'output') else []}"
+                    )
+                
                 return r, c
             
             def call_gpt4() -> tuple[Any, str]:
@@ -184,11 +246,22 @@ class OpenAIDecisionAdapter(DecisionPort):
                 "error_type": type(e).__name__,
             }
 
+        # Add latency to payload
+        decision_ms = int((time.time() - decision_start) * 1000)
+        payload["latency_ms"] = decision_ms
+        
         # Stamp versions to the payload for downstream use
         payload.setdefault("prompt_ver", self.prompt_ver)
         payload.setdefault("rubric_ver", self.rubric_ver)
 
-        # Log usage if present
-        self._log_usage(resp if "resp" in locals() else None)
+        # Log usage if present (with latency)
+        if self.logger and "resp" in locals():
+            self._log_usage(resp)
+            self.logger.emit({
+                "event": "decision_latency",
+                "model": self.model,
+                "latency_ms": decision_ms,
+                "success": payload.get("decision") != "ERROR"
+            })
 
         return dict(payload)
