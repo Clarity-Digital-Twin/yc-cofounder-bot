@@ -34,7 +34,7 @@ def load_settings() -> Settings:
 
 def get_decision_model() -> str:
     """Get the AI decision model to use.
-    
+
     Precedence:
     1. DECISION_MODEL_RESOLVED (from runtime discovery)
     2. OPENAI_DECISION_MODEL (from .env)
@@ -49,7 +49,7 @@ def get_decision_model() -> str:
 
 def get_cua_model() -> str | None:
     """Get the Computer Use model if available.
-    
+
     Precedence:
     1. CUA_MODEL_RESOLVED (from runtime discovery)
     2. CUA_MODEL (from .env)

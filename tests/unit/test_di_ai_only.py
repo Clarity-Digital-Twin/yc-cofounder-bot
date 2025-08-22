@@ -46,16 +46,16 @@ class TestAIOnlyDI:
             assert send_use is not None
             assert logger is not None
 
-    def test_build_services_ignores_old_parameters(self) -> None:
-        """Test build_services ignores old mode/threshold/alpha parameters."""
-        # Arrange - pass old parameters that should be ignored
+    def test_build_services_simplified_signature(self) -> None:
+        """Test build_services has simplified signature without old parameters."""
+        # Arrange
         with patch.dict(os.environ, {"ENABLE_OPENAI": "0"}):
-            # Act - should not raise error even with old params
+            # Act - only pass required parameters
             eval_use, send_use, logger = build_services(
                 criteria_text="Test",
-                decision_mode="hybrid",  # Should be ignored
-                threshold=0.8,  # Should be ignored
-                weights={"python": 1.0},  # Should be ignored
+                template_text="Hi {{name}}",
+                prompt_ver="v1",
+                rubric_ver="v1",
             )
 
             # Assert

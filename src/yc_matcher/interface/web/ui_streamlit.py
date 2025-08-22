@@ -135,22 +135,18 @@ def render_three_input_mode() -> None:
 Environment Settings:
 • PLAYWRIGHT_HEADLESS: {os.getenv("PLAYWRIGHT_HEADLESS", "not set")}
 • PLAYWRIGHT_BROWSERS_PATH: {os.getenv("PLAYWRIGHT_BROWSERS_PATH", "not set")}
-• CUA_MODEL: {os.getenv("CUA_MODEL", "not set")}
-• CUA_MAX_TURNS: {os.getenv("CUA_MAX_TURNS", "10")}
-• PACE_MIN_SECONDS: {os.getenv("PACE_MIN_SECONDS", "45")}
+• CUA_MODEL: {config.get_cua_model() or "not set"}
+• CUA_MAX_TURNS: 10
+• PACE_MIN_SECONDS: {config.get_pace_seconds()}
 • Auto-Send: {auto_send}
 • Shadow Mode: {shadow_mode}
         """)
 
     # Advanced settings in expander (Clean Code: hide complexity)
     with st.expander("⚙️ Advanced Settings"):
-        # AI-ONLY: Removed threshold and alpha sliders
+        # Using AI-only decision mode
         st.info("🤖 Using AI-only decision mode")
-        decision_model = (
-            os.getenv("DECISION_MODEL_RESOLVED") or
-            os.getenv("OPENAI_DECISION_MODEL") or
-            "gpt-4o"
-        )
+        decision_model = config.get_decision_model()
         st.caption(f"Model: **{decision_model}**")
 
         # Set dummy values for backwards compatibility
@@ -159,7 +155,7 @@ Environment Settings:
 
         enable_cua = st.toggle(
             "Use OpenAI Computer Use",
-            value=os.getenv("ENABLE_CUA", "1") == "1",
+            value=config.is_cua_enabled(),
             help="Use AI to browse (vs Playwright fallback)",
             key="enable_cua_auto",
         )
@@ -210,7 +206,8 @@ Environment Settings:
 
         with col1:
             # Login status
-            has_credentials = bool(os.getenv("YC_EMAIL") and os.getenv("YC_PASSWORD"))
+            email, password = config.get_yc_credentials()
+            has_credentials = bool(email and password)
             browser = st.session_state.get("browser_instance")
             is_logged_in = False
             if browser and hasattr(browser, "is_logged_in"):
@@ -228,11 +225,7 @@ Environment Settings:
 
         with col2:
             # Model info
-            decision_model = (
-                os.getenv("DECISION_MODEL_RESOLVED")
-                or os.getenv("OPENAI_DECISION_MODEL")
-                or "gpt-4o"
-            )
+            decision_model = config.get_decision_model()
             st.info(f"🤖 **Model**: {decision_model}")
 
             # Engine type
@@ -241,7 +234,7 @@ Environment Settings:
 
         with col3:
             # Headless mode
-            headless = os.getenv("PLAYWRIGHT_HEADLESS", "0") == "1"
+            headless = os.getenv("PLAYWRIGHT_HEADLESS", "0") == "1"  # TODO: Add to config
             mode_str = "Headless" if headless else "Headful (visible)"
             st.info(f"👁️ **Browser**: {mode_str}")
 
@@ -302,7 +295,7 @@ Environment Settings:
             "mode": mode,
             "max_profiles": max_profiles,
             "shadow": shadow_mode,
-            # AI-ONLY: threshold and alpha no longer used
+            # Pass required parameters to build_services
             "threshold": None,
             "alpha": None,
             "auto_send": auto_send,
@@ -346,9 +339,6 @@ Environment Settings:
                     template_text=template_text,
                     prompt_ver="v1",
                     rubric_ver="v1",
-                    # AI-ONLY: decision_mode no longer used
-                    decision_mode=None,
-                    threshold=threshold,
                 )
 
                 browser = send_use.browser
@@ -392,7 +382,6 @@ Environment Settings:
                     limit=max_profiles,
                     shadow_mode=shadow_mode,
                     threshold=threshold,
-                    # AI-ONLY: alpha no longer used
                     alpha=0.5,
                 )
 
@@ -452,7 +441,7 @@ def render_paste_mode() -> None:
             stop_flag.set()
         else:
             stop_flag.clear()
-        if os.getenv("ENABLE_CALENDAR_QUOTA", "0") in {"1", "true", "True"}:
+        if config.is_calendar_quota_enabled():
             st.info("Calendar quota enabled (daily/weekly caps). Sends will be blocked at limit.")
         try:
             sent = read_count()
@@ -495,7 +484,7 @@ def render_paste_mode() -> None:
             with colB:
                 st.caption("Requires ENABLE_PLAYWRIGHT=1 and manual login in the opened browser.")
             if do_send:
-                if os.getenv("ENABLE_PLAYWRIGHT", "0") not in {"1", "true", "True"}:
+                if not config.is_playwright_enabled():
                     st.error("Set ENABLE_PLAYWRIGHT=1 in your environment to enable sending.")
                 else:
                     try:
@@ -515,9 +504,7 @@ def render_paste_mode() -> None:
                             seen=seen,
                             logger=logger2,
                         )
-                        url = getattr(settings, "yc_match_url", None) or os.getenv(
-                            "YC_MATCH_URL", "https://www.startupschool.org/cofounder-matching"
-                        )
+                        url = getattr(settings, "yc_match_url", None) or "https://www.startupschool.org/cofounder-matching"
                         pc(
                             url=str(url),
                             criteria=Criteria(text=criteria_text),
@@ -536,7 +523,7 @@ def main() -> None:
     Open/Closed: Easy to add new UI modes without modifying existing
     """
     # Feature flag for UI mode (Open/Closed Principle)
-    if os.getenv("USE_THREE_INPUT_UI", "false").lower() in {"true", "1", "yes"}:
+    if os.getenv("USE_THREE_INPUT_UI", "false").lower() in {"true", "1", "yes"}:  # TODO: Add to config
         render_three_input_mode()
     else:
         render_paste_mode()
