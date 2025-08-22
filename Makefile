@@ -57,7 +57,7 @@ doctor: ## Print env/caches to verify repo-scoped setup
 	@ls -ld .uv_cache .cache .ms-playwright .mplconfig .venv .runs || true
 
 run: ## Run Streamlit UI
-	$(PY) streamlit run -m yc_matcher.interface.web.ui_streamlit
+	$(PY) streamlit run src/yc_matcher/interface/web/ui_streamlit.py
 
 run-cli: ## Run CLI
 	$(PY) python -m yc_matcher.interface.cli.run --help
