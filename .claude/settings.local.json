@@ -179,7 +179,8 @@
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_cua_executes_actions_with_playwright -xvs)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_cua_executes_actions_with_playwright -xvs --tb=long)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_fallback_to_playwright_when_cua_fails -xvs)",
-      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py -k \"fallback_to_playwright_when_cua_fails or screenshot_encoding or verify_sent_strict\" -xvs)"
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py -k \"fallback_to_playwright_when_cua_fails or screenshot_encoding or verify_sent_strict\" -xvs)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py -k \"fallback_to_playwright_when_cua_fails or screenshot_encoding or verify_sent_strict\" -q)"
     ],
     "deny": [],
     "ask": []
