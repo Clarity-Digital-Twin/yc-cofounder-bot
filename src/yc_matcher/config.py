@@ -116,3 +116,33 @@ def is_calendar_quota_enabled() -> bool:
 def get_playwright_fallback_enabled() -> bool:
     """Whether to fallback to Playwright when CUA fails."""
     return os.getenv("ENABLE_PLAYWRIGHT_FALLBACK", "1") == "1"
+
+
+def is_headless() -> bool:
+    """Whether to run browser in headless mode."""
+    return os.getenv("PLAYWRIGHT_HEADLESS", "0") == "1"
+
+
+def use_three_input_ui() -> bool:
+    """Whether to use the three-input UI mode."""
+    return os.getenv("USE_THREE_INPUT_UI", "false").lower() in {"true", "1", "yes"}
+
+
+def get_cua_max_turns() -> int:
+    """Maximum turns for CUA loop."""
+    return int(os.getenv("CUA_MAX_TURNS", "40"))
+
+
+def get_cua_temperature() -> float:
+    """Temperature for CUA model."""
+    return float(os.getenv("CUA_TEMPERATURE", "0.3"))
+
+
+def get_cua_max_tokens() -> int:
+    """Max tokens for CUA model."""
+    return int(os.getenv("CUA_MAX_TOKENS", "1200"))
+
+
+def get_auto_browse_limit() -> int:
+    """Default limit for auto-browsing profiles."""
+    return int(os.getenv("AUTO_BROWSE_LIMIT", "10"))

@@ -91,7 +91,7 @@ def render_three_input_mode() -> None:
             "Max profiles to process",
             min_value=1,
             max_value=100,
-            value=10,  # Default auto browse limit
+            value=config.get_auto_browse_limit(),
             step=1,
             key="auto_quota",
         )
@@ -133,10 +133,10 @@ def render_three_input_mode() -> None:
         # Show key environment settings
         st.code(f"""
 Environment Settings:
-• PLAYWRIGHT_HEADLESS: {os.getenv("PLAYWRIGHT_HEADLESS", "not set")}
+• PLAYWRIGHT_HEADLESS: {config.is_headless()}
 • PLAYWRIGHT_BROWSERS_PATH: {os.getenv("PLAYWRIGHT_BROWSERS_PATH", "not set")}
 • CUA_MODEL: {config.get_cua_model() or "not set"}
-• CUA_MAX_TURNS: 10
+• CUA_MAX_TURNS: {config.get_cua_max_turns()}
 • PACE_MIN_SECONDS: {config.get_pace_seconds()}
 • Auto-Send: {auto_send}
 • Shadow Mode: {shadow_mode}
@@ -234,7 +234,7 @@ Environment Settings:
 
         with col3:
             # Headless mode
-            headless = os.getenv("PLAYWRIGHT_HEADLESS", "0") == "1"  # TODO: Add to config
+            headless = config.is_headless()
             mode_str = "Headless" if headless else "Headful (visible)"
             st.info(f"👁️ **Browser**: {mode_str}")
 
@@ -523,7 +523,7 @@ def main() -> None:
     Open/Closed: Easy to add new UI modes without modifying existing
     """
     # Feature flag for UI mode (Open/Closed Principle)
-    if os.getenv("USE_THREE_INPUT_UI", "false").lower() in {"true", "1", "yes"}:  # TODO: Add to config
+    if config.use_three_input_ui():
         render_three_input_mode()
     else:
         render_paste_mode()

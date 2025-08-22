@@ -272,17 +272,17 @@ class TestStreamlitUI:
             page_title="YC Matcher (Paste & Evaluate)", layout="wide"
         )
 
-    @patch("yc_matcher.interface.web.ui_streamlit.os")
+    @patch("yc_matcher.interface.web.ui_streamlit.config.use_three_input_ui")
     @patch("yc_matcher.interface.web.ui_streamlit.render_three_input_mode")
     @patch("yc_matcher.interface.web.ui_streamlit.render_paste_mode")
     def test_main_selects_mode_based_on_env(
-        self, mock_paste: Mock, mock_three: Mock, mock_os: Mock
+        self, mock_paste: Mock, mock_three: Mock, mock_use_three: Mock
     ) -> None:
         """Test main() selects UI mode based on environment variable."""
         from yc_matcher.interface.web.ui_streamlit import main
 
         # Test three-input mode
-        mock_os.getenv.return_value = "true"
+        mock_use_three.return_value = True
         main()
         mock_three.assert_called_once()
         mock_paste.assert_not_called()
@@ -292,7 +292,7 @@ class TestStreamlitUI:
         mock_paste.reset_mock()
 
         # Test paste mode (default)
-        mock_os.getenv.return_value = "false"
+        mock_use_three.return_value = False
         main()
         mock_paste.assert_called_once()
         mock_three.assert_not_called()

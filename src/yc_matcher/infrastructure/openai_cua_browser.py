@@ -40,13 +40,12 @@ class OpenAICUABrowser:
         self.model = config.get_cua_model()
         if not self.model:
             raise ValueError(
-                "No Computer Use model available. "
-                "CUA_MODEL env var not set. "
+                "No Computer Use model available (CUA_MODEL_RESOLVED / CUA_MODEL). "
                 "Check your Models endpoint at platform.openai.com/account/models"
             )
 
-        self.temperature = 0.3  # Default CUA temperature
-        self.max_tokens = 1200  # Default CUA max tokens
+        self.temperature = config.get_cua_temperature()
+        self.max_tokens = config.get_cua_max_tokens()
 
         # CRITICAL FIX: Use AsyncLoopRunner for single browser instance
         from .async_loop_runner import AsyncLoopRunner
@@ -59,7 +58,7 @@ class OpenAICUABrowser:
         # Response chaining
         self._prev_response_id: str | None = None
         self._turn_count = 0
-        self._max_turns = 10  # Default max turns
+        self._max_turns = config.get_cua_max_turns()
 
         # Fallback configuration
         self.fallback_enabled = config.get_playwright_fallback_enabled()
@@ -248,7 +247,7 @@ class OpenAICUABrowser:
         self._prev_response_id = response.id
 
         # 2) Loop until no computer_call items (with turn cap for safety)
-        MAX_TURNS = 40  # Extended for complex actions
+        MAX_TURNS = config.get_cua_max_turns()
         turns = 0
 
         while turns < MAX_TURNS:
