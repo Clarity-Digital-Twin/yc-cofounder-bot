@@ -344,7 +344,7 @@ class TestOpenAICUABrowserResponsesAPI:
         monkeypatch.delenv("CUA_MODEL", raising=False)
 
         # Act & Assert
-        with pytest.raises(ValueError, match="CUA_MODEL environment variable not set"):
+        with pytest.raises(ValueError, match="No Computer Use model available"):
             with patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI"):
                 OpenAICUABrowser()
 
