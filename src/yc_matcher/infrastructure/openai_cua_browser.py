@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import os
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
@@ -552,6 +553,59 @@ class OpenAICUABrowser:
 
         # Default to False for strict checking
         return False
+
+    def is_logged_in(self) -> bool:
+        """Check if user is logged into YC."""
+        return self._runner.submit(self._is_logged_in_async())
+    
+    async def _is_logged_in_async(self) -> bool:
+        """Check if user is logged into YC by looking for profile elements."""
+        page = await self._ensure_browser()
+        
+        # Check for elements that only appear when logged in
+        # Either "View profile" buttons or profile cards
+        return bool(
+            await page.locator('button:has-text("View profile")').count() > 0
+            or await page.locator(".profile-card").count() > 0
+            or await page.locator('[data-test="profile"]').count() > 0
+        )
+    
+    def ensure_logged_in(self) -> None:
+        """Ensure user is logged in, attempting auto-login if credentials available."""
+        self._runner.submit(self._ensure_logged_in_async())
+    
+    async def _ensure_logged_in_async(self) -> None:
+        """Perform login if not already logged in."""
+        if await self._is_logged_in_async():
+            return
+        
+        # Check for credentials
+        email = os.getenv("YC_EMAIL")
+        password = os.getenv("YC_PASSWORD")
+        
+        if not email or not password:
+            raise ValueError("YC_EMAIL and YC_PASSWORD environment variables required for auto-login")
+        
+        # Navigate to login page if needed
+        page = await self._ensure_browser()
+        current_url = page.url
+        if "login" not in current_url.lower():
+            await page.goto("https://www.startupschool.org/users/sign_in")
+            await page.wait_for_load_state("networkidle", timeout=5000)
+        
+        # Fill in login form
+        await page.fill('input[type="email"], input[name="email"], #user_email', email)
+        await page.fill('input[type="password"], input[name="password"], #user_password', password)
+        
+        # Submit login form
+        await page.click('button[type="submit"], input[type="submit"], button:has-text("Sign in")')
+        
+        # Wait for login to complete
+        await page.wait_for_load_state("networkidle", timeout=10000)
+        
+        # Verify login succeeded
+        if not await self._is_logged_in_async():
+            raise RuntimeError("Login failed - unable to find logged-in indicators")
 
     def skip(self) -> None:
         """Skip using single browser instance."""
