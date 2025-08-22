@@ -7,10 +7,10 @@
 - **Reality**: The model is just `gpt-5` (no "thinking" suffix)
 
 ### 2. Wrong API Key Initially
-- **First key**: `sk-proj-A3I4yBEMEqe2y_8O...` (project `proj_pdOmNo1KC3ZU6VNqGklpp2pk`)
+- **First key**: (REDACTED - old project key)
   - This key did NOT have GPT-5 access
   - Only had GPT-3.5 and GPT-4 models
-- **Second key**: `sk-proj-Omcidi4-pfOpAig0...` (new project)
+- **Second key**: (REDACTED - new project key)
   - This key DOES have GPT-5 access!
 
 ### 3. Wrong API Endpoint
