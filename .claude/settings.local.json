@@ -213,7 +213,8 @@
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_ai_only_decision.py -q)",
       "Bash(env PACE_MIN_SECONDS=0 make lint-fix)",
       "Bash(env PACE_MIN_SECONDS=0 make type)",
-      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_ui_events_panel.py tests/unit/test_ui_inputs_guard.py -q)"
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_ui_events_panel.py tests/unit/test_ui_inputs_guard.py -q)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_ui_events_panel.py::TestRecentEventsPanel::test_empty_events_file_does_not_crash tests/unit/test_ui_inputs_guard.py -q)"
     ],
     "deny": [],
     "ask": []
