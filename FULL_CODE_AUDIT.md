@@ -38,6 +38,7 @@ Scope: Deep audit of src/ and tests/, mapping responsibilities, correctness, ris
 - openai_decision.py: `OpenAIDecisionAdapter` uses `client.responses.create` and logs usage with token-derived cost estimates.
   - Status: Works; agnostic to SDK; stamped usage emitted.
   - Docs mismatch: Some docs claim Chat Completions; code uses Responses API which is fine. Update docs.
+  - DTO naming mismatch: Adapter stamps `prompt_ver`/`rubric_ver`, while `DecisionDTO` defines `prompt_version`. Align names or map when serializing.
 
 - openai_cua_browser.py: Responses API loop (`computer_use_preview`) + Playwright execution. Sync BrowserPort facade calls internal async via `asyncio.run`. Safety checks, STOP, screenshot callback, HIL callback supported.
   - Status: Architecturally correct. Tests verify the loop, safety checks, chaining, and screenshot encoding.
@@ -112,4 +113,3 @@ Scope: Deep audit of src/ and tests/, mapping responsibilities, correctness, ris
 4) Optional: DI flag for async singleton Playwright; otherwise document manual login.
 5) Wire (or document) model resolver usage at startup.
 6) Tests: add focused unit tests for 1–2 above and a smoke test for resolver.
-
