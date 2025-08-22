@@ -2,10 +2,9 @@
 """Check what OpenAI models are available."""
 
 from dotenv import load_dotenv
+from openai import OpenAI
 
 load_dotenv()
-
-from openai import OpenAI
 
 client = OpenAI()
 
