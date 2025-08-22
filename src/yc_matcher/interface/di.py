@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any, cast
+from typing import cast
 
 # from ..application.gating import GatedDecision  # AI-ONLY: No longer needed
 from ..application.ports import BrowserPort, DecisionPort  # AI-ONLY: Removed ScoringPort
 from ..application.use_cases import EvaluateProfile, SendMessage
+
 # from ..domain.services import WeightedScoringService  # AI-ONLY: No longer needed
 from ..infrastructure.jsonl_logger import JSONLLogger
 from ..infrastructure.local_decision import LocalDecisionAdapter
@@ -19,7 +20,6 @@ from ..infrastructure.sqlite_quota import SQLiteDailyWeeklyQuota
 from ..infrastructure.stop_flag import FileStopFlag
 from ..infrastructure.template_loader import load_default_template
 from ..infrastructure.templates import TemplateRenderer
-
 
 # AI-ONLY: Commented out RubricOnlyAdapter - no longer needed
 # class RubricOnlyAdapter(DecisionPort):
@@ -50,84 +50,85 @@ from ..infrastructure.templates import TemplateRenderer
 #         }
 
 
-def create_decision_adapter(
-    mode: str | None = None,
-    scoring: ScoringPort | None = None,
-    threshold: float = 4.0,
-    client: Any = None,
-    logger: Any = None,
-    prompt_ver: str = "v1",
-    rubric_ver: str = "v1",
-) -> DecisionPort:
-    """Factory method for decision adapters (Factory Pattern).
-
-    Strategy Pattern: Different decision strategies based on mode
-    Open/Closed: Easy to add new modes without modifying existing
-    """
-    mode = mode or os.getenv("DECISION_MODE", "hybrid")
-
-    # Create base decision adapter (AI-based)
-    ai_decision: DecisionPort = LocalDecisionAdapter()
-    if os.getenv("ENABLE_OPENAI", "0") in {"1", "true", "True"}:
-        try:
-            from ..infrastructure.openai_decision import OpenAIDecisionAdapter
-
-            if client is None:
-                try:
-                    from openai import OpenAI
-
-                    client = OpenAI()
-                except Exception:
-                    # Fallback client
-                    class _Noop:
-                        class responses:
-                            @staticmethod
-                            def create(**_: Any) -> Any:
-                                return type(
-                                    "R",
-                                    (),
-                                    {
-                                        "output": {
-                                            "decision": "NO",
-                                            "rationale": "offline",
-                                            "draft": "",
-                                        }
-                                    },
-                                )()
-
-                    client = _Noop()
-
-            ai_decision = OpenAIDecisionAdapter(
-                client=client, logger=logger, prompt_ver=prompt_ver, rubric_ver=rubric_ver
-            )
-        except Exception:
-            pass  # Keep LocalDecisionAdapter
-
-    # Mode-specific adapter creation
-    if mode == "advisor":
-        # Pure AI, no auto-send
-        if hasattr(ai_decision, "auto_send"):
-            ai_decision.auto_send = False
-        return ai_decision
-
-    elif mode == "rubric":
-        # Pure scoring, always auto-send if threshold met
-        if scoring is None:
-            raise ValueError("Rubric mode requires scoring service")
-        return RubricOnlyAdapter(scoring=scoring, threshold=threshold)
-
-    elif mode == "hybrid":
-        # Combined: scoring gate + AI decision
-        if scoring is None:
-            raise ValueError("Hybrid mode requires scoring service")
-
-        # Use environment variables for hybrid configuration
-        hybrid_threshold = float(os.getenv("HYBRID_THRESHOLD", str(threshold)))
-
-        return GatedDecision(scoring=scoring, decision=ai_decision, threshold=hybrid_threshold)
-
-    else:
-        raise ValueError(f"Unknown decision mode: {mode}")
+# AI-ONLY: Commented out create_decision_adapter - no longer needed
+# def create_decision_adapter(
+#     mode: str | None = None,
+#     scoring: ScoringPort | None = None,
+#     threshold: float = 4.0,
+#     client: Any = None,
+#     logger: Any = None,
+#     prompt_ver: str = "v1",
+#     rubric_ver: str = "v1",
+# ) -> DecisionPort:
+#     """Factory method for decision adapters (Factory Pattern).
+#
+#     Strategy Pattern: Different decision strategies based on mode
+#     Open/Closed: Easy to add new modes without modifying existing
+#     """
+#     mode = mode or os.getenv("DECISION_MODE", "hybrid")
+#
+#     # Create base decision adapter (AI-based)
+#     ai_decision: DecisionPort = LocalDecisionAdapter()
+#     if os.getenv("ENABLE_OPENAI", "0") in {"1", "true", "True"}:
+#         try:
+#             from ..infrastructure.openai_decision import OpenAIDecisionAdapter
+#
+#             if client is None:
+#                 try:
+#                     from openai import OpenAI
+#
+#                     client = OpenAI()
+#                 except Exception:
+#                     # Fallback client
+#                     class _Noop:
+#                         class responses:
+#                             @staticmethod
+#                             def create(**_: Any) -> Any:
+#                                 return type(
+#                                     "R",
+#                                     (),
+#                                     {
+#                                         "output": {
+#                                             "decision": "NO",
+#                                             "rationale": "offline",
+#                                             "draft": "",
+#                                         }
+#                                     },
+#                                 )()
+#
+#                     client = _Noop()
+#
+#             ai_decision = OpenAIDecisionAdapter(
+#                 client=client, logger=logger, prompt_ver=prompt_ver, rubric_ver=rubric_ver
+#             )
+#         except Exception:
+#             pass  # Keep LocalDecisionAdapter
+#
+#     # Mode-specific adapter creation
+#     if mode == "advisor":
+#         # Pure AI, no auto-send
+#         if hasattr(ai_decision, "auto_send"):
+#             ai_decision.auto_send = False
+#         return ai_decision
+#
+#     elif mode == "rubric":
+#         # Pure scoring, always auto-send if threshold met
+#         if scoring is None:
+#             raise ValueError("Rubric mode requires scoring service")
+#         return RubricOnlyAdapter(scoring=scoring, threshold=threshold)
+#
+#     elif mode == "hybrid":
+#         # Combined: scoring gate + AI decision
+#         if scoring is None:
+#             raise ValueError("Hybrid mode requires scoring service")
+#
+#         # Use environment variables for hybrid configuration
+#         hybrid_threshold = float(os.getenv("HYBRID_THRESHOLD", str(threshold)))
+#
+#         return GatedDecision(scoring=scoring, decision=ai_decision, threshold=hybrid_threshold)
+#
+#     else:
+#         raise ValueError(f"Unknown decision mode: {mode}")
 
 
 def build_services(
@@ -137,9 +138,10 @@ def build_services(
     prompt_ver: str = "v1",
     rubric_ver: str = "v1",
     criteria_preset: str | None = None,
-    weights: dict[str, float] | None = None,
-    threshold: float = 4.0,
-    decision_mode: str | None = None,
+    # AI-ONLY: Removed unused parameters (weights, threshold, decision_mode)
+    weights: dict[str, float] | None = None,  # Kept for backwards compat, ignored
+    threshold: float = 4.0,  # Kept for backwards compat, ignored
+    decision_mode: str | None = None,  # Kept for backwards compat, ignored
 ) -> tuple[EvaluateProfile, SendMessage, LoggerWithStamps]:
     # Resolve models at startup (once per session)
     # This sets DECISION_MODEL_RESOLVED and CUA_MODEL_RESOLVED env vars
@@ -150,27 +152,35 @@ def build_services(
             print(f"⚠️ Model resolution failed: {e}")
             # Continue with fallback to env vars
 
-    # Scoring
-    default_weights = {"python": 3.0, "fastapi": 2.0, "health": 2.0, "ny": 1.0, "crypto": -999.0}
-    _w = weights or default_weights
-    weights_float = {k: float(v) for k, v in _w.items()}
-    scoring = WeightedScoringService(weights_float)
+    # AI-ONLY: Scoring no longer needed
+    # default_weights = {"python": 3.0, "fastapi": 2.0, "health": 2.0, "ny": 1.0, "crypto": -999.0}
+    # _w = weights or default_weights
+    # weights_float = {k: float(v) for k, v in _w.items()}
+    # scoring = WeightedScoringService(weights_float)
 
     # Template rendering
     template = template_text if template_text is not None else load_default_template()
     renderer = TemplateRenderer(template=template, banned_phrases=["guarantee", "promise"])
 
-    # Create decision adapter based on mode (Strategy Pattern)
-    # Logger is created below, so pass None for now
-    decision = create_decision_adapter(
-        mode=decision_mode,
-        scoring=scoring,
-        threshold=threshold,
-        client=None,  # Will be created inside if needed
-        logger=None,  # Will be attached below
-        prompt_ver=prompt_ver,
-        rubric_ver=rubric_ver,
-    )
+    # AI-ONLY: Direct AI adapter creation (simplified from 3 modes to 1)
+    decision: DecisionPort = LocalDecisionAdapter()  # Default fallback
+    if os.getenv("ENABLE_OPENAI", "0") in {"1", "true", "True"}:
+        try:
+            from openai import OpenAI
+
+            from ..infrastructure.openai_decision import OpenAIDecisionAdapter
+
+            client = OpenAI()
+            decision = OpenAIDecisionAdapter(
+                client=client,
+                logger=None,  # Will be attached below
+                model=os.getenv("DECISION_MODEL_RESOLVED") or os.getenv("OPENAI_DECISION_MODEL") or "gpt-4o",
+                prompt_ver=prompt_ver,
+                rubric_ver=rubric_ver,
+            )
+        except Exception as e:
+            print(f"⚠️ OpenAI initialization failed: {e}, using local fallback")
+            # Keep LocalDecisionAdapter as fallback
 
     eval_use = EvaluateProfile(decision=decision, message=renderer)
 
@@ -186,10 +196,10 @@ def build_services(
     # Attach logger to decision adapter if it supports it
     if hasattr(decision, "logger") and decision.logger is None:
         decision.logger = logger
-    # For GatedDecision, attach to inner decision
-    if isinstance(decision, GatedDecision) and hasattr(decision.decision, "logger"):
-        if decision.decision.logger is None:
-            decision.decision.logger = logger
+    # AI-ONLY: GatedDecision no longer used
+    # if isinstance(decision, GatedDecision) and hasattr(decision.decision, "logger"):
+    #     if decision.decision.logger is None:
+    #         decision.decision.logger = logger
 
     # Quota: calendar-aware (daily/weekly) if enabled, else simple file counter
     quota = (

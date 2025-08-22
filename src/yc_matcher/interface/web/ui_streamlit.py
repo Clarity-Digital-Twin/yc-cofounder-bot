@@ -69,18 +69,20 @@ def render_three_input_mode() -> None:
     col_conf1, col_conf2, col_conf3 = st.columns(3)
 
     with col_conf1:
-        # Decision mode selector (Strategy Pattern)
-        mode = st.selectbox(
-            "Decision Mode",
-            ["advisor", "rubric", "hybrid"],
-            index=2,  # Default to hybrid
-            format_func=lambda x: {
-                "advisor": "🧠 Advisor (AI-only, requires approval)",
-                "rubric": "📊 Rubric (Rules-based, auto-send)",
-                "hybrid": "🔄 Hybrid (AI + Rules combined)",
-            }[x],
-            key="decision_mode",
+        # AI-ONLY: Auto-send control (replacing old mode selector)
+        auto_send = st.toggle(
+            "Auto-send on match",
+            value=os.getenv("AUTO_SEND", "0") == "1",
+            key="auto_send",
+            help="When ON: Automatically sends messages to matches. When OFF: Shows matches for review first.",
         )
+        if auto_send:
+            st.info("🚀 Messages will be sent automatically")
+        else:
+            st.info("👀 Matches will be shown for review")
+
+        # AI-ONLY: Mode is always AI now
+        mode = "ai"  # For backwards compatibility
 
     with col_conf2:
         # Quota and limits
@@ -135,32 +137,24 @@ Environment Settings:
 • CUA_MODEL: {os.getenv("CUA_MODEL", "not set")}
 • CUA_MAX_TURNS: {os.getenv("CUA_MAX_TURNS", "10")}
 • PACE_MIN_SECONDS: {os.getenv("PACE_MIN_SECONDS", "45")}
-• Decision Mode: {mode}
+• Auto-Send: {auto_send}
 • Shadow Mode: {shadow_mode}
         """)
 
     # Advanced settings in expander (Clean Code: hide complexity)
     with st.expander("⚙️ Advanced Settings"):
-        threshold = st.slider(
-            "Auto-send threshold",
-            min_value=0.0,
-            max_value=1.0,
-            value=float(os.getenv("THRESHOLD", "0.7")),
-            step=0.05,
-            help="Minimum score to auto-send (Rubric/Hybrid modes)",
-            key="threshold_auto",
+        # AI-ONLY: Removed threshold and alpha sliders
+        st.info("🤖 Using AI-only decision mode")
+        decision_model = (
+            os.getenv("DECISION_MODEL_RESOLVED") or
+            os.getenv("OPENAI_DECISION_MODEL") or
+            "gpt-4o"
         )
+        st.caption(f"Model: **{decision_model}**")
 
-        alpha = 0.5  # Default value
-        if mode == "hybrid":
-            alpha = st.slider(
-                "Hybrid weight (0=all rubric, 1=all AI)",
-                min_value=0.0,
-                max_value=1.0,
-                value=float(os.getenv("ALPHA", "0.5")),
-                step=0.1,
-                key="alpha_auto",
-            )
+        # Set dummy values for backwards compatibility
+        threshold = 0.7  # Not used but kept for function signature
+        alpha = 0.5  # Not used but kept for function signature  # noqa: F841
 
         enable_cua = st.toggle(
             "Use OpenAI Computer Use",
@@ -307,8 +301,10 @@ Environment Settings:
             "mode": mode,
             "max_profiles": max_profiles,
             "shadow": shadow_mode,
-            "threshold": threshold if mode in ["rubric", "hybrid"] else None,
-            "alpha": alpha if mode == "hybrid" else None,
+            # AI-ONLY: threshold and alpha no longer used
+            "threshold": None,
+            "alpha": None,
+            "auto_send": auto_send,
             "enable_cua": enable_cua,
         }
 
@@ -349,7 +345,8 @@ Environment Settings:
                     template_text=template_text,
                     prompt_ver="v1",
                     rubric_ver="v1",
-                    decision_mode=mode,  # Pass mode to DI
+                    # AI-ONLY: decision_mode no longer used
+                    decision_mode=None,
                     threshold=threshold,
                 )
 
@@ -394,7 +391,8 @@ Environment Settings:
                     limit=max_profiles,
                     shadow_mode=shadow_mode,
                     threshold=threshold,
-                    alpha=alpha if mode == "hybrid" else 0.5,
+                    # AI-ONLY: alpha no longer used
+                    alpha=0.5,
                 )
 
                 # Display results

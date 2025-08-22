@@ -2,6 +2,8 @@
 
 from unittest.mock import MagicMock, Mock, patch
 
+import pytest
+
 from yc_matcher.interface.web.ui_streamlit import render_paste_mode, render_three_input_mode
 
 
@@ -84,6 +86,7 @@ class TestStreamlitUI:
         # Verify text areas were created for all three inputs
         assert mock_st.text_area.call_count >= 3
 
+    @pytest.mark.skip(reason="AI-ONLY: Mode selector removed in simplification")
     @patch("yc_matcher.interface.web.ui_streamlit.st")
     def test_decision_mode_selector_options(self, mock_st: Mock) -> None:
         """Test that decision mode selector has correct options."""
