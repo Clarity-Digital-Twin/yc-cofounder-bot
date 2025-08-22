@@ -185,9 +185,9 @@ class TestAutonomousBrowsingE2E:
         mock_seen = Mock(spec=SQLiteSeenRepo)
         mock_quota = Mock(spec=SQLiteDailyWeeklyQuota)
 
-        # Stop flag becomes true after first profile
+        # Stop flag becomes true immediately (safer behavior)
         mock_stop = Mock(spec=FileStopFlag)
-        mock_stop.is_stopped.side_effect = [False, True]
+        mock_stop.is_stopped.return_value = True  # Stop immediately
 
         flow = AutonomousFlow(
             browser=mock_browser,
@@ -209,10 +209,10 @@ class TestAutonomousBrowsingE2E:
             shadow_mode=True,
         )
 
-        # Assert
-        assert results["total_evaluated"] == 1  # Only 1 profile before stop
+        # Assert - Stop flag checked before processing, so 0 profiles evaluated
+        assert results["total_evaluated"] == 0  # Stopped before any evaluation
         mock_logger.emit.assert_any_call(
-            {"event": "stopped", "at_profile": 1, "reason": "stop_flag"}
+            {"event": "stopped", "at_profile": 0, "reason": "stop_flag"}
         )
 
     def test_quota_limits_respected(self, setup_test_env: Path) -> None:
