@@ -1,0 +1,56 @@
+name: Debug CI
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Check files
+        run: |
+          echo "=== Repository structure ==="
+          ls -la
+          echo ""
+          echo "=== Check for pyproject.toml ==="
+          cat pyproject.toml | head -20
+          echo ""
+          echo "=== Check for uv.lock ==="
+          ls -la uv.lock || echo "No uv.lock found"
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install uv - Method 1
+        run: |
+          pip install uv
+          which uv
+          uv --version
+      
+      - name: Try uv venv
+        run: |
+          uv venv .venv
+          ls -la .venv/
+      
+      - name: Try uv sync
+        run: |
+          uv sync --frozen || uv sync
+          
+      - name: Check installed packages
+        run: |
+          uv pip list | grep -E "(ruff|mypy|pytest)" || echo "Tools not found"
+      
+      - name: Try running ruff directly
+        run: |
+          uv run ruff --version || echo "ruff not available via uv run"
+          .venv/bin/ruff --version || echo "ruff not in venv"
+          
+      - name: Try minimal test
+        run: |
+          uv run python -c "print('Python works')"
