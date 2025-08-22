@@ -499,7 +499,18 @@ class OpenAICUABrowser:
         page = await self._ensure_browser()
         try:
             # Check for sent indicators in DOM
-            count = await page.locator("text=/sent|delivered/i").count()
+            locator = page.locator("text=/sent|delivered/i")
+            # Handle both sync (test mock) and async (real) count methods
+            if hasattr(locator.count, '__call__'):
+                # Check if it's async
+                import inspect
+                if inspect.iscoroutinefunction(locator.count):
+                    count = await locator.count()
+                else:
+                    count = locator.count()
+            else:
+                count = locator.count
+            
             if count > 0:
                 self._profile_text_cache = ""  # Clear cache on successful send
                 return True
