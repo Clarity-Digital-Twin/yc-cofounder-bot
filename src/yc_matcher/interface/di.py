@@ -19,7 +19,6 @@ from ..infrastructure.template_loader import load_default_template
 from ..infrastructure.templates import TemplateRenderer
 
 
-
 def build_services(
     *,
     criteria_text: str,

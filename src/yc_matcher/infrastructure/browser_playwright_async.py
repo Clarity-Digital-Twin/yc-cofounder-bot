@@ -6,6 +6,7 @@ import os
 
 from playwright.async_api import Page
 
+from .. import config
 from .async_loop_runner import AsyncLoopRunner
 
 # SINGLETON: Share one AsyncLoopRunner across ALL browser instances
@@ -79,8 +80,7 @@ class PlaywrightBrowserAsync:
     async def _auto_login_if_needed(self, page: Page) -> None:
         """Automatically log in to YC if credentials are provided."""
 
-        email = os.getenv("YC_EMAIL")
-        password = os.getenv("YC_PASSWORD")
+        email, password = config.get_yc_credentials()
 
         if not email or not password:
             return  # No credentials, skip auto-login
