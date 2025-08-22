@@ -244,8 +244,11 @@ Environment Settings:
     # Last Events Panel
     if os.path.exists(".runs/events.jsonl"):
         with st.expander("📝 Recent Events", expanded=False):
-            col1, col2 = st.columns([3, 1])
+            col1, col2, col3 = st.columns([2, 1, 1])
             with col2:
+                if st.button("🔄 Refresh", key="refresh_events"):
+                    st.rerun()
+            with col3:
                 if st.button("🗑️ Clear", key="clear_events"):
                     # Clear the events file
                     with open(".runs/events.jsonl", "w") as f:
@@ -272,8 +275,10 @@ Environment Settings:
                         if line.strip():
                             try:
                                 event = json.loads(line)
-                                # Try to parse timestamp
+                                # Try to parse timestamp (handle both 'timestamp' and 'ts' fields)
                                 timestamp_str = event.get("timestamp", "")
+                                ts_unix = event.get("ts", None)
+                                
                                 if timestamp_str:
                                     try:
                                         event_time = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
@@ -283,7 +288,18 @@ Environment Settings:
                                     except:
                                         # If can't parse time, include it anyway (for backwards compat)
                                         recent_events.append(event)
+                                elif ts_unix:
+                                    # Handle Unix timestamp format
+                                    try:
+                                        event_time = datetime.fromtimestamp(ts_unix)
+                                        if event_time > cutoff_time:
+                                            # Convert ts to readable timestamp for display
+                                            event["timestamp"] = event_time.strftime("%Y-%m-%d %H:%M:%S")
+                                            recent_events.append(event)
+                                    except:
+                                        recent_events.append(event)
                                 else:
+                                    # No timestamp at all, include it
                                     recent_events.append(event)
                             except Exception:
                                 pass
