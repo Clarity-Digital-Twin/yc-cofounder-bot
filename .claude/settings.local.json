@@ -148,7 +148,10 @@
       "Bash(env PLAYWRIGHT_BROWSERS_PATH=/mnt/c/Users/JJ/Desktop/Clarity-Digital-Twin/yc-cofounder-bot/.ms-playwright ENABLE_PLAYWRIGHT=1 ENABLE_CUA=0 ENABLE_OPENAI=1 DECISION_MODE=hybrid USE_THREE_INPUT_UI=true PLAYWRIGHT_HEADLESS=0 YC_MATCH_URL=\"https://www.startupschool.org/cofounder-matching\" SHADOW_MODE=1 uv run streamlit run src/yc_matcher/interface/web/ui_streamlit.py --server.headless true --server.port 8503)",
       "Bash(env PLAYWRIGHT_BROWSERS_PATH=/mnt/c/Users/JJ/Desktop/Clarity-Digital-Twin/yc-cofounder-bot/.ms-playwright ENABLE_PLAYWRIGHT=1 ENABLE_CUA=0 ENABLE_OPENAI=1 DECISION_MODE=hybrid USE_THREE_INPUT_UI=true PLAYWRIGHT_HEADLESS=0 YC_MATCH_URL=\"https://www.startupschool.org/cofounder-matching\" SHADOW_MODE=0 uv run streamlit run src/yc_matcher/interface/web/ui_streamlit.py --server.headless true --server.port 8502)",
       "Bash(git tag:*)",
-      "Bash(gh release create:*)"
+      "Bash(gh release create:*)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_stop_check.py::TestStopCheckBeforeSend::test_pace_blocking_disabled_doesnt_sleep -xvs)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_stop_check.py::TestStopCheckBeforeSend::test_pace_blocking_enabled_does_sleep -xvs)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_required_environment_variables -xvs)"
     ],
     "deny": [],
     "ask": []
