@@ -22,11 +22,13 @@ class TestRecentEventsPanel:
     @patch("yc_matcher.interface.web.ui_streamlit.os.path.exists")
     def test_empty_events_file_does_not_crash(self, mock_exists: Mock, mock_path: Mock, mock_st: Mock) -> None:
         """Empty events file should show 'No recent events' without crashing."""
-        # Arrange - Empty file
+        # Arrange - Empty file exists
+        mock_exists.return_value = True
         mock_path.return_value.read_text.return_value = ""
         mock_st.expander.return_value.__enter__ = Mock()
         mock_st.expander.return_value.__exit__ = Mock()
         mock_st.columns.return_value = [Mock(), Mock(), Mock()]
+        mock_st.button.return_value = False  # No button clicks
 
         # Import here to trigger the code
         from yc_matcher.interface.web.ui_streamlit import render_events_panel
