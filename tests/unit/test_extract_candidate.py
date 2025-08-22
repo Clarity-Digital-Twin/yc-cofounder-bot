@@ -185,7 +185,7 @@ class TestExtractCandidate:
             with patch.object(browser, '_ensure_page_async', return_value=mock_page):
                 return await browser._runner.submit.call_args[0][0]()
 
-        mock_runner.submit.side_effect = lambda coro: mock_no_profiles()
+        mock_runner.submit.return_value = False  # No profiles found
 
         # Act
         result = browser.click_view_profile()
