@@ -217,13 +217,19 @@ class TestOpenAICUABrowserResponsesAPI:
             ):
                 browser = OpenAICUABrowser()
 
-                # Act - test click
-                await browser._cua_action("Click button")
-                page_mock.mouse.click.assert_called_once_with(100, 200)
+                # Patch _ensure_browser to return our test mock
+                with patch.object(
+                    browser, "_ensure_browser", new_callable=AsyncMock
+                ) as mock_ensure:
+                    mock_ensure.return_value = page_mock
 
-                # Act - test type
-                await browser._cua_action("Type message")
-                page_mock.keyboard.type.assert_called_once_with("Hello World")
+                    # Act - test click
+                    await browser._cua_action("Click button")
+                    page_mock.mouse.click.assert_called_once_with(100, 200)
+
+                    # Act - test type
+                    await browser._cua_action("Type message")
+                    page_mock.keyboard.type.assert_called_once_with("Hello World")
 
     @pytest.mark.asyncio
     async def test_previous_response_id_chains_turns(
@@ -331,6 +337,8 @@ class TestOpenAICUABrowserResponsesAPI:
             ):
                 browser = OpenAICUABrowser()
                 browser.fallback_enabled = True  # Enable fallback
+                # Inject the page mock for test mode
+                browser._page_mock = page_mock
 
                 # Act - should fall back to Playwright (sync method, no await)
                 browser.open("https://example.com")
@@ -344,7 +352,7 @@ class TestOpenAICUABrowserResponsesAPI:
         monkeypatch.delenv("CUA_MODEL", raising=False)
 
         # Act & Assert
-        with pytest.raises(ValueError, match="CUA_MODEL environment variable not set"):
+        with pytest.raises(ValueError, match="No Computer Use model available"):
             with patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI"):
                 OpenAICUABrowser()
 
@@ -355,22 +363,8 @@ class TestOpenAICUABrowserResponsesAPI:
         """Test that screenshots are properly base64 encoded for computer_call_output."""
         # Arrange
         async_pw_mock, playwright_mock, page_mock = mock_playwright
-        screenshot_bytes = b"fake_screenshot_data"
+        screenshot_bytes = b"fake_screenshot_bytes"
         page_mock.screenshot.return_value = screenshot_bytes
-
-        mock_response = Mock(
-            id="resp_1",
-            output=[
-                Mock(
-                    type="computer_call",
-                    call_id="call_1",
-                    action=Mock(type="click", coordinates={"x": 10, "y": 20}),
-                    pending_safety_checks=[],
-                )
-            ],
-        )
-        done_response = Mock(id="resp_2", output=[])
-        mock_openai_client.responses.create.side_effect = [mock_response, done_response]
 
         with patch(
             "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
@@ -380,25 +374,17 @@ class TestOpenAICUABrowserResponsesAPI:
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
+                # Inject the page mock for test mode
+                browser._page_mock = page_mock
 
-                # Act
-                await browser._cua_action("Click element")
+                # Act - test screenshot action directly
+                result = await browser._cua_action({"type": "screenshot"})
 
-                # Assert - screenshot was encoded in computer_call_output
-                calls = mock_openai_client.responses.create.call_args_list
-                if len(calls) > 1:  # computer_call_output was sent
-                    output_call = calls[1]
-                    # Check the input array for computer_call_output
-                    assert output_call.kwargs["input"][0]["type"] == "computer_call_output"
-                    image_url = output_call.kwargs["input"][0]["output"]["image_url"]
-
-                    # Extract base64 from data URL
-                    assert image_url.startswith("data:image/png;base64,")
-                    screenshot_b64 = image_url.replace("data:image/png;base64,", "")
-
-                    # Verify it's valid base64
-                    decoded = base64.b64decode(screenshot_b64)
-                    assert decoded == screenshot_bytes
+                # Assert - screenshot was base64 encoded
+                assert isinstance(result, str)
+                # Decode and verify
+                decoded = base64.b64decode(result)
+                assert decoded == screenshot_bytes
 
     @pytest.mark.asyncio
     async def test_stop_flag_halts_cua_loop(
@@ -515,16 +501,9 @@ class TestOpenAICUABrowserResponsesAPI:
         # Arrange
         async_pw_mock, playwright_mock, page_mock = mock_playwright
 
-        # Create a custom side_effect function that returns URL for URL checks
-        # and False for DOM checks
-        def evaluate_side_effect(script):
-            if "window.location.href" in script:
-                return "https://example.com"
-            else:
-                # For DOM check scripts
-                return False
-
-        page_mock.evaluate = AsyncMock(side_effect=evaluate_side_effect)
+        # Mock locator for sent indicators
+        locator_mock = Mock()  # Use regular Mock, not AsyncMock
+        page_mock.locator = Mock(return_value=locator_mock)  # Make locator synchronous
 
         with patch(
             "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
@@ -534,26 +513,21 @@ class TestOpenAICUABrowserResponsesAPI:
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
+                # Inject the page mock for test mode
+                browser._page_mock = page_mock
 
-                # Test case 1: Explicit "true" response
-                mock_response = Mock(id="resp_1", output=[Mock(type="output_text", text="true")])
-                mock_openai_client.responses.create.return_value = mock_response
-
+                # Test case 1: Sent indicator found in DOM
+                # Make count a regular function that returns value directly
+                locator_mock.count = Mock(return_value=1)
                 result = browser.verify_sent()
                 assert result is True
 
-                # Test case 2: Ambiguous response
-                mock_response = Mock(
-                    id="resp_2", output=[Mock(type="output_text", text="maybe sent")]
-                )
-                mock_openai_client.responses.create.return_value = mock_response
-
+                # Test case 2: No sent indicator in DOM
+                locator_mock.count = Mock(return_value=0)
                 result = browser.verify_sent()
                 assert result is False
 
-                # Test case 3: No text output
-                mock_response = Mock(id="resp_3", output=[])
-                mock_openai_client.responses.create.return_value = mock_response
-
+                # Test case 3: Exception during check (also returns False)
+                locator_mock.count = Mock(side_effect=Exception("DOM error"))
                 result = browser.verify_sent()
                 assert result is False

@@ -122,3 +122,49 @@ class TestStopCheckBeforeSend:
             mock_browser.fill_message.assert_called_once_with("Test message")
             mock_browser.send.assert_called_once()
             mock_browser.verify_sent.assert_called_once()
+
+    def test_pace_blocking_disabled_doesnt_sleep(self, tmp_path: Path) -> None:
+        """Test that PACE_BLOCKING=0 disables time.sleep."""
+        # Arrange
+        mock_browser = MagicMock()
+        mock_browser.verify_sent.return_value = True
+        mock_quota = MagicMock()
+        mock_quota.check_and_increment.return_value = True
+        mock_logger = MagicMock()
+
+        with patch.dict("os.environ", {"PACE_MIN_SECONDS": "45", "PACE_BLOCKING": "0"}):
+            with patch("time.sleep") as mock_sleep:
+                send_message = SendMessage(
+                    browser=mock_browser, quota=mock_quota, logger=mock_logger, stop=None
+                )
+
+                # Act
+                result = send_message(draft="Test message", limit=100)
+
+                # Assert - Should send but not sleep
+                assert result is True
+                mock_browser.send.assert_called_once()
+                mock_sleep.assert_not_called()  # Should NOT sleep when PACE_BLOCKING=0
+
+    def test_pace_blocking_enabled_does_sleep(self, tmp_path: Path) -> None:
+        """Test that PACE_BLOCKING=1 enables time.sleep."""
+        # Arrange
+        mock_browser = MagicMock()
+        mock_browser.verify_sent.return_value = True
+        mock_quota = MagicMock()
+        mock_quota.check_and_increment.return_value = True
+        mock_logger = MagicMock()
+
+        with patch.dict("os.environ", {"PACE_MIN_SECONDS": "45", "PACE_BLOCKING": "1"}):
+            with patch("time.sleep") as mock_sleep:
+                send_message = SendMessage(
+                    browser=mock_browser, quota=mock_quota, logger=mock_logger, stop=None
+                )
+
+                # Act
+                result = send_message(draft="Test message", limit=100)
+
+                # Assert - Should send and sleep
+                assert result is True
+                mock_browser.send.assert_called_once()
+                mock_sleep.assert_called_once_with(45)  # Should sleep when PACE_BLOCKING=1

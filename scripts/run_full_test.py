@@ -2,30 +2,30 @@
 """FINAL TEST - Simulates the EXACT flow a user would do."""
 
 import sys
-import os
-from pathlib import Path
 import time
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 # Load environment
 from dotenv import load_dotenv
+
 load_dotenv()
 
-print("="*70)
+print("=" * 70)
 print("🚀 TESTING COMPLETE FLOW - EXACTLY LIKE A USER")
-print("="*70)
+print("=" * 70)
 
 # Import what we need
-from yc_matcher.interface.di import build_services
 from yc_matcher.application.autonomous_flow import AutonomousFlow
-from yc_matcher.infrastructure.sqlite_repo import SQLiteSeenRepo
 from yc_matcher.infrastructure.sqlite_quota import SQLiteDailyWeeklyQuota
+from yc_matcher.infrastructure.sqlite_repo import SQLiteSeenRepo
 from yc_matcher.infrastructure.stop_flag import FileStopFlag
+from yc_matcher.interface.di import build_services
 
 # User's inputs (from the UI)
 your_profile = """
-Hey I'm Dr. Jung, a psychiatrist and builder. I'm currently shipping Brain Go Brrr: 
+Hey I'm Dr. Jung, a psychiatrist and builder. I'm currently shipping Brain Go Brrr:
 a clinical-grade EEG analysis platform for neurologists and psychiatrists.
 """
 
@@ -108,9 +108,9 @@ if results.get("results"):
     for i, result in enumerate(results["results"], 1):
         print(f"   • Profile {i}: {result.get('decision', 'N/A')}")
 
-print("\n" + "="*70)
+print("\n" + "=" * 70)
 print("✅ EVERYTHING WORKS!")
-print("="*70)
+print("=" * 70)
 print("\nThe app is functioning correctly:")
 print("• Browser opens automatically")
 print("• Auto-login works")

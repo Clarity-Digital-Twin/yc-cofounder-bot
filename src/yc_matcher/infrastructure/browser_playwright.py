@@ -48,16 +48,16 @@ class PlaywrightBrowser:
     def open(self, url: str) -> None:
         page = self._ensure_page()
         page.goto(url)
-    
+
     def is_logged_in(self) -> bool:
         """Check if user is logged into YC by looking for profile elements."""
         page = self._ensure_page()
         # Check for elements that only appear when logged in
         # Either "View profile" buttons or profile cards
-        return (
-            page.locator('button:has-text("View profile")').count() > 0 or
-            page.locator('.profile-card').count() > 0 or
-            page.locator('[data-test="profile"]').count() > 0
+        return bool(
+            page.locator('button:has-text("View profile")').count() > 0
+            or page.locator(".profile-card").count() > 0
+            or page.locator('[data-test="profile"]').count() > 0
         )
 
     # Convenience internal helper

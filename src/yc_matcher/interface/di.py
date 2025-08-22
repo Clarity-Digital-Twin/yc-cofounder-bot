@@ -13,12 +13,12 @@ from ..domain.services import WeightedScoringService
 from ..infrastructure.jsonl_logger import JSONLLogger
 from ..infrastructure.local_decision import LocalDecisionAdapter
 from ..infrastructure.logger_stamped import LoggerWithStamps
+from ..infrastructure.model_resolver import resolve_and_set_models
 from ..infrastructure.quota import FileQuota
 from ..infrastructure.sqlite_quota import SQLiteDailyWeeklyQuota
 from ..infrastructure.stop_flag import FileStopFlag
 from ..infrastructure.template_loader import load_default_template
 from ..infrastructure.templates import TemplateRenderer
-from ..infrastructure.model_resolver import resolve_and_set_models
 
 
 class RubricOnlyAdapter(DecisionPort):
@@ -148,7 +148,7 @@ def build_services(
         except Exception as e:
             print(f"⚠️ Model resolution failed: {e}")
             # Continue with fallback to env vars
-    
+
     # Scoring
     default_weights = {"python": 3.0, "fastapi": 2.0, "health": 2.0, "ny": 1.0, "crypto": -999.0}
     _w = weights or default_weights

@@ -1,21 +1,21 @@
 #!/usr/bin/env python
 """Test that browser singleton works correctly."""
 
-import sys
 import os
+import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 os.environ["PLAYWRIGHT_BROWSERS_PATH"] = ".ms-playwright"
-os.environ["ENABLE_PLAYWRIGHT"] = "1" 
+os.environ["ENABLE_PLAYWRIGHT"] = "1"
 os.environ["ENABLE_CUA"] = "0"
 os.environ["PLAYWRIGHT_HEADLESS"] = "0"
 
 from yc_matcher.infrastructure.browser_playwright_async import PlaywrightBrowserAsync
 
 print("Testing Browser Singleton Pattern")
-print("="*50)
+print("=" * 50)
 
 # Create first browser instance
 print("\n1. Creating first browser instance...")
@@ -51,7 +51,7 @@ try:
 except Exception as e:
     print(f"   ❌ Error: {e}")
 
-print("\n" + "="*50)
+print("\n" + "=" * 50)
 print("Test Complete!")
 print("\nThe singleton pattern is working correctly.")
 print("When you click 'Open Controlled Browser' and log in,")
@@ -60,6 +60,7 @@ print("the SAME browser window that's already logged in!")
 
 # Keep browser open for observation
 import time
+
 print("\nKeeping browser open for 10 seconds...")
 time.sleep(10)
 

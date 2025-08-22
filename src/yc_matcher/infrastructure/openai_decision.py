@@ -29,10 +29,10 @@ class OpenAIDecisionAdapter(DecisionPort):
         self.logger = logger
         # Use resolved model first, then env var fallback, then hardcoded fallback
         self.model = (
-            model 
+            model
             or os.getenv("DECISION_MODEL_RESOLVED")  # From model resolver
-            or os.getenv("OPENAI_DECISION_MODEL")     # From .env (legacy)
-            or "gpt-4o"                                # Ultimate fallback
+            or os.getenv("OPENAI_DECISION_MODEL")  # From .env (legacy)
+            or "gpt-4o"  # Ultimate fallback
         )
         self.prompt_ver = prompt_ver
         self.rubric_ver = rubric_ver
@@ -63,7 +63,7 @@ class OpenAIDecisionAdapter(DecisionPort):
 
     def evaluate(self, profile: Profile, criteria: Criteria) -> Mapping[str, Any]:
         import json
-        
+
         # Extract template from criteria if present
         template = ""
         if "\nMessage Template:" in criteria.text:
@@ -72,7 +72,7 @@ class OpenAIDecisionAdapter(DecisionPort):
             template = parts[1].strip()
         else:
             criteria_text = criteria.text
-        
+
         sys_prompt = (
             "You are an expert recruiter evaluating potential co-founder matches. "
             "You will analyze a candidate profile against specific criteria and make a decision. "
@@ -84,21 +84,18 @@ class OpenAIDecisionAdapter(DecisionPort):
             "- confidence: float between 0.0 and 1.0 indicating your confidence\n\n"
             "Be specific and reference actual details from their profile in the draft message."
         )
-        
-        user_text = (
-            f"MY CRITERIA:\n{criteria_text}\n\n"
-            f"CANDIDATE PROFILE:\n{profile.raw_text}\n\n"
-        )
-        
+
+        user_text = f"MY CRITERIA:\n{criteria_text}\n\nCANDIDATE PROFILE:\n{profile.raw_text}\n\n"
+
         if template:
             user_text += f"MESSAGE TEMPLATE (use this style but personalize it):\n{template}\n\n"
-        
+
         user_text += (
             "Evaluate if this candidate matches my criteria. "
             "If YES, write a personalized outreach message that references specific details from their profile. "
             "Make the message feel genuine and not like a template."
         )
-        
+
         # Use the correct OpenAI chat completions API
         try:
             resp = self.client.chat.completions.create(
@@ -109,13 +106,13 @@ class OpenAIDecisionAdapter(DecisionPort):
                 ],
                 response_format={"type": "json_object"},  # Force JSON response
                 temperature=0.7,  # Some creativity for message drafting
-                max_tokens=800,   # Enough for decision + message
+                max_tokens=800,  # Enough for decision + message
             )
-            
+
             # Parse the JSON response
             content = resp.choices[0].message.content
             payload = json.loads(content)
-            
+
             # Ensure required fields
             if "decision" not in payload:
                 payload["decision"] = "NO"
@@ -127,16 +124,16 @@ class OpenAIDecisionAdapter(DecisionPort):
                 payload["score"] = 0.5
             if "confidence" not in payload:
                 payload["confidence"] = 0.5
-                
+
         except Exception as e:
             # Fallback on any error
             self.logger.emit({"event": "openai_error", "error": str(e)}) if self.logger else None
             payload = {
-                "decision": "NO", 
-                "rationale": f"Error evaluating: {str(e)}", 
+                "decision": "NO",
+                "rationale": f"Error evaluating: {str(e)}",
                 "draft": "",
                 "score": 0.0,
-                "confidence": 0.0
+                "confidence": 0.0,
             }
 
         # Stamp versions to the payload for downstream use
@@ -144,6 +141,6 @@ class OpenAIDecisionAdapter(DecisionPort):
         payload.setdefault("rubric_ver", self.rubric_ver)
 
         # Log usage if present
-        self._log_usage(resp if 'resp' in locals() else None)
+        self._log_usage(resp if "resp" in locals() else None)
 
-        return payload
+        return dict(payload)

@@ -47,6 +47,11 @@ ignore = [
   "E501",  # allow longer lines where helpful; formatter will handle
 ]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/manual/*.py" = ["E402"]  # dev helpers; import after runtime prints
+"tests/unit/test_browser_safety.py" = ["E402"]  # sets env before importing module under test
+"scripts/*.py" = ["E402"]  # scripts may need runtime setup before imports
+
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
@@ -70,12 +75,53 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 minversion = "8.0"
-addopts = "-q -m 'not integration'"
-testpaths = ["tests"]
+addopts = """
+    -v
+    --tb=short
+    --strict-markers
+    -m 'not integration'
+    --cov=src/yc_matcher
+    --cov-report=term-missing:skip-covered
+    --cov-report=html:.coverage_html
+    --cov-branch
+    --color=yes
+"""
+testpaths = ["tests/unit", "tests/integration", "tests/e2e"]
 pythonpath = ["src"]
+norecursedirs = ["tests/manual", "*.egg", ".eggs", "dist", "build", "docs", ".tox", ".git", "__pycache__"]
 markers = [
   "integration: marks tests that require browsers or external UI (deselected by default)",
+  "asyncio: marks async tests",
+  "slow: marks slow tests",
 ]
+filterwarnings = [
+  "ignore:coroutine '.*' was never awaited:RuntimeWarning:unittest.mock",
+  "ignore:coroutine '.*' was never awaited:RuntimeWarning:coverage.sqldata",
+  "ignore:There is no current event loop:DeprecationWarning:asyncio",
+]
+
+[tool.coverage.run]
+source = ["src/yc_matcher"]
+branch = true
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/test_*.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "pass",
+    "except ImportError:",
+]
+precision = 2
+show_missing = true
+skip_covered = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/yc_matcher"]
@@ -84,4 +130,6 @@ packages = ["src/yc_matcher"]
 dev = [
     "pytest>=8.4.1",
     "pytest-asyncio>=1.1.0",
+    "pytest-cov>=4.1.0",
+    "pytest-sugar>=0.9.7",
 ]

@@ -94,24 +94,38 @@ class AutonomousFlow:
             }
         )
 
+        # CRITICAL: Login preflight gate
+        has_credentials = bool(os.getenv("YC_EMAIL") and os.getenv("YC_PASSWORD"))
+
+        # Check if already logged in or can auto-login
+        if hasattr(self.browser, "is_logged_in"):
+            if not self.browser.is_logged_in():
+                if has_credentials and hasattr(self.browser, "ensure_logged_in"):
+                    self.logger.emit({"event": "auto_login_attempt"})
+                    try:
+                        self.browser.ensure_logged_in()
+                        self.logger.emit({"event": "auto_login_success"})
+                    except Exception as e:
+                        self.logger.emit({"event": "auto_login_failed", "error": str(e)})
+                        return {"error": "Auto-login failed", "evaluated": 0, "sent": 0}
+                else:
+                    self.logger.emit(
+                        {"event": "login_required", "has_credentials": has_credentials}
+                    )
+                    return {
+                        "error": "Manual login required - no credentials in .env",
+                        "evaluated": 0,
+                        "sent": 0,
+                    }
+
         # Navigate to YC matching page
         yc_url = os.getenv("YC_MATCH_URL", "https://www.startupschool.org/cofounder-matching")
         self.browser.open(yc_url)
-        
-        # CRITICAL: Ensure logged in before proceeding
-        max_login_attempts = 30  # 30 seconds timeout
-        for i in range(max_login_attempts):
-            if hasattr(self.browser, 'is_logged_in') and self.browser.is_logged_in():
-                self.logger.emit({"event": "login_confirmed", "attempt": i})
-                break
-            if self.stop.is_stopped():
-                self.logger.emit({"event": "stopped", "reason": "stop_flag_during_login"})
-                return {"error": "Stopped during login"}
-            import time
-            time.sleep(1)
-        else:
-            self.logger.emit({"event": "login_failed", "reason": "timeout"})
-            return {"error": "Login required. Please log in manually and try again."}
+
+        # Verify login after navigation
+        if hasattr(self.browser, "is_logged_in") and not self.browser.is_logged_in():
+            self.logger.emit({"event": "login_lost_after_navigation"})
+            return {"error": "Login required after navigation", "evaluated": 0, "sent": 0}
 
         results = []
         sent_count = 0
