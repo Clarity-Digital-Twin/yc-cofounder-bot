@@ -19,7 +19,8 @@ class TestRecentEventsPanel:
 
     @patch("yc_matcher.interface.web.ui_streamlit.st")
     @patch("yc_matcher.interface.web.ui_streamlit.Path")
-    def test_empty_events_file_does_not_crash(self, mock_path: Mock, mock_st: Mock) -> None:
+    @patch("yc_matcher.interface.web.ui_streamlit.os.path.exists")
+    def test_empty_events_file_does_not_crash(self, mock_exists: Mock, mock_path: Mock, mock_st: Mock) -> None:
         """Empty events file should show 'No recent events' without crashing."""
         # Arrange - Empty file
         mock_path.return_value.read_text.return_value = ""
