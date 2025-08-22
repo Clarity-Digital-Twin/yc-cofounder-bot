@@ -437,7 +437,7 @@ class OpenAICUABrowser:
 
     async def _read_profile_text_async(self) -> str:
         """Extract and return profile text from current page using DOM extraction.
-        
+
         We use Playwright to extract ALL text from the DOM, not just visible text,
         to avoid truncation issues with long profiles that require scrolling.
         """

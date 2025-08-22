@@ -244,107 +244,6 @@ Environment Settings:
     # Last Events Panel
     render_events_panel()
 
-
-def render_events_panel() -> None:
-    """Render the Recent Events panel with Clear and Refresh buttons.
-    
-    Clean Code Principles:
-    - Single Responsibility: Only handles events display
-    - Testable: Extracted as separate function
-    - Error Handling: Gracefully handles all edge cases
-    """
-    if not os.path.exists(".runs/events.jsonl"):
-        return
-
-    with st.expander("📝 Recent Events", expanded=False):
-        col1, col2, col3 = st.columns([2, 1, 1])
-        with col2:
-            if st.button("🔄 Refresh", key="refresh_events"):
-                st.rerun()
-        with col3:
-            if st.button("🗑️ Clear", key="clear_events"):
-                # Clear the events file
-                with open(".runs/events.jsonl", "w") as f:
-                    f.write("")
-                st.rerun()
-
-        try:
-            import json
-            from datetime import datetime, timedelta
-
-            # Read last 20 events (more context)
-            events_path = Path(".runs/events.jsonl")
-            content = events_path.read_text().strip()
-            recent_events = []  # Initialize here to avoid undefined variable
-
-            if not content:
-                st.info("No recent events")
-            else:
-                lines = content.split("\n")
-
-                # Get only recent events (last hour)
-                cutoff_time = datetime.now() - timedelta(hours=1)
-
-                for line in lines[-20:]:
-                    if line.strip():
-                        try:
-                            event = json.loads(line)
-                            # Try to parse timestamp (handle both 'timestamp' and 'ts' fields)
-                            timestamp_str = event.get("timestamp", "")
-                            ts_unix = event.get("ts", None)
-
-                            if timestamp_str:
-                                try:
-                                    event_time = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
-                                    # Only include recent events
-                                    if event_time.replace(tzinfo=None) > cutoff_time:
-                                        recent_events.append(event)
-                                except:
-                                    # If can't parse time, include it anyway (for backwards compat)
-                                    recent_events.append(event)
-                            elif ts_unix:
-                                # Handle Unix timestamp format
-                                try:
-                                    event_time = datetime.fromtimestamp(ts_unix)
-                                    if event_time > cutoff_time:
-                                        # Convert ts to readable timestamp for display
-                                        event["timestamp"] = event_time.strftime("%Y-%m-%d %H:%M:%S")
-                                        recent_events.append(event)
-                                except:
-                                    recent_events.append(event)
-                            else:
-                                # No timestamp at all, include it
-                                recent_events.append(event)
-                        except Exception:
-                            pass
-
-            # Display in reverse order (newest first)
-            if not recent_events:
-                st.info("No events in the last hour. Events are cleared after 1 hour.")
-
-            for event in reversed(recent_events):
-                event_type = event.get("event", "unknown")
-                timestamp = event.get("timestamp", "")
-
-                # Color-code by event type with more detail
-                if event_type == "sent":
-                    st.success(f"✅ {timestamp} - {event_type}")
-                elif event_type in ["error", "stopped", "login_failed", "evaluation_error", "profile_processing_error", "openai_error"]:
-                    error_msg = event.get("error", "Unknown error")
-                    st.error(f"❌ {timestamp} - {event_type}: {error_msg[:100]}")
-                elif event_type == "decision":
-                    decision = event.get("data", {}).get("decision", "")
-                    if decision == "YES":
-                        st.info(f"👍 {timestamp} - decision: YES")
-                    elif decision == "ERROR":
-                        st.error(f"⚠️ {timestamp} - decision: ERROR")
-                    else:
-                        st.warning(f"👎 {timestamp} - decision: NO")
-                else:
-                    st.text(f"• {timestamp} - {event_type}")
-        except Exception as e:
-            st.error(f"Could not read events: {e}")
-
     # Main action button
     st.markdown("---")
     if st.button("🚀 Start Autonomous Browsing", type="primary", use_container_width=True):
@@ -497,6 +396,107 @@ def render_events_panel() -> None:
                 st.error(f"Failed to start: {e}")
                 with st.expander("Error Details", expanded=True):
                     st.code(traceback.format_exc())
+
+
+def render_events_panel() -> None:
+    """Render the Recent Events panel with Clear and Refresh buttons.
+
+    Clean Code Principles:
+    - Single Responsibility: Only handles events display
+    - Testable: Extracted as separate function
+    - Error Handling: Gracefully handles all edge cases
+    """
+    if not os.path.exists(".runs/events.jsonl"):
+        return
+
+    with st.expander("📝 Recent Events", expanded=False):
+        col1, col2, col3 = st.columns([2, 1, 1])
+        with col2:
+            if st.button("🔄 Refresh", key="refresh_events"):
+                st.rerun()
+        with col3:
+            if st.button("🗑️ Clear", key="clear_events"):
+                # Clear the events file
+                with open(".runs/events.jsonl", "w") as f:
+                    f.write("")
+                st.rerun()
+
+        try:
+            import json
+            from datetime import datetime, timedelta
+
+            # Read last 20 events (more context)
+            events_path = Path(".runs/events.jsonl")
+            content = events_path.read_text().strip()
+            recent_events = []  # Initialize here to avoid undefined variable
+
+            if not content:
+                st.info("No recent events")
+            else:
+                lines = content.split("\n")
+
+                # Get only recent events (last hour)
+                cutoff_time = datetime.now() - timedelta(hours=1)
+
+                for line in lines[-20:]:
+                    if line.strip():
+                        try:
+                            event = json.loads(line)
+                            # Try to parse timestamp (handle both 'timestamp' and 'ts' fields)
+                            timestamp_str = event.get("timestamp", "")
+                            ts_unix = event.get("ts", None)
+
+                            if timestamp_str:
+                                try:
+                                    event_time = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+                                    # Only include recent events
+                                    if event_time.replace(tzinfo=None) > cutoff_time:
+                                        recent_events.append(event)
+                                except Exception:
+                                    # If can't parse time, include it anyway (for backwards compat)
+                                    recent_events.append(event)
+                            elif ts_unix:
+                                # Handle Unix timestamp format
+                                try:
+                                    event_time = datetime.fromtimestamp(ts_unix)
+                                    if event_time > cutoff_time:
+                                        # Convert ts to readable timestamp for display
+                                        event["timestamp"] = event_time.strftime("%Y-%m-%d %H:%M:%S")
+                                        recent_events.append(event)
+                                except Exception:
+                                    recent_events.append(event)
+                            else:
+                                # No timestamp at all, include it
+                                recent_events.append(event)
+                        except Exception:
+                            pass
+
+            # Display in reverse order (newest first)
+            if not recent_events:
+                st.info("No events in the last hour. Events are cleared after 1 hour.")
+
+            for event in reversed(recent_events):
+                event_type = event.get("event", "unknown")
+                timestamp = event.get("timestamp", "")
+
+                # Color-code by event type with more detail
+                if event_type == "sent":
+                    st.success(f"✅ {timestamp} - {event_type}")
+                elif event_type in ["error", "stopped", "login_failed", "evaluation_error", "profile_processing_error", "openai_error"]:
+                    error_msg = event.get("error", "Unknown error")
+                    st.error(f"❌ {timestamp} - {event_type}: {error_msg[:100]}")
+                elif event_type == "decision":
+                    decision = event.get("data", {}).get("decision", "")
+                    if decision == "YES":
+                        st.info(f"👍 {timestamp} - decision: YES")
+                    elif decision == "ERROR":
+                        st.error(f"⚠️ {timestamp} - decision: ERROR")
+                    else:
+                        st.warning(f"👎 {timestamp} - decision: NO")
+                else:
+                    st.text(f"• {timestamp} - {event_type}")
+        except Exception as e:
+            st.error(f"Could not read events: {e}")
 
 
 def render_paste_mode() -> None:

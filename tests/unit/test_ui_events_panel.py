@@ -9,7 +9,7 @@ import pytest
 
 class TestRecentEventsPanel:
     """Test suite for Recent Events panel functionality.
-    
+
     Following Clean Code principles:
     - Single Responsibility: Each test checks ONE thing
     - Clear naming: Test names describe what they test
@@ -25,9 +25,21 @@ class TestRecentEventsPanel:
         # Arrange - Empty file exists
         mock_exists.return_value = True
         mock_path.return_value.read_text.return_value = ""
-        mock_st.expander.return_value.__enter__ = Mock()
-        mock_st.expander.return_value.__exit__ = Mock()
-        mock_st.columns.return_value = [Mock(), Mock(), Mock()]
+
+        # Setup expander as a proper context manager
+        mock_expander = Mock()
+        mock_expander.__enter__ = Mock(return_value=mock_expander)
+        mock_expander.__exit__ = Mock(return_value=None)
+        mock_st.expander.return_value = mock_expander
+
+        # Setup columns as context managers too
+        mock_cols = []
+        for _ in range(3):
+            col = Mock()
+            col.__enter__ = Mock(return_value=col)
+            col.__exit__ = Mock(return_value=None)
+            mock_cols.append(col)
+        mock_st.columns.return_value = mock_cols
         mock_st.button.return_value = False  # No button clicks
 
         # Import here to trigger the code
@@ -40,7 +52,8 @@ class TestRecentEventsPanel:
             if "recent_events" in str(e):
                 pytest.fail(f"recent_events not defined when file is empty: {e}")
 
-        # Assert - Should show empty state message
+        # Assert - Should show empty state message (but actually renders inside expander)
+        # Since empty string goes to 'not content' branch, it shows "No recent events"
         mock_st.info.assert_called_with("No recent events")
 
     @patch("yc_matcher.interface.web.ui_streamlit.st")
@@ -51,18 +64,28 @@ class TestRecentEventsPanel:
         now_unix = datetime.now().timestamp()
         event = {"ts": now_unix, "event": "test_event", "data": "test"}
         mock_path.return_value.read_text.return_value = json.dumps(event)
-        mock_st.expander.return_value.__enter__ = Mock()
-        mock_st.expander.return_value.__exit__ = Mock()
-        mock_st.columns.return_value = [Mock(), Mock(), Mock()]
+        # Setup expander as context manager
+        mock_expander = Mock()
+        mock_expander.__enter__ = Mock(return_value=mock_expander)
+        mock_expander.__exit__ = Mock(return_value=None)
+        mock_st.expander.return_value = mock_expander
+        # Setup columns as context managers
+        mock_cols = []
+        for _ in range(3):
+            col = Mock()
+            col.__enter__ = Mock(return_value=col)
+            col.__exit__ = Mock(return_value=None)
+            mock_cols.append(col)
+        mock_st.columns.return_value = mock_cols
+        mock_st.button.return_value = False
 
         from yc_matcher.interface.web.ui_streamlit import render_events_panel
 
         # Act
         render_events_panel()
 
-        # Assert - Should convert and display timestamp
-        # Check that info() was called with a timestamp string
-        calls = mock_st.info.call_args_list
+        # Assert - Should show the event (as text since it's not a special type)
+        calls = mock_st.text.call_args_list
         assert any("test_event" in str(call) for call in calls)
 
     @patch("yc_matcher.interface.web.ui_streamlit.st")
@@ -73,9 +96,20 @@ class TestRecentEventsPanel:
         now_iso = datetime.now().isoformat()
         event = {"timestamp": now_iso, "event": "decision", "data": {"decision": "YES"}}
         mock_path.return_value.read_text.return_value = json.dumps(event)
-        mock_st.expander.return_value.__enter__ = Mock()
-        mock_st.expander.return_value.__exit__ = Mock()
-        mock_st.columns.return_value = [Mock(), Mock(), Mock()]
+        # Setup expander as context manager
+        mock_expander = Mock()
+        mock_expander.__enter__ = Mock(return_value=mock_expander)
+        mock_expander.__exit__ = Mock(return_value=None)
+        mock_st.expander.return_value = mock_expander
+        # Setup columns as context managers
+        mock_cols = []
+        for _ in range(3):
+            col = Mock()
+            col.__enter__ = Mock(return_value=col)
+            col.__exit__ = Mock(return_value=None)
+            mock_cols.append(col)
+        mock_st.columns.return_value = mock_cols
+        mock_st.button.return_value = False
 
         from yc_matcher.interface.web.ui_streamlit import render_events_panel
 
@@ -99,19 +133,30 @@ class TestRecentEventsPanel:
             json.dumps({"ts": recent_time, "event": "recent_event"})
         ]
         mock_path.return_value.read_text.return_value = "\n".join(events)
-        mock_st.expander.return_value.__enter__ = Mock()
-        mock_st.expander.return_value.__exit__ = Mock()
-        mock_st.columns.return_value = [Mock(), Mock(), Mock()]
+        # Setup expander as context manager
+        mock_expander = Mock()
+        mock_expander.__enter__ = Mock(return_value=mock_expander)
+        mock_expander.__exit__ = Mock(return_value=None)
+        mock_st.expander.return_value = mock_expander
+        # Setup columns as context managers
+        mock_cols = []
+        for _ in range(3):
+            col = Mock()
+            col.__enter__ = Mock(return_value=col)
+            col.__exit__ = Mock(return_value=None)
+            mock_cols.append(col)
+        mock_st.columns.return_value = mock_cols
+        mock_st.button.return_value = False
 
         from yc_matcher.interface.web.ui_streamlit import render_events_panel
 
         # Act
         render_events_panel()
 
-        # Assert - Only recent event should be shown
-        info_calls = [str(call) for call in mock_st.info.call_args_list]
-        assert any("recent_event" in call for call in info_calls)
-        assert not any("old_event" in call for call in info_calls)
+        # Assert - Only recent event should be shown (as text since it's generic)
+        text_calls = [str(call) for call in mock_st.text.call_args_list]
+        assert any("recent_event" in call for call in text_calls)
+        assert not any("old_event" in call for call in text_calls)
 
     @patch("yc_matcher.interface.web.ui_streamlit.st")
     @patch("yc_matcher.interface.web.ui_streamlit.Path")
@@ -124,18 +169,29 @@ class TestRecentEventsPanel:
             "{broken json",
         ]
         mock_path.return_value.read_text.return_value = "\n".join(events)
-        mock_st.expander.return_value.__enter__ = Mock()
-        mock_st.expander.return_value.__exit__ = Mock()
-        mock_st.columns.return_value = [Mock(), Mock(), Mock()]
+        # Setup expander as context manager
+        mock_expander = Mock()
+        mock_expander.__enter__ = Mock(return_value=mock_expander)
+        mock_expander.__exit__ = Mock(return_value=None)
+        mock_st.expander.return_value = mock_expander
+        # Setup columns as context managers
+        mock_cols = []
+        for _ in range(3):
+            col = Mock()
+            col.__enter__ = Mock(return_value=col)
+            col.__exit__ = Mock(return_value=None)
+            mock_cols.append(col)
+        mock_st.columns.return_value = mock_cols
+        mock_st.button.return_value = False
 
         from yc_matcher.interface.web.ui_streamlit import render_events_panel
 
         # Act - Should not raise exception
         render_events_panel()
 
-        # Assert - Valid event should still be shown
-        info_calls = [str(call) for call in mock_st.info.call_args_list]
-        assert any("valid_event" in call for call in info_calls)
+        # Assert - Valid event should still be shown (as text since it's generic)
+        text_calls = [str(call) for call in mock_st.text.call_args_list]
+        assert any("valid_event" in call for call in text_calls)
 
     @patch("yc_matcher.interface.web.ui_streamlit.st")
     @patch("yc_matcher.interface.web.ui_streamlit.os.path.exists")
@@ -163,9 +219,19 @@ class TestEventsPanelButtons:
         """Clear button should empty the events file."""
         # Arrange
         mock_path.return_value.read_text.return_value = '{"event": "test"}'
-        mock_st.expander.return_value.__enter__ = Mock()
-        mock_st.expander.return_value.__exit__ = Mock()
-        mock_st.columns.return_value = [Mock(), Mock(), Mock()]
+        # Setup expander as context manager
+        mock_expander = Mock()
+        mock_expander.__enter__ = Mock(return_value=mock_expander)
+        mock_expander.__exit__ = Mock(return_value=None)
+        mock_st.expander.return_value = mock_expander
+        # Setup columns as context managers
+        mock_cols = []
+        for _ in range(3):
+            col = Mock()
+            col.__enter__ = Mock(return_value=col)
+            col.__exit__ = Mock(return_value=None)
+            mock_cols.append(col)
+        mock_st.columns.return_value = mock_cols
         mock_st.button.side_effect = [False, True]  # Refresh=False, Clear=True
 
         from yc_matcher.interface.web.ui_streamlit import render_events_panel
@@ -182,9 +248,19 @@ class TestEventsPanelButtons:
     def test_refresh_button_triggers_rerun(self, mock_st: Mock) -> None:
         """Refresh button should trigger streamlit rerun."""
         # Arrange
-        mock_st.expander.return_value.__enter__ = Mock()
-        mock_st.expander.return_value.__exit__ = Mock()
-        mock_st.columns.return_value = [Mock(), Mock(), Mock()]
+        # Setup expander as context manager
+        mock_expander = Mock()
+        mock_expander.__enter__ = Mock(return_value=mock_expander)
+        mock_expander.__exit__ = Mock(return_value=None)
+        mock_st.expander.return_value = mock_expander
+        # Setup columns as context managers
+        mock_cols = []
+        for _ in range(3):
+            col = Mock()
+            col.__enter__ = Mock(return_value=col)
+            col.__exit__ = Mock(return_value=None)
+            mock_cols.append(col)
+        mock_st.columns.return_value = mock_cols
         mock_st.button.side_effect = [True, False]  # Refresh=True, Clear=False
 
         from yc_matcher.interface.web.ui_streamlit import render_events_panel

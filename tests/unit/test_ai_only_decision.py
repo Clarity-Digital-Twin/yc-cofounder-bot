@@ -72,13 +72,21 @@ class TestAIOnlyDecision:
         # Act
         adapter.evaluate(profile, criteria)
 
-        # Assert
-        mock_logger.emit.assert_called_once()
-        usage_event = mock_logger.emit.call_args[0][0]
-        assert usage_event["event"] == "model_usage"
+        # Assert - Now logs both model_usage and decision_latency
+        assert mock_logger.emit.call_count == 2
+        calls = mock_logger.emit.call_args_list
+
+        # Find the model_usage event
+        usage_events = [call[0][0] for call in calls if call[0][0]["event"] == "model_usage"]
+        assert len(usage_events) == 1
+        usage_event = usage_events[0]
         assert usage_event["tokens_in"] == 200
         assert usage_event["tokens_out"] == 100
         assert "cost_est" in usage_event
+
+        # Check decision_latency event exists
+        latency_events = [call[0][0] for call in calls if call[0][0]["event"] == "decision_latency"]
+        assert len(latency_events) == 1
 
     def test_ai_decision_handles_api_errors(self) -> None:
         """Test graceful fallback when API fails."""
