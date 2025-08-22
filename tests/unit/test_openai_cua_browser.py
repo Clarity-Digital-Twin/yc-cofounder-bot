@@ -515,16 +515,17 @@ class TestOpenAICUABrowserResponsesAPI:
                 browser._page_mock = page_mock
 
                 # Test case 1: Sent indicator found in DOM
-                locator_mock.count.return_value = 1
+                # Make count a regular function that returns value directly
+                locator_mock.count = Mock(return_value=1)
                 result = browser.verify_sent()
                 assert result is True
 
                 # Test case 2: No sent indicator in DOM
-                locator_mock.count.return_value = 0
+                locator_mock.count = Mock(return_value=0)
                 result = browser.verify_sent()
                 assert result is False
 
                 # Test case 3: Exception during check (also returns False)
-                locator_mock.count.side_effect = Exception("DOM error")
+                locator_mock.count = Mock(side_effect=Exception("DOM error"))
                 result = browser.verify_sent()
                 assert result is False
