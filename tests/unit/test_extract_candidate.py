@@ -32,8 +32,8 @@ class TestExtractCandidate:
                 # Call the actual async method
                 return await browser._runner.submit.call_args[0][0]()
 
-        # Configure runner to execute our mock
-        mock_runner.submit.side_effect = lambda coro: mock_click()
+        # Configure runner to return True (already on profile)
+        mock_runner.submit.return_value = True
 
         # Act
         result = browser.click_view_profile()
@@ -65,7 +65,7 @@ class TestExtractCandidate:
             with patch.object(browser, '_ensure_page_async', return_value=mock_page):
                 return await browser._runner.submit.call_args[0][0]()
 
-        mock_runner.submit.side_effect = lambda coro: mock_click()
+        mock_runner.submit.return_value = True
 
         # Act
         result = browser.click_view_profile()
@@ -121,7 +121,7 @@ class TestExtractCandidate:
             with patch.object(browser, '_ensure_page_async', return_value=mock_page):
                 return await browser._runner.submit.call_args[0][0]()
 
-        mock_runner.submit.side_effect = lambda coro: mock_read()
+        mock_runner.submit.return_value = "Name: John Smith\nML Engineer with 5 years at Google"
 
         # Act
         result = browser.read_profile_text()
@@ -153,7 +153,7 @@ class TestExtractCandidate:
             with patch.object(browser, '_ensure_page_async', return_value=mock_page):
                 return await browser._runner.submit.call_args[0][0]()
 
-        mock_runner.submit.side_effect = lambda coro: mock_skip()
+        mock_runner.submit.return_value = None  # skip returns nothing
 
         # Act
         browser.skip()

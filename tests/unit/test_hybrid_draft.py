@@ -17,7 +17,7 @@ class TestHybridDraft:
         """Test that hybrid mode returns draft when above threshold."""
         # Arrange
         mock_scoring = MagicMock(spec=ScoringPort)
-        mock_scoring.score.return_value = Score(value=5.0, details={})  # Above threshold
+        mock_scoring.score.return_value = Score(value=5.0, reasons=[], details={})  # Above threshold
 
         mock_decision = MagicMock(spec=DecisionPort)
         mock_decision.evaluate.return_value = {
@@ -52,7 +52,7 @@ class TestHybridDraft:
         """Test that hybrid mode returns AI draft even when forcing NO due to threshold."""
         # Arrange
         mock_scoring = MagicMock(spec=ScoringPort)
-        mock_scoring.score.return_value = Score(value=2.0, details={})  # Below threshold
+        mock_scoring.score.return_value = Score(value=2.0, reasons=[], details={})  # Below threshold
 
         mock_decision = MagicMock(spec=DecisionPort)
         mock_decision.evaluate.return_value = {
@@ -89,7 +89,7 @@ class TestHybridDraft:
         """Test that hybrid mode handles red flags properly."""
         # Arrange
         mock_scoring = MagicMock(spec=ScoringPort)
-        mock_scoring.score.return_value = Score(value=-999.0, details={"crypto": -999})  # Red flag
+        mock_scoring.score.return_value = Score(value=-999.0, reasons=["crypto"], details={"crypto": -999})  # Red flag
 
         mock_decision = MagicMock(spec=DecisionPort)
         mock_decision.evaluate.return_value = {
@@ -125,7 +125,7 @@ class TestHybridDraft:
         """Test that hybrid mode handles missing draft gracefully."""
         # Arrange
         mock_scoring = MagicMock(spec=ScoringPort)
-        mock_scoring.score.return_value = Score(value=3.0, details={})
+        mock_scoring.score.return_value = Score(value=3.0, reasons=[], details={})
 
         mock_decision = MagicMock(spec=DecisionPort)
         mock_decision.evaluate.return_value = {
