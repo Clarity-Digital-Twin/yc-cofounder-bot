@@ -27,7 +27,13 @@ class OpenAIDecisionAdapter(DecisionPort):
     ) -> None:
         self.client = client
         self.logger = logger
-        self.model = model or os.getenv("OPENAI_DECISION_MODEL", "gpt-decide-mock")
+        # Use resolved model first, then env var fallback, then hardcoded fallback
+        self.model = (
+            model 
+            or os.getenv("DECISION_MODEL_RESOLVED")  # From model resolver
+            or os.getenv("OPENAI_DECISION_MODEL")     # From .env (legacy)
+            or "gpt-4o"                                # Ultimate fallback
+        )
         self.prompt_ver = prompt_ver
         self.rubric_ver = rubric_ver
 

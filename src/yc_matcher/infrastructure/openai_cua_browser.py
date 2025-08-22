@@ -34,11 +34,12 @@ class OpenAICUABrowser:
         # OpenAI client for Responses API
         self.client: Any = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-        # Model configuration
-        self.model = os.getenv("CUA_MODEL")
+        # Model configuration - use resolved model first, then env var
+        self.model = os.getenv("CUA_MODEL_RESOLVED") or os.getenv("CUA_MODEL")
         if not self.model:
             raise ValueError(
-                "CUA_MODEL environment variable not set. "
+                "No Computer Use model available. "
+                "Either CUA_MODEL_RESOLVED (from auto-discovery) or CUA_MODEL env var not set. "
                 "Check your Models endpoint at platform.openai.com/account/models"
             )
 

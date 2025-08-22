@@ -12,7 +12,7 @@ load_dotenv()
 # Set up environment
 os.environ["ENABLE_OPENAI"] = "1"
 os.environ["DECISION_MODE"] = "hybrid"
-os.environ["OPENAI_DECISION_MODEL"] = "gpt-4o"  # GPT-4 Omni model
+os.environ["OPENAI_DECISION_MODEL"] = "gpt-5-thinking"  # GPT-5-THINKING ONLY!
 
 from openai import OpenAI
 from src.yc_matcher.infrastructure.openai_decision import OpenAIDecisionAdapter
@@ -21,7 +21,7 @@ from src.yc_matcher.domain.entities import Profile, Criteria
 def test_decision_with_message_generation():
     """Test that GPT-5-thinking generates actual message drafts."""
     
-    print("\n🤖 Testing GPT-5-thinking Decision Engine...")
+    print("\n🤖 Testing GPT-5-THINKING Decision Engine (NO GPT-4 EVER!)...")
     print(f"Model: {os.getenv('OPENAI_DECISION_MODEL')}")
     
     # Create OpenAI client
@@ -30,7 +30,7 @@ def test_decision_with_message_generation():
     # Create decision adapter
     decision = OpenAIDecisionAdapter(
         client=client,
-        model="gpt-4o"
+        model="gpt-5-thinking"  # GPT-5-THINKING ONLY!
     )
     
     # Test profile (example)
