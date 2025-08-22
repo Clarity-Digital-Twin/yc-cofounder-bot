@@ -146,3 +146,13 @@ def get_cua_max_tokens() -> int:
 def get_auto_browse_limit() -> int:
     """Default limit for auto-browsing profiles."""
     return int(os.getenv("AUTO_BROWSE_LIMIT", "10"))
+
+
+def is_debug_mode() -> bool:
+    """Whether to enable debug logging and verbose output."""
+    return os.getenv("DEBUG_MODE", "0") in {"1", "true", "True"}
+
+
+def get_log_level() -> str:
+    """Get logging level (DEBUG, INFO, WARNING, ERROR)."""
+    return os.getenv("LOG_LEVEL", "DEBUG" if is_debug_mode() else "INFO")

@@ -191,7 +191,9 @@
       "Bash(git mv:*)",
       "Bash(set -a)",
       "Bash(set +a)",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_decision.py -xvs -k \"test_openai\")",
+      "Bash(export DEBUG_MODE=1)"
     ],
     "deny": [],
     "ask": []

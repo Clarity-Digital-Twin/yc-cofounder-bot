@@ -14,16 +14,15 @@
 
 ### 3. Correct API Usage (Responses API)
 ```python
-# CORRECT - GPT-5 uses Responses API
+# CORRECT - GPT-5 uses Responses API (UPDATED: Fixed parameters)
 response = client.responses.create(
     model="gpt-5",
     input=[
         {"role": "system", "content": "You are a helpful assistant"},
         {"role": "user", "content": "Hello"}
     ],
-    reasoning_effort="medium",  # GPT-5 specific
-    verbosity="normal",  # GPT-5 specific
-    max_completion_tokens=800,  # NOT max_tokens!
+    max_output_tokens=800,  # IMPORTANT: max_output_tokens, NOT max_completion_tokens!
+    # NOTE: reasoning_effort, verbosity, response_format are NOT supported
 )
 
 # WRONG - This will fail with GPT-5
@@ -37,9 +36,10 @@ response = client.chat.completions.create(
 ### 4. Key Differences from GPT-4
 - **Different API**: Responses API vs Chat Completions
 - **Different parameters**: 
-  - `max_completion_tokens` instead of `max_tokens`
-  - `reasoning_effort` (minimal/low/medium/high)
-  - `verbosity` (short/normal/long)
+  - `max_output_tokens` instead of `max_tokens` (CRITICAL FIX!)
+  - `input` instead of `messages`
+  - NO `response_format` parameter (use prompt instructions for JSON)
+  - NO `reasoning_effort` or `verbosity` (not supported in current SDK)
 - **Pricing**: $1.25/1M input, $10/1M output
 
 ### 5. Common Errors and Solutions
@@ -50,7 +50,15 @@ response = client.chat.completions.create(
 
 #### Error: "unsupported_parameter: max_tokens"
 **Cause**: Using Chat Completions API with GPT-5
-**Solution**: Use Responses API with `max_completion_tokens`
+**Solution**: Use Responses API with `max_output_tokens`
+
+#### Error: "unexpected keyword argument 'response_format'"
+**Cause**: Responses API doesn't support response_format parameter
+**Solution**: Request JSON in the prompt itself
+
+#### Error: "unexpected keyword argument 'reasoning_effort'"
+**Cause**: Parameter not supported in current SDK version
+**Solution**: Remove this parameter
 
 ## 🔴 MYTHS TO FORGET
 
@@ -67,7 +75,9 @@ response = client.chat.completions.create(
 
 - [x] Model ID is `gpt-5` not `gpt-5-thinking`
 - [x] Using Responses API for GPT-5
-- [x] Using `max_completion_tokens` not `max_tokens`
+- [x] Using `max_output_tokens` not `max_tokens`
+- [x] NO `response_format` parameter (request JSON in prompt)
+- [x] NO `reasoning_effort` or `verbosity` parameters
 - [x] Fallback to GPT-4 when GPT-5 unavailable
 - [x] Check models.list() before assuming access
 
@@ -95,7 +105,7 @@ def call_model(client, model, prompt):
         return client.responses.create(
             model=model,
             input=[{"role": "user", "content": prompt}],
-            max_completion_tokens=1000
+            max_output_tokens=1000  # Fixed: max_output_tokens
         )
     else:
         # Use Chat Completions for GPT-4
@@ -118,5 +128,12 @@ OPENAI_DECISION_MODEL=gpt-5-thinking  # Doesn't exist!
 
 ---
 
-**Last Updated**: August 22, 2025
-**Verified Working**: Yes, with correct API key
+**Last Updated**: August 22, 2025 (CRITICAL FIX)
+**Verified Working**: Yes, with correct API key and parameters
+
+## ⚠️ CRITICAL PARAMETER FIXES (Aug 22)
+
+1. **USE**: `max_output_tokens` (Responses API)
+2. **NOT**: `max_tokens` or `max_completion_tokens`
+3. **NO**: `response_format`, `reasoning_effort`, `verbosity`
+4. **SDK**: Requires openai>=1.101.0

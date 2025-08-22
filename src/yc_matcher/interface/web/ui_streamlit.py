@@ -264,15 +264,18 @@ Environment Settings:
                     event_type = event.get("event", "unknown")
                     timestamp = event.get("timestamp", "")
 
-                    # Color-code by event type
+                    # Color-code by event type with more detail
                     if event_type == "sent":
                         st.success(f"✅ {timestamp} - {event_type}")
-                    elif event_type in ["error", "stopped", "login_failed"]:
-                        st.error(f"❌ {timestamp} - {event_type}")
+                    elif event_type in ["error", "stopped", "login_failed", "evaluation_error", "profile_processing_error", "openai_error"]:
+                        error_msg = event.get("error", "Unknown error")
+                        st.error(f"❌ {timestamp} - {event_type}: {error_msg[:100]}")
                     elif event_type == "decision":
                         decision = event.get("data", {}).get("decision", "")
                         if decision == "YES":
                             st.info(f"👍 {timestamp} - decision: YES")
+                        elif decision == "ERROR":
+                            st.error(f"⚠️ {timestamp} - decision: ERROR")
                         else:
                             st.warning(f"👎 {timestamp} - decision: NO")
                     else:
@@ -388,17 +391,42 @@ Environment Settings:
                 # Display results
                 st.success("✅ Autonomous browsing complete!")
 
-                col_metrics1, col_metrics2, col_metrics3 = st.columns(3)
+                # Count errors
+                error_count = sum(1 for r in results.get("results", []) if r.get("decision") == "ERROR")
+                
+                col_metrics1, col_metrics2, col_metrics3, col_metrics4 = st.columns(4)
                 with col_metrics1:
                     st.metric("Evaluated", results["total_evaluated"])
                 with col_metrics2:
                     st.metric("Sent", results["total_sent"])
                 with col_metrics3:
                     st.metric("Skipped", results["total_skipped"])
+                with col_metrics4:
+                    st.metric("⚠️ Errors", error_count)
+                
+                # Show errors prominently if any occurred
+                if error_count > 0:
+                    st.error(f"⚠️ {error_count} profiles failed to evaluate!")
+                    with st.expander("🔴 Error Details", expanded=True):
+                        for r in results.get("results", []):
+                            if r.get("decision") == "ERROR":
+                                st.error(f"Profile {r.get('profile_num')}: {r.get('rationale', 'Unknown error')}")
+                                if "error" in r:
+                                    st.code(r["error"])
 
                 # Show detailed results in expander
-                with st.expander("📊 Detailed Results", expanded=False):
-                    st.json(results["results"])
+                with st.expander("📊 All Results", expanded=False):
+                    # Show results in a more readable format
+                    for r in results.get("results", []):
+                        decision = r.get("decision", "?")
+                        profile = r.get("profile_num", "?")
+                        
+                        if decision == "YES":
+                            st.success(f"Profile {profile}: ✅ {decision} - {r.get('rationale', '')}")
+                        elif decision == "NO":
+                            st.info(f"Profile {profile}: ❌ {decision} - {r.get('rationale', '')}")
+                        elif decision == "ERROR":
+                            st.error(f"Profile {profile}: ⚠️ ERROR - {r.get('rationale', '')}")
 
             except Exception as e:
                 import traceback

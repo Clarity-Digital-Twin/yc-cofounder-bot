@@ -171,8 +171,36 @@ class AutonomousFlow:
 
                 # Evaluate profile (delegates to use case)
                 evaluation = self.evaluate(profile, criteria_obj)
+                
+                # Check for evaluation errors
+                if evaluation.get("decision") == "ERROR":
+                    error_msg = evaluation.get("error", "Unknown error")
+                    self.logger.emit(
+                        {
+                            "event": "evaluation_error",
+                            "profile": i,
+                            "error": error_msg,
+                            "error_type": evaluation.get("error_type", "Unknown"),
+                            "rationale": evaluation.get("rationale", ""),
+                        }
+                    )
+                    # Store error in results for UI visibility
+                    results.append(
+                        {
+                            "profile_num": i,
+                            "hash": profile_hash,
+                            "decision": "ERROR",
+                            "rationale": evaluation.get("rationale"),
+                            "error": error_msg,
+                            "sent": False,
+                            "mode": mode,
+                        }
+                    )
+                    # Skip to next profile
+                    self.browser.skip()
+                    continue
 
-                # Log decision event
+                # Log decision event (only for successful evaluations)
                 self.logger.emit(
                     {
                         "event": "decision",
@@ -225,7 +253,29 @@ class AutonomousFlow:
                     self.browser.skip()
 
             except Exception as e:
-                self.logger.emit({"event": "error", "profile": i, "error": str(e)})
+                # Log detailed error for debugging
+                error_detail = {
+                    "event": "profile_processing_error",
+                    "profile": i,
+                    "error": str(e),
+                    "error_type": type(e).__name__,
+                    "traceback": str(e.__traceback__) if hasattr(e, "__traceback__") else None,
+                }
+                self.logger.emit(error_detail)
+                
+                # Add to results for UI visibility
+                results.append(
+                    {
+                        "profile_num": i,
+                        "hash": "error",
+                        "decision": "ERROR",
+                        "rationale": f"Processing error: {str(e)[:200]}",
+                        "error": str(e),
+                        "sent": False,
+                        "mode": mode,
+                    }
+                )
+                
                 # Try to continue
                 try:
                     self.browser.skip()

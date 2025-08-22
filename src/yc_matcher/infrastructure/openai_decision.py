@@ -6,6 +6,7 @@ from typing import Any
 from .. import config
 from ..application.ports import DecisionPort, LoggerPort
 from ..domain.entities import Criteria, Profile
+from .error_recovery import RetryWithBackoff
 
 
 class OpenAIDecisionAdapter(DecisionPort):
@@ -92,13 +93,20 @@ class OpenAIDecisionAdapter(DecisionPort):
             "Make the message feel genuine and not like a template."
         )
 
+        # Setup retry mechanism for API resilience
+        retry = RetryWithBackoff(
+            max_retries=3,
+            initial_delay=2.0,
+            logger=self.logger,
+        )
+        
         # Use the correct OpenAI chat completions API
         try:
-            # Use Responses API for GPT-5, Chat Completions for GPT-4
-            if self.model.startswith("gpt-5"):
+            # Define API call functions for retry wrapper
+            def call_gpt5() -> tuple[Any, str]:
                 # Note: Responses API doesn't support response_format parameter
                 # We instruct JSON format in the prompt instead
-                resp = self.client.responses.create(
+                r = self.client.responses.create(
                     model=self.model,
                     input=[
                         {"role": "system", "content": sys_prompt},
@@ -107,10 +115,12 @@ class OpenAIDecisionAdapter(DecisionPort):
                     max_output_tokens=800,  # Responses API uses max_output_tokens
                 )
                 # Extract content from Responses API format
-                content = resp.output_text if hasattr(resp, 'output_text') else str(resp.output[0])
-            else:
+                c = r.output_text if hasattr(r, 'output_text') else str(r.output[0])
+                return r, c
+            
+            def call_gpt4() -> tuple[Any, str]:
                 # Fallback to Chat Completions for GPT-4 and older
-                resp = self.client.chat.completions.create(
+                r = self.client.chat.completions.create(
                     model=self.model,
                     messages=[
                         {"role": "system", "content": sys_prompt},
@@ -121,7 +131,22 @@ class OpenAIDecisionAdapter(DecisionPort):
                     max_tokens=800,  # Enough for decision + message
                 )
                 # Parse the JSON response
-                content = resp.choices[0].message.content
+                c = r.choices[0].message.content
+                return r, c
+            
+            # Use Responses API for GPT-5, Chat Completions for GPT-4
+            if self.model.startswith("gpt-5"):
+                resp, content = retry.execute(
+                    call_gpt5,
+                    operation_name=f"gpt5_decision_{self.model}",
+                    retryable_exceptions=(Exception,),
+                )
+            else:
+                resp, content = retry.execute(
+                    call_gpt4,
+                    operation_name=f"gpt4_decision_{self.model}",
+                    retryable_exceptions=(Exception,),
+                )
             payload = json.loads(content)
 
             # Ensure required fields
@@ -137,14 +162,26 @@ class OpenAIDecisionAdapter(DecisionPort):
                 payload["confidence"] = 0.5
 
         except Exception as e:
-            # Fallback on any error
-            self.logger.emit({"event": "openai_error", "error": str(e)}) if self.logger else None
+            # Log detailed error for debugging
+            error_detail = {
+                "event": "openai_error",
+                "error": str(e),
+                "error_type": type(e).__name__,
+                "model": self.model,
+                "profile_length": len(profile.raw_text),
+                "criteria_length": len(criteria.text),
+            }
+            self.logger.emit(error_detail) if self.logger else None
+            
+            # Return ERROR decision (not NO) to distinguish from real rejections
             payload = {
-                "decision": "NO",
-                "rationale": f"Error evaluating: {str(e)}",
+                "decision": "ERROR",
+                "rationale": f"OpenAI API Error ({type(e).__name__}): {str(e)[:200]}",
                 "draft": "",
                 "score": 0.0,
                 "confidence": 0.0,
+                "error": str(e),
+                "error_type": type(e).__name__,
             }
 
         # Stamp versions to the payload for downstream use
