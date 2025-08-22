@@ -70,10 +70,10 @@ def render_three_input_mode() -> None:
     col_conf1, col_conf2, col_conf3 = st.columns(3)
 
     with col_conf1:
-        # AI-ONLY: Auto-send control (replacing old mode selector)
+        # Auto-send control
         auto_send = st.toggle(
             "Auto-send on match",
-            value=os.getenv("AUTO_SEND", "0") == "1",
+            value=config.get_auto_send_default(),
             key="auto_send",
             help="When ON: Automatically sends messages to matches. When OFF: Shows matches for review first.",
         )
@@ -82,7 +82,7 @@ def render_three_input_mode() -> None:
         else:
             st.info("👀 Matches will be shown for review")
 
-        # AI-ONLY: Mode is always AI now
+        # Mode is always AI now
         mode = "ai"  # For backwards compatibility
 
     with col_conf2:
@@ -91,7 +91,7 @@ def render_three_input_mode() -> None:
             "Max profiles to process",
             min_value=1,
             max_value=100,
-            value=int(os.getenv("AUTO_BROWSE_LIMIT", "10")),
+            value=10,  # Default auto browse limit
             step=1,
             key="auto_quota",
         )
@@ -101,7 +101,7 @@ def render_three_input_mode() -> None:
         st.subheader("🛡️ Safety Mode")
         shadow_mode = st.toggle(
             "Test Mode (Evaluate Only)",
-            value=os.getenv("SHADOW_MODE", "1") == "1",
+            value=config.is_shadow_mode(),
             key="shadow_auto",
             help="When ON: Evaluates profiles but NEVER sends messages. When OFF: Will actually send real messages to matches.",
         )
@@ -115,8 +115,8 @@ def render_three_input_mode() -> None:
     # Debug info expander
     with st.expander("🔍 Debug Info", expanded=False):
         # Determine engine type
-        cua_enabled = os.getenv("ENABLE_CUA", "0") == "1"
-        playwright_enabled = os.getenv("ENABLE_PLAYWRIGHT", "0") == "1"
+        cua_enabled = config.is_cua_enabled()
+        playwright_enabled = config.is_playwright_enabled()
 
         if cua_enabled:
             engine = "**CUA planner + Playwright executor**"
