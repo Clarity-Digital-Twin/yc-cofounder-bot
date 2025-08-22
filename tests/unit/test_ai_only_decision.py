@@ -15,9 +15,12 @@ class TestAIOnlyDecision:
         # Arrange
         mock_client = Mock()
         mock_response = Mock()
-        mock_response.choices = [Mock(message=Mock(content='{"decision": "YES", "rationale": "Strong match", "draft": "Hi!", "score": 0.85, "confidence": 0.9}'))]
+        # For GPT-5 responses API format
+        mock_response.output = [
+            Mock(type='message', content=[Mock(text='{"decision": "YES", "rationale": "Strong match", "draft": "Hi!", "score": 0.85, "confidence": 0.9}')])
+        ]
         mock_response.usage = Mock(input_tokens=100, output_tokens=50)
-        mock_client.chat.completions.create.return_value = mock_response
+        mock_client.responses.create.return_value = mock_response
 
         adapter = OpenAIDecisionAdapter(client=mock_client)
         profile = Profile(raw_text="Python developer, 5 years experience")
@@ -39,9 +42,12 @@ class TestAIOnlyDecision:
         mock_client = Mock()
         personalized_draft = "Hi! I noticed your experience with FastAPI and microservices..."
         mock_response = Mock()
-        mock_response.choices = [Mock(message=Mock(content=f'{{"decision": "YES", "rationale": "Match", "draft": "{personalized_draft}", "score": 0.8, "confidence": 0.85}}'))]
+        # For GPT-5 responses API format
+        mock_response.output = [
+            Mock(type='message', content=[Mock(text=f'{{"decision": "YES", "rationale": "Match", "draft": "{personalized_draft}", "score": 0.8, "confidence": 0.85}}')])
+        ]
         mock_response.usage = Mock(input_tokens=150, output_tokens=80)
-        mock_client.chat.completions.create.return_value = mock_response
+        mock_client.responses.create.return_value = mock_response
 
         adapter = OpenAIDecisionAdapter(client=mock_client)
         profile = Profile(raw_text="FastAPI expert, built microservices at scale")
@@ -61,9 +67,12 @@ class TestAIOnlyDecision:
         mock_client = Mock()
         mock_logger = Mock()
         mock_response = Mock()
-        mock_response.choices = [Mock(message=Mock(content='{"decision": "NO", "rationale": "Not a match", "draft": "", "score": 0.3, "confidence": 0.8}'))]
+        # For GPT-5 responses API format
+        mock_response.output = [
+            Mock(type='message', content=[Mock(text='{"decision": "NO", "rationale": "Not a match", "draft": "", "score": 0.3, "confidence": 0.8}')])
+        ]
         mock_response.usage = Mock(input_tokens=200, output_tokens=100)
-        mock_client.chat.completions.create.return_value = mock_response
+        mock_client.responses.create.return_value = mock_response
 
         adapter = OpenAIDecisionAdapter(client=mock_client, logger=mock_logger)
         profile = Profile(raw_text="Designer")
@@ -92,7 +101,7 @@ class TestAIOnlyDecision:
         """Test graceful fallback when API fails."""
         # Arrange
         mock_client = Mock()
-        mock_client.chat.completions.create.side_effect = Exception("API rate limit")
+        mock_client.responses.create.side_effect = Exception("API rate limit")
 
         adapter = OpenAIDecisionAdapter(client=mock_client)
         profile = Profile(raw_text="Test profile")
@@ -124,9 +133,12 @@ class TestAIOnlyDecision:
         # Arrange
         mock_client = Mock()
         mock_response = Mock()
-        mock_response.choices = [Mock(message=Mock(content='{"decision": "YES", "rationale": "Match", "draft": "Message", "score": 0.8, "confidence": 0.85}'))]
+        # For GPT-5 responses API format
+        mock_response.output = [
+            Mock(type='message', content=[Mock(text='{"decision": "YES", "rationale": "Match", "draft": "Message", "score": 0.8, "confidence": 0.85}')])
+        ]
         mock_response.usage = None
-        mock_client.chat.completions.create.return_value = mock_response
+        mock_client.responses.create.return_value = mock_response
 
         adapter = OpenAIDecisionAdapter(client=mock_client)
         profile = Profile(raw_text="Profile")
@@ -145,9 +157,12 @@ class TestAIOnlyDecision:
         # Arrange
         mock_client = Mock()
         mock_response = Mock()
-        mock_response.choices = [Mock(message=Mock(content='{"decision": "YES", "rationale": "Match", "draft": "Hi", "score": 0.8, "confidence": 0.85}'))]
+        # For GPT-5 responses API format
+        mock_response.output = [
+            Mock(type='message', content=[Mock(text='{"decision": "YES", "rationale": "Match", "draft": "Hi", "score": 0.8, "confidence": 0.85}')])
+        ]
         mock_response.usage = None
-        mock_client.chat.completions.create.return_value = mock_response
+        mock_client.responses.create.return_value = mock_response
 
         # Create adapter with specific model
         adapter = OpenAIDecisionAdapter(client=mock_client, model="gpt-5")
@@ -160,4 +175,4 @@ class TestAIOnlyDecision:
         # Assert - The adapter should use the model it was initialized with
         assert adapter.model == "gpt-5"
         # Verify the API was called
-        assert mock_client.chat.completions.create.called
+        assert mock_client.responses.create.called

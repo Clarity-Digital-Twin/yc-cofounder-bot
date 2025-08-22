@@ -12,7 +12,11 @@ class TestUIInputsGuard:
         # Arrange
         mock_st.text_area.side_effect = ["", "", "template"]  # Empty profile and criteria
         mock_st.button.return_value = False
-        mock_st.columns.return_value = [Mock(), Mock(), Mock()]  # Mock columns
+        # Mock columns to support context manager protocol
+        col_mock = Mock()
+        col_mock.__enter__ = Mock(return_value=col_mock)
+        col_mock.__exit__ = Mock(return_value=None)
+        mock_st.columns.return_value = [col_mock, col_mock, col_mock]  # Mock columns
 
         from yc_matcher.interface.web.ui_streamlit import render_three_input_mode
 
@@ -30,7 +34,11 @@ class TestUIInputsGuard:
         # Arrange
         mock_st.text_area.side_effect = ["  \n  ", "  \t  ", "template"]  # Whitespace only
         mock_st.button.return_value = False
-        mock_st.columns.return_value = [Mock(), Mock(), Mock()]  # Mock columns
+        # Mock columns to support context manager protocol
+        col_mock = Mock()
+        col_mock.__enter__ = Mock(return_value=col_mock)
+        col_mock.__exit__ = Mock(return_value=None)
+        mock_st.columns.return_value = [col_mock, col_mock, col_mock]  # Mock columns
 
         from yc_matcher.interface.web.ui_streamlit import render_three_input_mode
 
@@ -49,7 +57,11 @@ class TestUIInputsGuard:
         mock_st.button.return_value = False  # Don't actually click
         mock_st.toggle.return_value = False
         mock_st.number_input.return_value = 20
-        mock_st.columns.return_value = [Mock(), Mock(), Mock()]  # Mock columns
+        # Mock columns to support context manager protocol
+        col_mock = Mock()
+        col_mock.__enter__ = Mock(return_value=col_mock)
+        col_mock.__exit__ = Mock(return_value=None)
+        mock_st.columns.return_value = [col_mock, col_mock, col_mock]  # Mock columns
         mock_config.is_headless.return_value = True
         mock_config.get_cua_model.return_value = "test-model"
 
