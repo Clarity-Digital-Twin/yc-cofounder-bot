@@ -94,6 +94,11 @@ markers = [
   "asyncio: marks async tests",
   "slow: marks slow tests",
 ]
+filterwarnings = [
+  "ignore:coroutine '.*' was never awaited:RuntimeWarning:unittest.mock",
+  "ignore:coroutine '.*' was never awaited:RuntimeWarning:coverage.sqldata",
+  "ignore:There is no current event loop:DeprecationWarning:asyncio",
+]
 
 [tool.coverage.run]
 source = ["src/yc_matcher"]
