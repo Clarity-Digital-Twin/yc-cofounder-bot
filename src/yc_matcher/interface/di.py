@@ -6,10 +6,10 @@ import os
 from pathlib import Path
 from typing import Any, cast
 
-from ..application.gating import GatedDecision
-from ..application.ports import BrowserPort, DecisionPort, ScoringPort
+# from ..application.gating import GatedDecision  # AI-ONLY: No longer needed
+from ..application.ports import BrowserPort, DecisionPort  # AI-ONLY: Removed ScoringPort
 from ..application.use_cases import EvaluateProfile, SendMessage
-from ..domain.services import WeightedScoringService
+# from ..domain.services import WeightedScoringService  # AI-ONLY: No longer needed
 from ..infrastructure.jsonl_logger import JSONLLogger
 from ..infrastructure.local_decision import LocalDecisionAdapter
 from ..infrastructure.logger_stamped import LoggerWithStamps
@@ -21,32 +21,33 @@ from ..infrastructure.template_loader import load_default_template
 from ..infrastructure.templates import TemplateRenderer
 
 
-class RubricOnlyAdapter(DecisionPort):
-    """Pure rubric-based decision adapter (Strategy Pattern).
-
-    SOLID: Single Responsibility - Only handles rubric scoring
-    DRY: Reuses WeightedScoringService
-    """
-
-    def __init__(self, scoring: ScoringPort, threshold: float = 4.0) -> None:
-        self.scoring = scoring
-        self.threshold = threshold
-        self.auto_send = True  # Rubric mode always auto-sends if threshold met
-
-    def evaluate(self, profile: Any, criteria: Any) -> dict[str, Any]:
-        """Evaluate using pure scoring rules."""
-        score = self.scoring.score(profile, criteria)
-        passed = score.value >= self.threshold
-
-        return {
-            "decision": "YES" if passed else "NO",
-            "rationale": f"Rubric score: {score.value:.1f} (threshold: {self.threshold})",
-            "draft": "" if not passed else "Message would be generated here",
-            "mode": "rubric",
-            "auto_send": self.auto_send and passed,
-            "score": score.value,
-            "threshold": self.threshold,
-        }
+# AI-ONLY: Commented out RubricOnlyAdapter - no longer needed
+# class RubricOnlyAdapter(DecisionPort):
+#     """Pure rubric-based decision adapter (Strategy Pattern).
+#
+#     SOLID: Single Responsibility - Only handles rubric scoring
+#     DRY: Reuses WeightedScoringService
+#     """
+#
+#     def __init__(self, scoring: ScoringPort, threshold: float = 4.0) -> None:
+#         self.scoring = scoring
+#         self.threshold = threshold
+#         self.auto_send = True  # Rubric mode always auto-sends if threshold met
+#
+#     def evaluate(self, profile: Any, criteria: Any) -> dict[str, Any]:
+#         """Evaluate using pure scoring rules."""
+#         score = self.scoring.score(profile, criteria)
+#         passed = score.value >= self.threshold
+#
+#         return {
+#             "decision": "YES" if passed else "NO",
+#             "rationale": f"Rubric score: {score.value:.1f} (threshold: {self.threshold})",
+#             "draft": "" if not passed else "Message would be generated here",
+#             "mode": "rubric",
+#             "auto_send": self.auto_send and passed,
+#             "score": score.value,
+#             "threshold": self.threshold,
+#         }
 
 
 def create_decision_adapter(
