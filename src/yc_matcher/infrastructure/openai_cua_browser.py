@@ -442,7 +442,7 @@ class OpenAICUABrowser:
         to avoid truncation issues with long profiles that require scrolling.
         """
         page = await self._ensure_browser()
-        
+
         try:
             # Try to get all text from main content area first
             main = page.locator("main").first
@@ -453,7 +453,7 @@ class OpenAICUABrowser:
                     return text
         except Exception:
             pass
-        
+
         # Fallback to full body text
         try:
             body_text = await page.inner_text("body")
@@ -462,7 +462,7 @@ class OpenAICUABrowser:
                 return body_text
         except Exception as e:
             self._log_event({"event": "profile_text_extraction_error", "error": str(e)})
-        
+
         return self._profile_text_cache or ""
 
     def focus_message_box(self) -> None:
@@ -557,11 +557,11 @@ class OpenAICUABrowser:
     def is_logged_in(self) -> bool:
         """Check if user is logged into YC."""
         return self._runner.submit(self._is_logged_in_async())
-    
+
     async def _is_logged_in_async(self) -> bool:
         """Check if user is logged into YC by looking for profile elements."""
         page = await self._ensure_browser()
-        
+
         # Check for elements that only appear when logged in
         # Either "View profile" buttons or profile cards
         return bool(
@@ -569,59 +569,59 @@ class OpenAICUABrowser:
             or await page.locator(".profile-card").count() > 0
             or await page.locator('[data-test="profile"]').count() > 0
         )
-    
+
     def ensure_logged_in(self) -> None:
         """Ensure user is logged in, attempting auto-login if credentials available."""
         self._runner.submit(self._ensure_logged_in_async())
-    
+
     async def _ensure_logged_in_async(self) -> None:
         """Perform login if not already logged in using CUA."""
         if self.logger:
             self.logger.emit({"event": "cua_login_check", "checking": True})
-        
+
         if await self._is_logged_in_async():
             if self.logger:
                 self.logger.emit({"event": "cua_already_logged_in"})
             return
-        
+
         # Check for credentials
         email = os.getenv("YC_EMAIL")
         password = os.getenv("YC_PASSWORD")
-        
+
         if not email or not password:
             if self.logger:
                 self.logger.emit({"event": "cua_login_no_credentials"})
             raise ValueError("YC_EMAIL and YC_PASSWORD environment variables required for auto-login")
-        
+
         if self.logger:
             self.logger.emit({"event": "cua_login_attempt", "email": email[:3] + "***"})
-        
+
         # Navigate to login page if needed
         page = await self._ensure_browser()
         current_url = page.url
-        
+
         if self.logger:
             self.logger.emit({"event": "cua_current_url", "url": current_url})
-        
+
         if "sign_in" not in current_url.lower() and "login" not in current_url.lower():
             await page.goto("https://www.startupschool.org/users/sign_in")
             await page.wait_for_load_state("networkidle", timeout=5000)
             if self.logger:
                 self.logger.emit({"event": "cua_navigated_to_login"})
-        
+
         # Use CUA to perform the login via Responses API
         try:
             # Take screenshot of login page
             screenshot = await page.screenshot()
             screenshot_b64 = base64.b64encode(screenshot).decode('utf-8')
-            
+
             # Ask CUA to fill in the login form
             login_instruction = f"""Please log into YC Startup School:
 1. Fill the email field with: {email}
 2. Fill the password field with: {password}
 3. Click the Sign In button
 Complete the login process."""
-            
+
             # Use CUA to perform login actions
             response = self.client.responses.create(
                 model=self.model_name,
@@ -642,20 +642,20 @@ Complete the login process."""
                 ],
                 truncation="auto"
             )
-            
+
             # Execute CUA's suggested actions
             max_login_attempts = 10
             for _ in range(max_login_attempts):
                 computer_calls = [item for item in response.output if item.type == "computer_call"]
-                
+
                 if not computer_calls:
                     # No more actions, check if logged in
                     break
-                
+
                 # Execute the suggested action
                 computer_call = computer_calls[0]
                 action = computer_call.action
-                
+
                 # Execute action with Playwright
                 if action.type == "click":
                     await page.mouse.click(action.x, action.y)
@@ -666,12 +666,12 @@ Complete the login process."""
                         await page.keyboard.press(key)
                 elif action.type == "wait":
                     await page.wait_for_timeout(2000)
-                
+
                 # Take screenshot after action
                 await page.wait_for_timeout(500)  # Small delay for action to complete
                 screenshot = await page.screenshot()
                 screenshot_b64 = base64.b64encode(screenshot).decode('utf-8')
-                
+
                 # Send result back to CUA
                 response = self.client.responses.create(
                     model=self.model_name,
@@ -694,18 +694,18 @@ Complete the login process."""
                     ],
                     truncation="auto"
                 )
-                
+
                 # Check if we're logged in now
                 if await self._is_logged_in_async():
                     if self.logger:
                         self.logger.emit({"event": "cua_login_success", "final_url": page.url})
                     return
-            
+
         except Exception as e:
             if self.logger:
                 self.logger.emit({"event": "cua_login_error", "error": str(e)})
             raise
-        
+
         # Final check
         if not await self._is_logged_in_async():
             if self.logger:

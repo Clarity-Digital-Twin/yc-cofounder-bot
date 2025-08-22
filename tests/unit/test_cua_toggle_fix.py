@@ -3,8 +3,6 @@
 import os
 from unittest.mock import Mock, patch
 
-import pytest
-
 from yc_matcher.interface.di import build_services
 
 

@@ -99,11 +99,11 @@ class OpenAIDecisionAdapter(DecisionPort):
             initial_delay=2.0,
             logger=self.logger,
         )
-        
+
         # Track latency
         import time
         decision_start = time.time()
-        
+
         # Use the correct OpenAI chat completions API
         try:
             # Define API call functions for retry wrapper
@@ -169,7 +169,7 @@ class OpenAIDecisionAdapter(DecisionPort):
                                         c = content_item.text
                                         break
                             break
-                
+
                 if not c:
                     # Fallback if structure is different
                     raise ValueError(
@@ -177,9 +177,9 @@ class OpenAIDecisionAdapter(DecisionPort):
                         f"Output items: {len(r.output) if hasattr(r, 'output') else 0}, "
                         f"Types: {[getattr(item, 'type', 'unknown') for item in r.output] if hasattr(r, 'output') else []}"
                     )
-                
+
                 return r, c
-            
+
             def call_gpt4() -> tuple[Any, str]:
                 # Fallback to Chat Completions for GPT-4 and older
                 r = self.client.chat.completions.create(
@@ -195,7 +195,7 @@ class OpenAIDecisionAdapter(DecisionPort):
                 # Parse the JSON response
                 c = r.choices[0].message.content
                 return r, c
-            
+
             # Use Responses API for GPT-5, Chat Completions for GPT-4
             if self.model.startswith("gpt-5"):
                 resp, content = retry.execute(
@@ -234,7 +234,7 @@ class OpenAIDecisionAdapter(DecisionPort):
                 "criteria_length": len(criteria.text),
             }
             self.logger.emit(error_detail) if self.logger else None
-            
+
             # Return ERROR decision (not NO) to distinguish from real rejections
             payload = {
                 "decision": "ERROR",
@@ -249,7 +249,7 @@ class OpenAIDecisionAdapter(DecisionPort):
         # Add latency to payload
         decision_ms = int((time.time() - decision_start) * 1000)
         payload["latency_ms"] = decision_ms
-        
+
         # Stamp versions to the payload for downstream use
         payload.setdefault("prompt_ver", self.prompt_ver)
         payload.setdefault("rubric_ver", self.rubric_ver)

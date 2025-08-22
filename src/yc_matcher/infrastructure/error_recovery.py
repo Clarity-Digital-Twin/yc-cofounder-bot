@@ -6,7 +6,8 @@ Implements retry logic, exponential backoff, and fallback strategies.
 from __future__ import annotations
 
 import time
-from typing import Any, Callable, TypeVar
+from collections.abc import Callable
+from typing import TypeVar
 
 from ..application.ports import LoggerPort
 

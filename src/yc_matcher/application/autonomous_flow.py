@@ -151,7 +151,7 @@ class AutonomousFlow:
                 extract_start = time.time()
                 profile_text = self.browser.read_profile_text()
                 extract_ms = int((time.time() - extract_start) * 1000)
-                
+
                 # Determine engine type
                 engine = "unknown"
                 if hasattr(self.browser, "__class__"):
@@ -160,10 +160,10 @@ class AutonomousFlow:
                         engine = "cua"
                     elif "Playwright" in class_name:
                         engine = "playwright"
-                
+
                 if not profile_text:
                     self.logger.emit({
-                        "event": "empty_profile", 
+                        "event": "empty_profile",
                         "at_profile": i,
                         "engine": engine,
                         "skip_reason": "No profile text extracted",
@@ -172,7 +172,7 @@ class AutonomousFlow:
                     self.browser.skip()
                     skipped_count += 1
                     continue
-                
+
                 # Log extraction metrics
                 self.logger.emit({
                     "event": "profile_extracted",
@@ -199,7 +199,7 @@ class AutonomousFlow:
 
                 # Evaluate profile (delegates to use case)
                 evaluation = self.evaluate(profile, criteria_obj)
-                
+
                 # Check for evaluation errors
                 if evaluation.get("decision") == "ERROR":
                     error_msg = evaluation.get("error", "Unknown error")
@@ -296,7 +296,7 @@ class AutonomousFlow:
                     "traceback": str(e.__traceback__) if hasattr(e, "__traceback__") else None,
                 }
                 self.logger.emit(error_detail)
-                
+
                 # Add to results for UI visibility
                 results.append(
                     {
@@ -309,7 +309,7 @@ class AutonomousFlow:
                         "mode": mode,
                     }
                 )
-                
+
                 # Try to continue
                 try:
                     self.browser.skip()

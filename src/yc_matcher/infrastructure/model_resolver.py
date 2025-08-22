@@ -38,7 +38,7 @@ def resolve_best_decision_model(client: Any) -> str:
     if "gpt-5" in ids:
         print("✅ Found GPT-5 model!")
         return "gpt-5"
-    
+
     # 2. Try GPT-5 variants (mini, nano)
     gpt5_variants = [m for m in ids if m.startswith("gpt-5-")]
     if gpt5_variants:
