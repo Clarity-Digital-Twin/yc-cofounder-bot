@@ -262,11 +262,12 @@ Environment Settings:
                 # Read last 20 events (more context)
                 events_path = Path(".runs/events.jsonl")
                 content = events_path.read_text().strip()
+                recent_events = []  # Initialize here to avoid undefined variable
+                
                 if not content:
                     st.info("No recent events")
                 else:
                     lines = content.split("\n")
-                    recent_events = []
                     
                     # Get only recent events (last hour)
                     cutoff_time = datetime.now() - timedelta(hours=1)
