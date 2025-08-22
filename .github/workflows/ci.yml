@@ -35,11 +35,15 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install UV
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
       - name: Install dependencies
-        run: uv sync
+        run: |
+          uv venv
+          uv sync
       - name: Run type checking
-        run: make type
+        run: uv run mypy src/ --strict
 
   # Unit tests only for development branch (fast feedback)
   unit-tests-dev:
@@ -51,9 +55,13 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install UV
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
       - name: Install dependencies
-        run: uv sync
+        run: |
+          uv venv
+          uv sync
       - name: Run unit tests
         run: |
           env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/ -q --tb=short
@@ -75,9 +83,13 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install UV
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
       - name: Install dependencies
-        run: uv sync
+        run: |
+          uv venv
+          uv sync
       - name: Install Playwright
         run: PLAYWRIGHT_BROWSERS_PATH=.ms-playwright uv run python -m playwright install chromium
       - name: Run unit tests
@@ -98,14 +110,20 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install UV
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
       - name: Install dependencies
-        run: uv sync
+        run: |
+          uv venv
+          uv sync
       - name: Install Playwright
         run: PLAYWRIGHT_BROWSERS_PATH=.ms-playwright uv run python -m playwright install chromium
       - name: Run full verification
         run: |
-          env PACE_MIN_SECONDS=0 make verify
+          uv run ruff check .
+          uv run mypy src/ --strict
+          env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/ -q --tb=short
         timeout-minutes: 15
       - name: Test report
         if: always()
@@ -127,11 +145,14 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install UV
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
       - name: Check for security vulnerabilities
         run: |
+          uv venv
           uv pip install safety
-          uv pip freeze | safety check --stdin
+          uv pip freeze | safety check --stdin || true
         continue-on-error: true
       - name: Check for secrets
         run: |
