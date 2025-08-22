@@ -197,7 +197,8 @@
       "Bash(PYTHONPATH=src uv run python -m yc_matcher.infrastructure.preflight_check)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_di.py -xvs -k \"test_build_services\")",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_di_ai_only.py -xvs)",
-      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_cua_toggle_fix.py -xvs)"
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_cua_toggle_fix.py -xvs)",
+      "Bash(git branch:*)"
     ],
     "deny": [],
     "ask": []
