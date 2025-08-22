@@ -166,7 +166,12 @@
       "Bash(done)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit -q --tb=no)",
       "Bash(PACE_MIN_SECONDS=0 PYTHONPATH=src python -c \"from yc_matcher.interface.web.ui_streamlit import render_three_input_mode; print(''Import successful'')\")",
-      "Bash(PACE_MIN_SECONDS=0 PYTHONPATH=src uv run python -c \"from yc_matcher.interface.web.ui_streamlit import render_three_input_mode; print(''Import successful'')\")"
+      "Bash(PACE_MIN_SECONDS=0 PYTHONPATH=src uv run python -c \"from yc_matcher.interface.web.ui_streamlit import render_three_input_mode; print(''Import successful'')\")",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_extract_candidate.py -xvs)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_hybrid_draft.py -xvs)",
+      "Bash(kill:*)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_cua_session_hygiene.py -xvs --timeout=5)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src timeout 5 uv run pytest tests/unit/test_cua_session_hygiene.py::TestCUASessionHygiene::test_cache_clears_after_successful_send -xvs)"
     ],
     "deny": [],
     "ask": []
