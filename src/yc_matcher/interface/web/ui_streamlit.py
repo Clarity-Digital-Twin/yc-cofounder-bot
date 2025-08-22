@@ -134,7 +134,7 @@ def render_three_input_mode() -> None:
         st.code(f"""
 Environment Settings:
 • PLAYWRIGHT_HEADLESS: {config.is_headless()}
-• PLAYWRIGHT_BROWSERS_PATH: {os.getenv("PLAYWRIGHT_BROWSERS_PATH", "not set")}
+• PLAYWRIGHT_BROWSERS_PATH: {config.get_playwright_browsers_path() or "not set"}
 • CUA_MODEL: {config.get_cua_model() or "not set"}
 • CUA_MAX_TURNS: {config.get_cua_max_turns()}
 • PACE_MIN_SECONDS: {config.get_pace_seconds()}
