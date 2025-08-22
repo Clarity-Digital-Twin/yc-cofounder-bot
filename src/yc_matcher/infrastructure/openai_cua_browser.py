@@ -248,7 +248,7 @@ class OpenAICUABrowser:
         self._prev_response_id = response.id
 
         # 2) Loop until no computer_call items (with turn cap for safety)
-        MAX_TURNS = int(os.getenv("CUA_MAX_TURNS", "40"))
+        MAX_TURNS = 40  # Extended for complex actions
         turns = 0
 
         while turns < MAX_TURNS:
