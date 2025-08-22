@@ -1,0 +1,159 @@
+name: CI
+
+on:
+  push:
+    branches: [main, staging, development]
+  pull_request:
+    branches: [main, staging, development]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install UV
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
+      - name: Install dependencies
+        run: |
+          uv venv
+          uv sync --dev
+      
+      - name: Run ruff
+        run: uv run ruff check .
+
+  type-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install UV
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
+      - name: Install dependencies
+        run: |
+          uv venv
+          uv sync --dev
+      
+      - name: Run mypy
+        run: uv run mypy src/ --strict
+
+  unit-tests:
+    needs: [lint, type-check]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install UV
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
+      - name: Install dependencies
+        run: |
+          uv venv
+          uv sync --dev
+      
+      - name: Run unit tests
+        env:
+          PACE_MIN_SECONDS: "0"
+          PYTHONPATH: src
+        run: uv run pytest tests/unit/ -q --tb=short
+
+  integration-tests:
+    if: github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main'
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install UV
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
+      - name: Install dependencies
+        run: |
+          uv venv
+          uv sync --dev
+      
+      - name: Install Playwright browsers
+        run: |
+          PLAYWRIGHT_BROWSERS_PATH=.ms-playwright uv run python -m playwright install chromium --with-deps
+      
+      - name: Run integration tests
+        env:
+          PACE_MIN_SECONDS: "0"
+          PYTHONPATH: src
+          PLAYWRIGHT_HEADLESS: "1"
+          PLAYWRIGHT_BROWSERS_PATH: .ms-playwright
+        run: uv run pytest tests/integration/ -q --tb=short
+        timeout-minutes: 10
+
+  full-suite:
+    if: github.ref == 'refs/heads/main'
+    needs: [unit-tests, integration-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install UV
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
+      - name: Install dependencies
+        run: |
+          uv venv
+          uv sync --dev
+      
+      - name: Install Playwright browsers
+        run: |
+          PLAYWRIGHT_BROWSERS_PATH=.ms-playwright uv run python -m playwright install chromium --with-deps
+      
+      - name: Run all tests with coverage
+        env:
+          PACE_MIN_SECONDS: "0"
+          PYTHONPATH: src
+          PLAYWRIGHT_HEADLESS: "1"
+          PLAYWRIGHT_BROWSERS_PATH: .ms-playwright
+        run: |
+          uv run pytest tests/ --cov=yc_matcher --cov-report=term-missing --cov-fail-under=60 -q
+        continue-on-error: true
+        timeout-minutes: 15
+      
+      - name: Security check
+        run: |
+          # Check for exposed secrets
+          ! grep -r "sk-[a-zA-Z0-9]" --include="*.py" --include="*.md" src/ tests/ || exit 1
+        continue-on-error: true

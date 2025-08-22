@@ -32,6 +32,17 @@ dev = [
 [project.scripts]
 yc-matcher = "yc_matcher.interface.cli.run:main"
 
+[tool.uv]
+dev-dependencies = [
+  "pytest>=8.2.0",
+  "pytest-asyncio>=0.23.0",
+  "pytest-cov>=6.0.0",
+  "mypy>=1.10.0",
+  "ruff>=0.5.6",
+  "pre-commit>=3.7.0",
+  "types-requests>=2.32.0.20240712",
+]
+
 [tool.ruff]
 line-length = 100
 target-version = "py311"
