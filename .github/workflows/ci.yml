@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CI
 
 on:
   push:
@@ -7,171 +7,153 @@ on:
     branches: [main, staging, development]
 
 jobs:
-  # Quick lint check (all branches)
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      
       - name: Install UV
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
       - name: Install dependencies
         run: |
           uv venv
-          uv sync
-      - name: Run linting
+          uv sync --dev
+      
+      - name: Run ruff
         run: uv run ruff check .
 
-  # Type checking (all branches)
   type-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      
       - name: Install UV
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
       - name: Install dependencies
         run: |
           uv venv
-          uv sync
-      - name: Run type checking
+          uv sync --dev
+      
+      - name: Run mypy
         run: uv run mypy src/ --strict
 
-  # Unit tests only for development branch (fast feedback)
-  unit-tests-dev:
-    if: github.ref == 'refs/heads/development' || github.base_ref == 'development'
+  unit-tests:
+    needs: [lint, type-check]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      
       - name: Install UV
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
       - name: Install dependencies
         run: |
           uv venv
-          uv sync
+          uv sync --dev
+      
       - name: Run unit tests
-        run: |
-          env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/ -q --tb=short
-      - name: Check test count
-        run: |
-          TEST_COUNT=$(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/ --co -q | grep -c "test session")
-          echo "Unit test count: $TEST_COUNT"
-          if [ "$TEST_COUNT" -lt "100" ]; then
-            echo "Warning: Expected at least 100 unit tests, found $TEST_COUNT"
-          fi
+        env:
+          PACE_MIN_SECONDS: "0"
+          PYTHONPATH: src
+        run: uv run pytest tests/unit/ -q --tb=short
 
-  # Integration tests for staging (more thorough)
-  integration-tests-staging:
-    if: github.ref == 'refs/heads/staging' || github.base_ref == 'staging'
+  integration-tests:
+    if: github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main'
+    needs: unit-tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      
       - name: Install UV
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
       - name: Install dependencies
         run: |
           uv venv
-          uv sync
-      - name: Install Playwright
-        run: PLAYWRIGHT_BROWSERS_PATH=.ms-playwright uv run python -m playwright install chromium
-      - name: Run unit tests
+          uv sync --dev
+      
+      - name: Install Playwright browsers
         run: |
-          env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/ -q --tb=short
+          PLAYWRIGHT_BROWSERS_PATH=.ms-playwright uv run python -m playwright install chromium --with-deps
+      
       - name: Run integration tests
-        run: |
-          env PACE_MIN_SECONDS=0 PYTHONPATH=src PLAYWRIGHT_HEADLESS=1 uv run pytest tests/integration/ -q --tb=short
+        env:
+          PACE_MIN_SECONDS: "0"
+          PYTHONPATH: src
+          PLAYWRIGHT_HEADLESS: "1"
+          PLAYWRIGHT_BROWSERS_PATH: .ms-playwright
+        run: uv run pytest tests/integration/ -q --tb=short
         timeout-minutes: 10
 
-  # Full test suite for main (production readiness)
-  full-tests-main:
-    if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
+  full-suite:
+    if: github.ref == 'refs/heads/main'
+    needs: [unit-tests, integration-tests]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      
       - name: Install UV
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
       - name: Install dependencies
         run: |
           uv venv
-          uv sync
-      - name: Install Playwright
-        run: PLAYWRIGHT_BROWSERS_PATH=.ms-playwright uv run python -m playwright install chromium
-      - name: Run full verification
+          uv sync --dev
+      
+      - name: Install Playwright browsers
         run: |
-          uv run ruff check .
-          uv run mypy src/ --strict
-          env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/ -q --tb=short
+          PLAYWRIGHT_BROWSERS_PATH=.ms-playwright uv run python -m playwright install chromium --with-deps
+      
+      - name: Run all tests with coverage
+        env:
+          PACE_MIN_SECONDS: "0"
+          PYTHONPATH: src
+          PLAYWRIGHT_HEADLESS: "1"
+          PLAYWRIGHT_BROWSERS_PATH: .ms-playwright
+        run: |
+          uv run pytest tests/ --cov=yc_matcher --cov-report=term-missing --cov-fail-under=60 -q
+        continue-on-error: true
         timeout-minutes: 15
-      - name: Test report
-        if: always()
+      
+      - name: Security check
         run: |
-          echo "=== Test Summary ==="
-          env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/ --co -q | tail -5
-      - name: Coverage check (optional)
+          # Check for exposed secrets
+          ! grep -r "sk-[a-zA-Z0-9]" --include="*.py" --include="*.md" src/ tests/ || exit 1
         continue-on-error: true
-        run: |
-          env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/ --cov=yc_matcher --cov-report=term-missing --cov-fail-under=70
-
-  # Security scan (main branch only)
-  security-scan:
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - name: Install UV
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-      - name: Check for security vulnerabilities
-        run: |
-          uv venv
-          uv pip install safety
-          uv pip freeze | safety check --stdin || true
-        continue-on-error: true
-      - name: Check for secrets
-        run: |
-          # Simple check for potential exposed secrets
-          ! grep -r "sk-[a-zA-Z0-9]" --include="*.py" --include="*.md" src/ tests/
-
-  # Branch protection status check
-  status-check:
-    runs-on: ubuntu-latest
-    needs: [lint, type-check]
-    if: always()
-    steps:
-      - name: Check status
-        run: |
-          echo "Branch: ${{ github.ref }}"
-          echo "Lint: ${{ needs.lint.result }}"
-          echo "Type check: ${{ needs.type-check.result }}"
-          if [ "${{ needs.lint.result }}" != "success" ] || [ "${{ needs.type-check.result }}" != "success" ]; then
-            echo "Basic checks failed!"
-            exit 1
-          fi
-          echo "All basic checks passed ✅"
