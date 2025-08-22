@@ -95,16 +95,17 @@ class OpenAIDecisionAdapter(DecisionPort):
         try:
             # Use Responses API for GPT-5, Chat Completions for GPT-4
             if self.model.startswith("gpt-5"):
+                # Note: Responses API doesn't support response_format parameter
+                # We instruct JSON format in the prompt instead
                 resp = self.client.responses.create(
                     model=self.model,
                     input=[
                         {"role": "system", "content": sys_prompt},
-                        {"role": "user", "content": user_text},
+                        {"role": "user", "content": user_text + "\n\nIMPORTANT: Return your response as valid JSON."},
                     ],
-                    response_format={"type": "json_object"},  # Force JSON response
                     reasoning_effort="medium",  # GPT-5 specific parameter
                     verbosity="normal",  # GPT-5 specific parameter
-                    max_completion_tokens=800,  # GPT-5 uses this instead of max_tokens
+                    max_output_tokens=800,  # Responses API uses max_output_tokens
                 )
                 # Extract content from Responses API format
                 content = resp.output_text if hasattr(resp, 'output_text') else str(resp.output[0])

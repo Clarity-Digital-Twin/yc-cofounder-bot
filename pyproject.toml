@@ -11,7 +11,7 @@ requires-python = ">=3.11,<3.13"
 license = {text = "MIT"}
 authors = [{name = "JJ", email = ""}]
 dependencies = [
-  "openai>=1.40.0",
+  "openai>=1.101.0",
   "openai-agents>=0.0.7",
   "playwright>=1.45.0",
   "python-dotenv>=1.0.1",
