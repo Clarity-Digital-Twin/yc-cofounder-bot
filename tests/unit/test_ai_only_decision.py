@@ -1,6 +1,7 @@
 """Test AI-only decision mode (simplified from 3 modes to 1)."""
 
 import os
+from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from yc_matcher.domain.entities import Criteria, Profile
@@ -12,21 +13,17 @@ class TestAIOnlyDecision:
 
     def test_ai_decision_returns_structured_output(self) -> None:
         """Test AI adapter returns expected JSON structure."""
-        # Arrange
+        # Arrange - Use SimpleNamespace for proper attribute access
         mock_client = Mock()
-        mock_response = Mock()
-        # For GPT-5 responses API format
-        mock_response.output = [
-            Mock(
-                type="message",
-                content=[
-                    Mock(
-                        text='{"decision": "YES", "rationale": "Strong match", "draft": "Hi!", "score": 0.85, "confidence": 0.9}'
-                    )
-                ],
-            )
-        ]
-        mock_response.usage = Mock(input_tokens=100, output_tokens=50)
+        # Match exact structure: response.output[].type=='message', item.content[].text
+        content_item = SimpleNamespace(
+            text='{"decision": "YES", "rationale": "Strong match", "draft": "Hi!", "score": 0.85, "confidence": 0.9}'
+        )
+        message_item = SimpleNamespace(type='message', content=[content_item])
+        mock_response = SimpleNamespace(
+            output=[message_item],
+            usage=SimpleNamespace(input_tokens=100, output_tokens=50)
+        )
         mock_client.responses.create.return_value = mock_response
 
         adapter = OpenAIDecisionAdapter(client=mock_client)
@@ -45,22 +42,17 @@ class TestAIOnlyDecision:
 
     def test_ai_decision_includes_personalized_draft(self) -> None:
         """Test AI generates personalized message referencing profile details."""
-        # Arrange
+        # Arrange - Use SimpleNamespace for proper attribute access
         mock_client = Mock()
         personalized_draft = "Hi! I noticed your experience with FastAPI and microservices..."
-        mock_response = Mock()
-        # For GPT-5 responses API format
-        mock_response.output = [
-            Mock(
-                type="message",
-                content=[
-                    Mock(
-                        text=f'{{"decision": "YES", "rationale": "Match", "draft": "{personalized_draft}", "score": 0.8, "confidence": 0.85}}'
-                    )
-                ],
-            )
-        ]
-        mock_response.usage = Mock(input_tokens=150, output_tokens=80)
+        content_item = SimpleNamespace(
+            text=f'{{"decision": "YES", "rationale": "Match", "draft": "{personalized_draft}", "score": 0.8, "confidence": 0.85}}'
+        )
+        message_item = SimpleNamespace(type='message', content=[content_item])
+        mock_response = SimpleNamespace(
+            output=[message_item],
+            usage=SimpleNamespace(input_tokens=150, output_tokens=80)
+        )
         mock_client.responses.create.return_value = mock_response
 
         adapter = OpenAIDecisionAdapter(client=mock_client)
@@ -77,22 +69,17 @@ class TestAIOnlyDecision:
 
     def test_ai_decision_logs_usage_metrics(self) -> None:
         """Test AI adapter logs token usage and cost estimates."""
-        # Arrange
+        # Arrange - Use SimpleNamespace for proper attribute access
         mock_client = Mock()
         mock_logger = Mock()
-        mock_response = Mock()
-        # For GPT-5 responses API format
-        mock_response.output = [
-            Mock(
-                type="message",
-                content=[
-                    Mock(
-                        text='{"decision": "NO", "rationale": "Not a match", "draft": "", "score": 0.3, "confidence": 0.8}'
-                    )
-                ],
-            )
-        ]
-        mock_response.usage = Mock(input_tokens=200, output_tokens=100)
+        content_item = SimpleNamespace(
+            text='{"decision": "NO", "rationale": "Not a match", "draft": "", "score": 0.3, "confidence": 0.8}'
+        )
+        message_item = SimpleNamespace(type='message', content=[content_item])
+        mock_response = SimpleNamespace(
+            output=[message_item],
+            usage=SimpleNamespace(input_tokens=200, output_tokens=100)
+        )
         mock_client.responses.create.return_value = mock_response
 
         adapter = OpenAIDecisionAdapter(client=mock_client, logger=mock_logger)
@@ -151,21 +138,16 @@ class TestAIOnlyDecision:
 
     def test_auto_send_flag_controls_approval(self) -> None:
         """Test auto_send flag determines if approval needed."""
-        # Arrange
+        # Arrange - Use SimpleNamespace for proper attribute access
         mock_client = Mock()
-        mock_response = Mock()
-        # For GPT-5 responses API format
-        mock_response.output = [
-            Mock(
-                type="message",
-                content=[
-                    Mock(
-                        text='{"decision": "YES", "rationale": "Match", "draft": "Message", "score": 0.8, "confidence": 0.85}'
-                    )
-                ],
-            )
-        ]
-        mock_response.usage = None
+        content_item = SimpleNamespace(
+            text='{"decision": "YES", "rationale": "Match", "draft": "Message", "score": 0.8, "confidence": 0.85}'
+        )
+        message_item = SimpleNamespace(type='message', content=[content_item])
+        mock_response = SimpleNamespace(
+            output=[message_item],
+            usage=None
+        )
         mock_client.responses.create.return_value = mock_response
 
         adapter = OpenAIDecisionAdapter(client=mock_client)
@@ -182,21 +164,16 @@ class TestAIOnlyDecision:
 
     def test_ai_uses_best_available_model(self) -> None:
         """Test model resolution uses best available model."""
-        # Arrange
+        # Arrange - Use SimpleNamespace for proper attribute access
         mock_client = Mock()
-        mock_response = Mock()
-        # For GPT-5 responses API format
-        mock_response.output = [
-            Mock(
-                type="message",
-                content=[
-                    Mock(
-                        text='{"decision": "YES", "rationale": "Match", "draft": "Hi", "score": 0.8, "confidence": 0.85}'
-                    )
-                ],
-            )
-        ]
-        mock_response.usage = None
+        content_item = SimpleNamespace(
+            text='{"decision": "YES", "rationale": "Match", "draft": "Hi", "score": 0.8, "confidence": 0.85}'
+        )
+        message_item = SimpleNamespace(type='message', content=[content_item])
+        mock_response = SimpleNamespace(
+            output=[message_item],
+            usage=None
+        )
         mock_client.responses.create.return_value = mock_response
 
         # Create adapter with specific model
