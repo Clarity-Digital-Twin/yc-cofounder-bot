@@ -32,7 +32,7 @@ def resolve_best_decision_model(client: Any) -> str:
         models = client.models.list()
         ids = [m.id for m in models.data]
     except Exception as e:
-        raise RuntimeError(f"Failed to list models: {e}")
+        raise RuntimeError(f"Failed to list models: {e}") from e
 
     # 1. Try GPT-5 thinking variants (preferred)
     gpt5_thinking = [m for m in ids if 'gpt-5' in m.lower() and 'thinking' in m.lower()]
@@ -104,8 +104,8 @@ def resolve_and_set_models(logger: Any | None = None) -> dict[str, str | None]:
     """
     try:
         from openai import OpenAI
-    except ImportError:
-        raise RuntimeError("openai package not installed")
+    except ImportError as e:
+        raise RuntimeError("openai package not installed") from e
 
     # Create client
     api_key = os.getenv("OPENAI_API_KEY")
