@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from yc_matcher.infrastructure.browser_playwright import BrowserPlaywright
+from yc_matcher.infrastructure.browser_playwright import PlaywrightBrowser
 from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
 
 
@@ -20,7 +20,12 @@ class TestLoginFlowIntegration:
     """Integration tests for login functionality."""
 
     @pytest.mark.asyncio
-    @patch.dict(os.environ, {"YC_EMAIL": "test@example.com", "YC_PASSWORD": "test123"})
+    @patch.dict(os.environ, {
+        "YC_EMAIL": "test@example.com", 
+        "YC_PASSWORD": "test123",
+        "OPENAI_API_KEY": "test-key",
+        "CUA_MODEL": "test-model"
+    })
     @patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI")
     async def test_cua_browser_performs_login(self, mock_openai: Mock) -> None:
         """Test that CUA browser can perform login with credentials."""
@@ -63,7 +68,7 @@ class TestLoginFlowIntegration:
         mock_page.locator.return_value.count.return_value = 0  # Not logged in initially
 
         # Create browser
-        browser = BrowserPlaywright()
+        browser = PlaywrightBrowser()
 
         # Act
         browser.ensure_logged_in()
@@ -80,7 +85,7 @@ class TestLoginFlowIntegration:
     def test_login_fails_without_credentials(self) -> None:
         """Test that login fails gracefully when no credentials are provided."""
         # Arrange
-        browser = BrowserPlaywright()
+        browser = PlaywrightBrowser()
 
         # Act & Assert
         with pytest.raises(Exception) as exc_info:
@@ -89,7 +94,12 @@ class TestLoginFlowIntegration:
         assert "credentials" in str(exc_info.value).lower()
 
     @pytest.mark.asyncio
-    @patch.dict(os.environ, {"YC_EMAIL": "test@example.com", "YC_PASSWORD": "test123"})
+    @patch.dict(os.environ, {
+        "YC_EMAIL": "test@example.com", 
+        "YC_PASSWORD": "test123",
+        "OPENAI_API_KEY": "test-key",
+        "CUA_MODEL": "test-model"
+    })
     @patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI")
     @patch("playwright.async_api.async_playwright")
     async def test_cua_browser_uses_playwright_for_login_execution(
@@ -145,7 +155,7 @@ class TestLoginFlowIntegration:
         mock_page.locator.return_value = mock_locator
         mock_locator.count.return_value = 1  # Found logout button = logged in
 
-        browser = BrowserPlaywright()
+        browser = PlaywrightBrowser()
         browser.open("https://test.com")
 
         # Act
@@ -156,7 +166,12 @@ class TestLoginFlowIntegration:
         mock_page.locator.assert_called()  # Should check for login indicators
 
     @pytest.mark.asyncio
-    @patch.dict(os.environ, {"YC_EMAIL": "test@example.com", "YC_PASSWORD": "wrong"})
+    @patch.dict(os.environ, {
+        "YC_EMAIL": "test@example.com", 
+        "YC_PASSWORD": "wrong",
+        "OPENAI_API_KEY": "test-key",
+        "CUA_MODEL": "test-model"
+    })
     @patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI")
     async def test_login_handles_invalid_credentials(self, mock_openai: Mock) -> None:
         """Test that invalid credentials are handled gracefully."""
@@ -194,7 +209,7 @@ class TestLoginPersistence:
         # Initially logged in
         mock_page.locator.return_value.count.return_value = 1
 
-        browser = BrowserPlaywright()
+        browser = PlaywrightBrowser()
         browser.open("https://test.com")
 
         # Act
@@ -207,6 +222,10 @@ class TestLoginPersistence:
         assert after_nav_login is True  # Should still be logged in
 
     @pytest.mark.asyncio
+    @patch.dict(os.environ, {
+        "OPENAI_API_KEY": "test-key",
+        "CUA_MODEL": "test-model"
+    })
     @patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI")
     @patch("playwright.async_api.async_playwright")
     async def test_cua_browser_reuses_single_browser_instance(
