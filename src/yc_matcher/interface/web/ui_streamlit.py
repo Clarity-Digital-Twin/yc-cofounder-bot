@@ -221,7 +221,7 @@ Environment Settings:
             if browser and hasattr(browser, 'is_logged_in'):
                 try:
                     is_logged_in = browser.is_logged_in()
-                except:
+                except Exception:
                     pass
 
             if is_logged_in:
@@ -264,7 +264,7 @@ Environment Settings:
                         try:
                             event = json.loads(line)
                             recent_events.append(event)
-                        except:
+                        except Exception:
                             pass
 
                 # Display in reverse order (newest first)
