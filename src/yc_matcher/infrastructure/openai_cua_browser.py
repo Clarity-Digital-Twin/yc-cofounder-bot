@@ -512,8 +512,9 @@ class OpenAICUABrowser:
             locator = page.locator("text=/sent|delivered/i")
             # Handle both sync (test mock) and async (real) count methods
             import inspect
-            if hasattr(locator, 'count'):
-                count_method = getattr(locator, 'count')
+
+            if hasattr(locator, "count"):
+                count_method = locator.count
                 if callable(count_method):
                     if inspect.iscoroutinefunction(count_method):
                         count = await count_method()

@@ -66,11 +66,18 @@ class TestCUASessionHygiene:
     def test_cache_clears_after_successful_send(self) -> None:
         """Test profile cache is cleared after a successful send."""
         # Arrange
+        from unittest.mock import AsyncMock
+
         mock_client = Mock()
-        mock_page = Mock()
+        mock_page = AsyncMock()  # Use AsyncMock for page
         mock_locator = Mock()
         mock_locator.count = Mock(return_value=1)  # Indicate sent
         mock_page.locator = Mock(return_value=mock_locator)
+        mock_page.evaluate = AsyncMock(return_value="https://test.com")  # Mock evaluate
+        mock_page.screenshot = AsyncMock(return_value=b"fake_screenshot")  # Mock screenshot
+
+        # Mock the CUA responses to avoid full loop
+        mock_client.responses.create = Mock(return_value=Mock(id="resp-1", output=[]))
 
         with patch.dict(os.environ, {"CUA_MODEL": "test-model", "OPENAI_API_KEY": "test-key"}):
             with patch(
