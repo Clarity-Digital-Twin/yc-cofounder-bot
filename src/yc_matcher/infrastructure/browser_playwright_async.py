@@ -122,7 +122,7 @@ class PlaywrightBrowserAsync:
                 # Wait for navigation after login
                 try:
                     await page.wait_for_url("**/cofounder-matching**", timeout=10000)
-                except:
+                except Exception:
                     # Fallback - just wait for page to settle
                     await page.wait_for_load_state("networkidle", timeout=10000)
 
@@ -161,7 +161,7 @@ class PlaywrightBrowserAsync:
                     count = await page.locator(selector).count()
                     if count > 0:
                         return True
-                except:
+                except Exception:
                     pass
 
             # Also check we're NOT on login page
@@ -271,7 +271,7 @@ class PlaywrightBrowserAsync:
                         if name and len(name) < 100 and not name.startswith("View"):  # Filter out button text
                             profile_data.append(f"Name: {name}")
                             break
-                except:
+                except Exception:
                     pass
 
             # Try to get bio/about section
@@ -292,7 +292,7 @@ class PlaywrightBrowserAsync:
                             break
                     if len(profile_data) > 1:
                         break
-                except:
+                except Exception:
                     pass
 
             # If we got structured data, return it
