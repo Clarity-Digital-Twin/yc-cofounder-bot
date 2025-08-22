@@ -2,8 +2,6 @@
 
 from unittest.mock import Mock, patch
 
-import pytest
-
 
 class TestUIInputsGuard:
     """Test that UI properly validates inputs before allowing start."""
@@ -14,12 +12,13 @@ class TestUIInputsGuard:
         # Arrange
         mock_st.text_area.side_effect = ["", "", "template"]  # Empty profile and criteria
         mock_st.button.return_value = False
-        
+        mock_st.columns.return_value = [Mock(), Mock(), Mock()]  # Mock columns
+
         from yc_matcher.interface.web.ui_streamlit import render_three_input_mode
-        
+
         # Act
         render_three_input_mode()
-        
+
         # Assert - Should show warning
         mock_st.warning.assert_called_with("Please fill both your profile and match criteria to start.")
         # Should not attempt to show Start button
@@ -31,12 +30,12 @@ class TestUIInputsGuard:
         # Arrange
         mock_st.text_area.side_effect = ["  \n  ", "  \t  ", "template"]  # Whitespace only
         mock_st.button.return_value = False
-        
+
         from yc_matcher.interface.web.ui_streamlit import render_three_input_mode
-        
+
         # Act
         render_three_input_mode()
-        
+
         # Assert
         mock_st.warning.assert_called_with("Please fill both your profile and match criteria to start.")
 
@@ -51,13 +50,13 @@ class TestUIInputsGuard:
         mock_st.number_input.return_value = 20
         mock_config.is_headless.return_value = True
         mock_config.get_cua_model.return_value = "test-model"
-        
+
         from yc_matcher.interface.web.ui_streamlit import render_three_input_mode
-        
+
         # Act
         render_three_input_mode()
-        
+
         # Assert - Should show Start button
-        button_calls = [call for call in mock_st.button.call_args_list 
+        button_calls = [call for call in mock_st.button.call_args_list
                        if "Start Autonomous Browsing" in str(call)]
         assert len(button_calls) > 0, "Start button should be shown with valid inputs"

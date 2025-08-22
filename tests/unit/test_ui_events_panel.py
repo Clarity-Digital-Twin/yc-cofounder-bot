@@ -53,8 +53,8 @@ class TestRecentEventsPanel:
                 pytest.fail(f"recent_events not defined when file is empty: {e}")
 
         # Assert - Should show empty state message (but actually renders inside expander)
-        # Since empty string goes to 'not content' branch, it shows "No recent events"
-        mock_st.info.assert_called_with("No recent events")
+        # When file is empty, it shows "No events in the last hour"
+        mock_st.info.assert_called_with("No events in the last hour. Events are cleared after 1 hour.")
 
     @patch("yc_matcher.interface.web.ui_streamlit.st")
     @patch("yc_matcher.interface.web.ui_streamlit.Path")

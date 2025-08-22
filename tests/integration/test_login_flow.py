@@ -53,7 +53,6 @@ class TestLoginFlowIntegration:
     def test_playwright_browser_performs_login(self, mock_playwright: Mock) -> None:
         """Test that Playwright browser can perform login with credentials."""
         # Arrange
-        mock_context = Mock()
         mock_browser = Mock()
         mock_page = Mock()
 

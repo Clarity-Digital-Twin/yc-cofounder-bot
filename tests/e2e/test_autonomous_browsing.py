@@ -366,6 +366,7 @@ class TestAutonomousBrowsingE2E:
         # Assert
         # Should only evaluate first profile, skip duplicate
         mock_evaluate.assert_called_once()
+        assert results["total_evaluated"] >= 1  # At least one evaluated
         # Should log duplicate event
         mock_logger.emit.assert_any_call({
             "event": "duplicate",
