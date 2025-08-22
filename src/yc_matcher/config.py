@@ -156,3 +156,8 @@ def is_debug_mode() -> bool:
 def get_log_level() -> str:
     """Get logging level (DEBUG, INFO, WARNING, ERROR)."""
     return os.getenv("LOG_LEVEL", "DEBUG" if is_debug_mode() else "INFO")
+
+
+def get_playwright_browsers_path() -> str | None:
+    """Get the path where Playwright browsers are installed."""
+    return os.getenv("PLAYWRIGHT_BROWSERS_PATH")

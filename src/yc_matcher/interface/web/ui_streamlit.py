@@ -241,15 +241,18 @@ Environment Settings:
             # Decision mode
             st.info(f"📊 **Decision**: {mode.capitalize()}")
 
+    # Check if inputs are valid before showing action button
+    if not your_profile.strip() or not criteria_text.strip():
+        st.warning("Please fill both your profile and match criteria to start.")
+        render_events_panel()
+        return
+
     # Last Events Panel
     render_events_panel()
 
     # Main action button
     st.markdown("---")
     if st.button("🚀 Start Autonomous Browsing", type="primary", use_container_width=True):
-        if not your_profile or not criteria_text:
-            st.error("Please fill in Your Profile and Match Criteria")
-            return
 
         # Store configuration in session state
         st.session_state["auto_config"] = {
