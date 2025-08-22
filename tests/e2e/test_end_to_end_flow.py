@@ -49,8 +49,6 @@ class TestEndToEndFlow:
         eval_use, send_use, logger = build_services(
             criteria_text=criteria_text,
             template_text=template_text,
-            decision_mode="rubric",
-            threshold=0.7,
         )
 
         # Verify services were built
@@ -81,22 +79,18 @@ class TestEndToEndFlow:
         # In shadow mode, no actual sends should occur
         assert os.getenv("SHADOW_MODE") == "1"
 
-    def test_decision_modes_are_switchable(self) -> None:
-        """Test that all three decision modes work."""
+    def test_ai_only_mode(self) -> None:
+        """Test that AI-only mode works."""
         from yc_matcher.interface.di import build_services
 
-        modes = ["rubric", "advisor", "hybrid"]
+        # Test AI-only mode (the only mode now)
+        eval_use, send_use, logger = build_services(
+            criteria_text="Python",
+            template_text="Hi {name}",
+        )
 
-        for mode in modes:
-            eval_use, send_use, logger = build_services(
-                criteria_text="Python",
-                template_text="Hi {name}",
-                decision_mode=mode,
-                threshold=0.5,
-            )
-
-            assert eval_use is not None, f"Failed to build evaluator for {mode}"
-            assert send_use is not None, f"Failed to build sender for {mode}"
+        assert eval_use is not None, "Failed to build evaluator"
+        assert send_use is not None, "Failed to build sender"
 
     def test_browser_lifecycle_no_spam(self) -> None:
         """Test that only ONE browser instance is created."""

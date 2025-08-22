@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import os
 from collections.abc import Mapping
 from typing import Any
 
+from .. import config
 from ..application.ports import DecisionPort, LoggerPort
 from ..domain.entities import Criteria, Profile
 
@@ -27,13 +27,8 @@ class OpenAIDecisionAdapter(DecisionPort):
     ) -> None:
         self.client = client
         self.logger = logger
-        # Use resolved model first, then env var fallback, then hardcoded fallback
-        self.model = (
-            model
-            or os.getenv("DECISION_MODEL_RESOLVED")  # From model resolver
-            or os.getenv("OPENAI_DECISION_MODEL")  # From .env (legacy)
-            or "gpt-4o"  # Ultimate fallback
-        )
+        # Use model parameter or config function
+        self.model = model or config.get_decision_model()
         self.prompt_ver = prompt_ver
         self.rubric_ver = rubric_ver
 
