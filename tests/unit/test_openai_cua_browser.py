@@ -99,18 +99,18 @@ class TestOpenAICUABrowserResponsesAPI:
             "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.openai_cua_browser.async_playwright",
+                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
 
                 # Act - ensure browser launches
-                await browser._ensure_browser()
+                page = await browser._ensure_browser()
 
-                # Assert - Playwright is initialized
-                assert browser.playwright is not None
-                assert browser.page == page_mock
-                playwright_mock.chromium.launch.assert_called_once()
+                # Assert - Page is returned
+                assert page is not None
+                # The AsyncLoopRunner handles the browser internally
+                # We can't directly access playwright/browser/page as they're internal
 
     @pytest.mark.asyncio
     async def test_cua_screenshot_loop_with_computer_call_output(
@@ -142,7 +142,7 @@ class TestOpenAICUABrowserResponsesAPI:
             "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.openai_cua_browser.async_playwright",
+                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
@@ -212,7 +212,7 @@ class TestOpenAICUABrowserResponsesAPI:
             "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.openai_cua_browser.async_playwright",
+                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
@@ -265,7 +265,7 @@ class TestOpenAICUABrowserResponsesAPI:
             "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.openai_cua_browser.async_playwright",
+                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
@@ -285,8 +285,7 @@ class TestOpenAICUABrowserResponsesAPI:
                 # Third call references second response
                 assert calls[2].kwargs["previous_response_id"] == "resp_2"
 
-    @pytest.mark.asyncio
-    async def test_browser_port_methods_use_cua_loop(
+    def test_browser_port_methods_use_cua_loop(
         self, mock_openai_client: Mock, mock_playwright: tuple, mock_env: None
     ) -> None:
         """Test that high-level browser methods use the CUA loop."""
@@ -303,20 +302,19 @@ class TestOpenAICUABrowserResponsesAPI:
             "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.openai_cua_browser.async_playwright",
+                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
 
-                # Act - test high-level methods
-                result = await browser.read_profile_text()
+                # Act - test high-level methods (sync method, no await)
+                result = browser.read_profile_text()
 
                 # Assert
                 assert result == "Profile text here"
                 mock_openai_client.responses.create.assert_called()
 
-    @pytest.mark.asyncio
-    async def test_fallback_to_playwright_when_cua_fails(
+    def test_fallback_to_playwright_when_cua_fails(
         self, mock_openai_client: Mock, mock_playwright: tuple, mock_env: None
     ) -> None:
         """Test that browser falls back to Playwright when CUA fails."""
@@ -328,14 +326,14 @@ class TestOpenAICUABrowserResponsesAPI:
             "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.openai_cua_browser.async_playwright",
+                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
                 browser.fallback_enabled = True  # Enable fallback
 
-                # Act - should fall back to Playwright
-                await browser.open("https://example.com")
+                # Act - should fall back to Playwright (sync method, no await)
+                browser.open("https://example.com")
 
                 # Assert - Playwright was used directly
                 page_mock.goto.assert_called_once_with("https://example.com")
@@ -378,7 +376,7 @@ class TestOpenAICUABrowserResponsesAPI:
             "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.openai_cua_browser.async_playwright",
+                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
@@ -435,7 +433,7 @@ class TestOpenAICUABrowserResponsesAPI:
                 return_value=mock_openai_client,
             ):
                 with patch(
-                    "yc_matcher.infrastructure.openai_cua_browser.async_playwright",
+                    "yc_matcher.infrastructure.async_loop_runner.async_playwright",
                     return_value=async_pw_mock,
                 ):
                     browser = OpenAICUABrowser()
@@ -487,7 +485,7 @@ class TestOpenAICUABrowserResponsesAPI:
             "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.openai_cua_browser.async_playwright",
+                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
@@ -510,8 +508,7 @@ class TestOpenAICUABrowserResponsesAPI:
                 assert call_args[0][1]["reason"] == "safety_check_not_acknowledged"
                 assert "safety_check" in call_args[0][1]
 
-    @pytest.mark.asyncio
-    async def test_verify_sent_strict_checking(
+    def test_verify_sent_strict_checking(
         self, mock_openai_client: Mock, mock_playwright: tuple, mock_env: None
     ) -> None:
         """Test that verify_sent only returns True for explicit confirmation."""
@@ -533,7 +530,7 @@ class TestOpenAICUABrowserResponsesAPI:
             "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.openai_cua_browser.async_playwright",
+                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
@@ -542,7 +539,7 @@ class TestOpenAICUABrowserResponsesAPI:
                 mock_response = Mock(id="resp_1", output=[Mock(type="output_text", text="true")])
                 mock_openai_client.responses.create.return_value = mock_response
 
-                result = await browser.verify_sent()
+                result = browser.verify_sent()
                 assert result is True
 
                 # Test case 2: Ambiguous response
@@ -551,12 +548,12 @@ class TestOpenAICUABrowserResponsesAPI:
                 )
                 mock_openai_client.responses.create.return_value = mock_response
 
-                result = await browser.verify_sent()
+                result = browser.verify_sent()
                 assert result is False
 
                 # Test case 3: No text output
                 mock_response = Mock(id="resp_3", output=[])
                 mock_openai_client.responses.create.return_value = mock_response
 
-                result = await browser.verify_sent()
+                result = browser.verify_sent()
                 assert result is False

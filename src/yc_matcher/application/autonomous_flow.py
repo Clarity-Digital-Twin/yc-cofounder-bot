@@ -97,6 +97,21 @@ class AutonomousFlow:
         # Navigate to YC matching page
         yc_url = os.getenv("YC_MATCH_URL", "https://www.startupschool.org/cofounder-matching")
         self.browser.open(yc_url)
+        
+        # CRITICAL: Ensure logged in before proceeding
+        max_login_attempts = 30  # 30 seconds timeout
+        for i in range(max_login_attempts):
+            if hasattr(self.browser, 'is_logged_in') and self.browser.is_logged_in():
+                self.logger.emit({"event": "login_confirmed", "attempt": i})
+                break
+            if self.stop.is_stopped():
+                self.logger.emit({"event": "stopped", "reason": "stop_flag_during_login"})
+                return {"error": "Stopped during login"}
+            import time
+            time.sleep(1)
+        else:
+            self.logger.emit({"event": "login_failed", "reason": "timeout"})
+            return {"error": "Login required. Please log in manually and try again."}
 
         results = []
         sent_count = 0
@@ -156,11 +171,11 @@ class AutonomousFlow:
                     }
                 )
 
-                # Determine if should send
-                should_send = self._should_auto_send(dict(evaluation), mode, shadow_mode, threshold)
+                # Determine if should send (ignoring shadow mode for now)
+                would_send = self._should_auto_send(dict(evaluation), mode, False, threshold)
 
                 # Send message if appropriate
-                if should_send and evaluation.get("decision") == "YES":
+                if would_send and evaluation.get("decision") == "YES":
                     draft = evaluation.get("draft", "")
                     if draft and not shadow_mode:
                         # Use send use case with quota
@@ -176,7 +191,7 @@ class AutonomousFlow:
                                     "verified": True,
                                 }
                             )
-                    elif shadow_mode:
+                    elif draft and shadow_mode:
                         self.logger.emit({"event": "shadow_send", "profile": i, "would_send": True})
 
                 # Store result
@@ -186,7 +201,7 @@ class AutonomousFlow:
                         "hash": profile_hash,
                         "decision": evaluation.get("decision"),
                         "rationale": evaluation.get("rationale"),
-                        "sent": should_send and not shadow_mode,
+                        "sent": would_send and not shadow_mode,
                         "mode": mode,
                     }
                 )

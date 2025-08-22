@@ -5,6 +5,10 @@ from pathlib import Path
 from typing import Any
 
 import streamlit as st
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 from yc_matcher.application.autonomous_flow import AutonomousFlow
 from yc_matcher.application.use_cases import ProcessCandidate
@@ -96,7 +100,7 @@ def render_three_input_mode() -> None:
             "Test Mode (Evaluate Only)",
             value=os.getenv("SHADOW_MODE", "1") == "1",
             key="shadow_auto",
-            help="When ON: Evaluates profiles but NEVER sends messages. When OFF: Will actually send real messages to matches."
+            help="When ON: Evaluates profiles but NEVER sends messages. When OFF: Will actually send real messages to matches.",
         )
         if shadow_mode:
             st.success("✅ **SAFE MODE**: Will evaluate but NOT send any messages")
@@ -104,6 +108,36 @@ def render_three_input_mode() -> None:
         else:
             st.error("⚠️ **LIVE MODE**: Will ACTUALLY SEND real messages!")
             st.caption("Real messages will be sent to matches. Use with caution.")
+
+    # Debug info expander
+    with st.expander("🔍 Debug Info", expanded=False):
+        # Determine engine type
+        cua_enabled = os.getenv("ENABLE_CUA", "0") == "1"
+        playwright_enabled = os.getenv("ENABLE_PLAYWRIGHT", "0") == "1"
+
+        if cua_enabled:
+            engine = "**CUA planner + Playwright executor**"
+            st.success(f"Engine: {engine}")
+            st.caption("OpenAI CUA plans actions, Playwright executes them")
+        elif playwright_enabled:
+            engine = "**Playwright-only**"
+            st.info(f"Engine: {engine}")
+            st.caption("Direct browser automation without AI planning")
+        else:
+            engine = "**None (dry run)**"
+            st.warning(f"Engine: {engine}")
+
+        # Show key environment settings
+        st.code(f"""
+Environment Settings:
+• PLAYWRIGHT_HEADLESS: {os.getenv("PLAYWRIGHT_HEADLESS", "not set")}
+• PLAYWRIGHT_BROWSERS_PATH: {os.getenv("PLAYWRIGHT_BROWSERS_PATH", "not set")}
+• CUA_MODEL: {os.getenv("CUA_MODEL", "not set")}
+• CUA_MAX_TURNS: {os.getenv("CUA_MAX_TURNS", "10")}
+• PACE_MIN_SECONDS: {os.getenv("PACE_MIN_SECONDS", "45")}
+• Decision Mode: {mode}
+• Shadow Mode: {shadow_mode}
+        """)
 
     # Advanced settings in expander (Clean Code: hide complexity)
     with st.expander("⚙️ Advanced Settings"):
@@ -175,6 +209,17 @@ def render_three_input_mode() -> None:
             screenshot_b64 = st.session_state["last_screenshot"]
             st.image(f"data:image/png;base64,{screenshot_b64}", use_column_width=True)
 
+    # Check if we have auto-login credentials
+    has_credentials = bool(os.getenv("YC_EMAIL") and os.getenv("YC_PASSWORD"))
+    
+    if has_credentials:
+        # With credentials, we can do everything automatically
+        st.success("✅ **Auto-login enabled** - credentials found in .env")
+    else:
+        # Without credentials, need manual login
+        st.warning("⚠️ **Manual login required** - no credentials in .env")
+        st.info("Add YC_EMAIL and YC_PASSWORD to .env for automatic login")
+
     # Main action button
     st.markdown("---")
     if st.button("🚀 Start Autonomous Browsing", type="primary", use_container_width=True):
@@ -211,6 +256,7 @@ def render_three_input_mode() -> None:
             # Wait for user response (non-blocking async pattern)
             import asyncio
             import time
+
             timeout = 60  # 60 second timeout
             start = time.time()
 
@@ -223,26 +269,32 @@ def render_three_input_mode() -> None:
             # Timeout - default to reject for safety
             return False
 
-        with st.spinner("Processing..."):
+        with st.spinner("🔄 Starting autonomous browsing..."):
             try:
-                # Reuse existing services (DRY principle)
+                # Build services (browser singleton ensures we reuse any existing browser)
                 eval_use, send_use, logger = build_services(
                     criteria_text=criteria_text,
                     template_text=template_text,
                     prompt_ver="v1",
                     rubric_ver="v1",
                     decision_mode=mode,  # Pass mode to DI
+                    threshold=threshold,
                 )
+                
+                browser = send_use.browser
+                
+                # Store browser in session state for potential reuse
+                st.session_state["browser_instance"] = browser
 
                 # Wire callbacks to browser if CUA enabled
-                if enable_cua and hasattr(send_use, "browser"):
-                    browser = send_use.browser
+                if enable_cua:
                     if hasattr(browser, "hil_approve_callback"):
                         browser.hil_approve_callback = hil_approve_callback
                     if hasattr(browser, "screenshot_callback"):
                         # Screenshot callback to update UI
                         def screenshot_callback(screenshot_b64: str) -> None:
                             st.session_state["last_screenshot"] = screenshot_b64
+
                         browser.screenshot_callback = screenshot_callback
 
                 # Create dependencies for autonomous flow
@@ -258,7 +310,7 @@ def render_three_input_mode() -> None:
                     seen=seen_repo,
                     logger=logger,
                     stop=stop_flag,
-                    quota=quota
+                    quota=quota,
                 )
 
                 # Execute autonomous flow
@@ -270,7 +322,7 @@ def render_three_input_mode() -> None:
                     limit=max_profiles,
                     shadow_mode=shadow_mode,
                     threshold=threshold,
-                    alpha=alpha if mode == "hybrid" else 0.5
+                    alpha=alpha if mode == "hybrid" else 0.5,
                 )
 
                 # Display results
@@ -290,6 +342,7 @@ def render_three_input_mode() -> None:
 
             except Exception as e:
                 import traceback
+
                 st.error(f"Failed to start: {e}")
                 with st.expander("Error Details", expanded=True):
                     st.code(traceback.format_exc())

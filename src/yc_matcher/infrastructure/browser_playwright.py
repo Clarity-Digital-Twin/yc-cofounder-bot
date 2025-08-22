@@ -33,8 +33,14 @@ class PlaywrightBrowser:
             )
         pl = sync_playwright()
         self._pl = pl
+        # Default to VISIBLE browser for YC login flow
         headless = os.getenv("PLAYWRIGHT_HEADLESS", "0") in {"1", "true", "True"}
-        browser = pl.start().chromium.launch(headless=headless)
+        # Set browser path if provided
+        browsers_path = os.getenv("PLAYWRIGHT_BROWSERS_PATH")
+        launch_args = {"headless": headless}
+        if browsers_path:
+            os.environ["PLAYWRIGHT_BROWSERS_PATH"] = browsers_path
+        browser = pl.start().chromium.launch(**launch_args)
         ctx = browser.new_context(viewport={"width": 1280, "height": 800})
         self._page = ctx.new_page()
         return self._page
@@ -42,6 +48,17 @@ class PlaywrightBrowser:
     def open(self, url: str) -> None:
         page = self._ensure_page()
         page.goto(url)
+    
+    def is_logged_in(self) -> bool:
+        """Check if user is logged into YC by looking for profile elements."""
+        page = self._ensure_page()
+        # Check for elements that only appear when logged in
+        # Either "View profile" buttons or profile cards
+        return (
+            page.locator('button:has-text("View profile")').count() > 0 or
+            page.locator('.profile-card').count() > 0 or
+            page.locator('[data-test="profile"]').count() > 0
+        )
 
     # Convenience internal helper
     def _click_by_labels(self, labels: Iterable[str]) -> bool:

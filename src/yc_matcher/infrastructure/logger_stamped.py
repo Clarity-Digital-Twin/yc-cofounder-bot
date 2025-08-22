@@ -27,3 +27,15 @@ class LoggerWithStamps(LoggerPort):
             **event,
         }
         self._logger.emit(stamped)
+
+    @property
+    def prompt_ver(self) -> str:
+        return self._prompt_ver
+
+    @property
+    def rubric_ver(self) -> str:
+        return self._rubric_ver
+
+    @property
+    def criteria_preset(self) -> str:
+        return self._criteria_preset
