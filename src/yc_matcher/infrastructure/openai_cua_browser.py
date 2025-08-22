@@ -10,13 +10,14 @@ from __future__ import annotations
 
 import asyncio
 import base64
-import os
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
 from openai import OpenAI
 from playwright.async_api import Page
+
+from .. import config
 
 
 class OpenAICUABrowser:
@@ -33,19 +34,19 @@ class OpenAICUABrowser:
     def __init__(self) -> None:
         """Initialize CUA browser with Responses API client and Playwright."""
         # OpenAI client for Responses API
-        self.client: Any = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.client: Any = OpenAI(api_key=config.get_openai_api_key())
 
-        # Model configuration - use resolved model first, then env var
-        self.model = os.getenv("CUA_MODEL_RESOLVED") or os.getenv("CUA_MODEL")
+        # Model configuration
+        self.model = config.get_cua_model()
         if not self.model:
             raise ValueError(
                 "No Computer Use model available. "
-                "Either CUA_MODEL_RESOLVED (from auto-discovery) or CUA_MODEL env var not set. "
+                "CUA_MODEL env var not set. "
                 "Check your Models endpoint at platform.openai.com/account/models"
             )
 
-        self.temperature = float(os.getenv("CUA_TEMPERATURE", "0.3"))
-        self.max_tokens = int(os.getenv("CUA_MAX_TOKENS", "1200"))
+        self.temperature = 0.3  # Default CUA temperature
+        self.max_tokens = 1200  # Default CUA max tokens
 
         # CRITICAL FIX: Use AsyncLoopRunner for single browser instance
         from .async_loop_runner import AsyncLoopRunner
@@ -58,10 +59,10 @@ class OpenAICUABrowser:
         # Response chaining
         self._prev_response_id: str | None = None
         self._turn_count = 0
-        self._max_turns = int(os.getenv("CUA_MAX_TURNS", "10"))
+        self._max_turns = 10  # Default max turns
 
         # Fallback configuration
-        self.fallback_enabled = os.getenv("ENABLE_PLAYWRIGHT_FALLBACK", "1") == "1"
+        self.fallback_enabled = config.get_playwright_fallback_enabled()
 
         # Cache for efficiency
         self._profile_text_cache = ""
