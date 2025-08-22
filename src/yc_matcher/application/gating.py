@@ -17,7 +17,21 @@ class GatedDecision:
 
     def evaluate(self, profile: Profile, criteria: Criteria) -> Mapping[str, Any]:
         s = self.scoring.score(profile, criteria)
+        
+        # Always get AI evaluation for draft and rationale
+        ai_result = self.decision.evaluate(profile, criteria)
+        
         if s.value <= self.red_flag_floor or s.value < self.threshold:
-            # Fail-closed NO with minimal payload
-            return {"decision": "NO", "rationale": "Below threshold or red flags", "draft": ""}
-        return self.decision.evaluate(profile, criteria)
+            # Use AI draft but override decision to NO
+            return {
+                "decision": "NO", 
+                "rationale": f"Below threshold ({s.value:.2f} < {self.threshold})",
+                "draft": ai_result.get("draft", ""),  # Keep AI-generated draft
+                "score": s.value,
+                "ai_decision": ai_result.get("decision"),  # Track what AI would have said
+                "ai_rationale": ai_result.get("rationale", "")
+            }
+        
+        # Above threshold - use full AI result with score added
+        ai_result["score"] = s.value
+        return ai_result

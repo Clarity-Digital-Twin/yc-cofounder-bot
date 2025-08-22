@@ -70,12 +70,47 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 minversion = "8.0"
-addopts = "-q -m 'not integration'"
+addopts = """
+    -v
+    --tb=short
+    --strict-markers
+    -m 'not integration'
+    --cov=src/yc_matcher
+    --cov-report=term-missing:skip-covered
+    --cov-report=html:.coverage_html
+    --cov-branch
+    --color=yes
+"""
 testpaths = ["tests"]
 pythonpath = ["src"]
 markers = [
   "integration: marks tests that require browsers or external UI (deselected by default)",
+  "asyncio: marks async tests",
+  "slow: marks slow tests",
 ]
+
+[tool.coverage.run]
+source = ["src/yc_matcher"]
+branch = true
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/test_*.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "pass",
+    "except ImportError:",
+]
+precision = 2
+show_missing = true
+skip_covered = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/yc_matcher"]
@@ -84,4 +119,6 @@ packages = ["src/yc_matcher"]
 dev = [
     "pytest>=8.4.1",
     "pytest-asyncio>=1.1.0",
+    "pytest-cov>=4.1.0",
+    "pytest-sugar>=0.9.7",
 ]

@@ -209,16 +209,85 @@ Environment Settings:
             screenshot_b64 = st.session_state["last_screenshot"]
             st.image(f"data:image/png;base64,{screenshot_b64}", use_column_width=True)
 
-    # Check if we have auto-login credentials
-    has_credentials = bool(os.getenv("YC_EMAIL") and os.getenv("YC_PASSWORD"))
-
-    if has_credentials:
-        # With credentials, we can do everything automatically
-        st.success("✅ **Auto-login enabled** - credentials found in .env")
-    else:
-        # Without credentials, need manual login
-        st.warning("⚠️ **Manual login required** - no credentials in .env")
-        st.info("Add YC_EMAIL and YC_PASSWORD to .env for automatic login")
+    # Status Panel - Show current system state
+    with st.expander("🔍 System Status", expanded=True):
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            # Login status
+            has_credentials = bool(os.getenv("YC_EMAIL") and os.getenv("YC_PASSWORD"))
+            browser = st.session_state.get("browser_instance")
+            is_logged_in = False
+            if browser and hasattr(browser, 'is_logged_in'):
+                try:
+                    is_logged_in = browser.is_logged_in()
+                except:
+                    pass
+            
+            if is_logged_in:
+                st.success("✅ **Logged In**")
+            elif has_credentials:
+                st.info("🔑 **Credentials Available** (will auto-login)")
+            else:
+                st.warning("⚠️ **Manual Login Required**")
+        
+        with col2:
+            # Model info
+            decision_model = os.getenv("DECISION_MODEL_RESOLVED") or os.getenv("OPENAI_DECISION_MODEL") or "gpt-4o"
+            st.info(f"🤖 **Model**: {decision_model}")
+            
+            # Engine type
+            engine = "CUA + Playwright" if enable_cua else "Playwright Only"
+            st.info(f"⚙️ **Engine**: {engine}")
+        
+        with col3:
+            # Headless mode
+            headless = os.getenv("PLAYWRIGHT_HEADLESS", "0") == "1"
+            mode_str = "Headless" if headless else "Headful (visible)"
+            st.info(f"👁️ **Browser**: {mode_str}")
+            
+            # Decision mode
+            st.info(f"📊 **Decision**: {mode.capitalize()}")
+    
+    # Last Events Panel
+    if os.path.exists(".runs/events.jsonl"):
+        with st.expander("📝 Recent Events", expanded=False):
+            try:
+                import json
+                from pathlib import Path
+                
+                # Read last 10 events
+                events_path = Path(".runs/events.jsonl")
+                lines = events_path.read_text().strip().split('\n')
+                recent_events = []
+                for line in lines[-10:]:
+                    if line.strip():
+                        try:
+                            event = json.loads(line)
+                            recent_events.append(event)
+                        except:
+                            pass
+                
+                # Display in reverse order (newest first)
+                for event in reversed(recent_events):
+                    event_type = event.get("event", "unknown")
+                    timestamp = event.get("timestamp", "")
+                    
+                    # Color-code by event type
+                    if event_type == "sent":
+                        st.success(f"✅ {timestamp} - {event_type}")
+                    elif event_type in ["error", "stopped", "login_failed"]:
+                        st.error(f"❌ {timestamp} - {event_type}")
+                    elif event_type == "decision":
+                        decision = event.get("data", {}).get("decision", "")
+                        if decision == "YES":
+                            st.info(f"👍 {timestamp} - decision: YES")
+                        else:
+                            st.warning(f"👎 {timestamp} - decision: NO")
+                    else:
+                        st.text(f"• {timestamp} - {event_type}")
+            except Exception as e:
+                st.error(f"Could not read events: {e}")
 
     # Main action button
     st.markdown("---")
