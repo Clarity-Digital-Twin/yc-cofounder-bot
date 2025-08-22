@@ -1,0 +1,47 @@
+name: Test Minimal
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install UV
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
+      - name: Test UV installation
+        run: |
+          which uv || echo "UV not in PATH"
+          uv --version || echo "UV version failed"
+      
+      - name: Create venv
+        run: |
+          uv venv
+          ls -la .venv/
+      
+      - name: Try sync
+        run: |
+          uv sync || echo "Sync failed, trying with --all-extras"
+          uv sync --all-extras || echo "Sync with all extras failed"
+      
+      - name: List installed packages
+        run: |
+          uv pip list | head -20
+      
+      - name: Try running ruff
+        run: |
+          which ruff || echo "ruff not in PATH"
+          .venv/bin/ruff --version || echo "ruff not in venv"
+          uv run ruff --version || echo "uv run ruff failed"
