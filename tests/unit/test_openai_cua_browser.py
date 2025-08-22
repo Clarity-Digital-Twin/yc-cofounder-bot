@@ -502,8 +502,8 @@ class TestOpenAICUABrowserResponsesAPI:
         async_pw_mock, playwright_mock, page_mock = mock_playwright
 
         # Mock locator for sent indicators
-        locator_mock = AsyncMock()
-        page_mock.locator.return_value = locator_mock
+        locator_mock = Mock()  # Use regular Mock, not AsyncMock
+        page_mock.locator = Mock(return_value=locator_mock)  # Make locator synchronous
 
         with patch(
             "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client

@@ -180,7 +180,9 @@
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_cua_executes_actions_with_playwright -xvs --tb=long)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_fallback_to_playwright_when_cua_fails -xvs)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py -k \"fallback_to_playwright_when_cua_fails or screenshot_encoding or verify_sent_strict\" -xvs)",
-      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py -k \"fallback_to_playwright_when_cua_fails or screenshot_encoding or verify_sent_strict\" -q)"
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py -k \"fallback_to_playwright_when_cua_fails or screenshot_encoding or verify_sent_strict\" -q)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_verify_sent_strict_checking -xvs)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run python -c \"\nfrom unittest.mock import Mock, AsyncMock\nimport asyncio\n\n# Simulate the test setup\npage_mock = AsyncMock()\nlocator_mock = AsyncMock()\npage_mock.locator.return_value = locator_mock\n\n# Set count as a regular Mock that returns 1\nlocator_mock.count = Mock(return_value=1)\n\n# What the implementation sees\nasync def test():\n    locator = page_mock.locator(''text=/sent|delivered/i'')\n    print(f''locator: {locator}'')\n    print(f''locator.count: {locator.count}'')\n    print(f''locator.count(): {locator.count()}'')\n    \nasyncio.run(test())\n\")"
     ],
     "deny": [],
     "ask": []

@@ -510,16 +510,18 @@ class OpenAICUABrowser:
             # Check for sent indicators in DOM
             locator = page.locator("text=/sent|delivered/i")
             # Handle both sync (test mock) and async (real) count methods
-            if callable(locator.count):
-                # Check if it's async
-                import inspect
-
-                if inspect.iscoroutinefunction(locator.count):
-                    count = await locator.count()
+            import inspect
+            if hasattr(locator, 'count'):
+                count_method = getattr(locator, 'count')
+                if callable(count_method):
+                    if inspect.iscoroutinefunction(count_method):
+                        count = await count_method()
+                    else:
+                        count = count_method()
                 else:
-                    count = locator.count()
+                    count = count_method
             else:
-                count = locator.count
+                count = 0
 
             if count > 0:
                 self._profile_text_cache = ""  # Clear cache on successful send
