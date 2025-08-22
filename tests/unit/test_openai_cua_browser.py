@@ -216,14 +216,18 @@ class TestOpenAICUABrowserResponsesAPI:
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
+                
+                # Patch _ensure_browser to return our test mock
+                with patch.object(browser, "_ensure_browser", new_callable=AsyncMock) as mock_ensure:
+                    mock_ensure.return_value = page_mock
 
-                # Act - test click
-                await browser._cua_action("Click button")
-                page_mock.mouse.click.assert_called_once_with(100, 200)
+                    # Act - test click
+                    await browser._cua_action("Click button")
+                    page_mock.mouse.click.assert_called_once_with(100, 200)
 
-                # Act - test type
-                await browser._cua_action("Type message")
-                page_mock.keyboard.type.assert_called_once_with("Hello World")
+                    # Act - test type
+                    await browser._cua_action("Type message")
+                    page_mock.keyboard.type.assert_called_once_with("Hello World")
 
     @pytest.mark.asyncio
     async def test_previous_response_id_chains_turns(
