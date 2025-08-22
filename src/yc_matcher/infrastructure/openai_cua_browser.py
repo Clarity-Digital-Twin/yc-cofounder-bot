@@ -50,6 +50,9 @@ class OpenAICUABrowser:
         from .async_loop_runner import AsyncLoopRunner
 
         self._runner = AsyncLoopRunner()
+        
+        # In test mode, _runner might be None - handle gracefully
+        self._page_mock = None  # For test injection
 
         # Response chaining
         self._prev_response_id: str | None = None
@@ -73,9 +76,17 @@ class OpenAICUABrowser:
 
     async def _ensure_browser(self) -> Page:
         """Ensure browser exists via runner (single instance)."""
+        # In test mode with injected mock
+        if self._page_mock:
+            return self._page_mock
+        
         # Runner handles browser lifecycle - returns the page
-        page = await self._runner.ensure_browser()
-        return page  # Return it, don't store it
+        if self._runner:
+            page = await self._runner.ensure_browser()
+            return page  # Return it, don't store it
+        
+        # Fallback for test mode
+        raise RuntimeError("No browser available (runner is None in test mode)")
 
     def _should_stop(self) -> bool:
         """Check if STOP flag exists."""
