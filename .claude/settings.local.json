@@ -235,7 +235,8 @@
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/e2e/test_autonomous_browsing.py::TestAutonomousBrowsingE2E::test_full_autonomous_flow_with_sending -xvs --tb=short)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/e2e/test_autonomous_browsing.py::TestAutonomousBrowsingE2E::test_full_autonomous_flow_with_sending -xvs --tb=long)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/e2e/test_autonomous_browsing.py::TestAutonomousBrowsingE2E::test_full_autonomous_flow_with_sending -xvs --tb=no)",
-      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_autonomous_flow_modes.py tests/unit/test_stop_flag_integration.py tests/unit/test_duplicate_detection.py tests/unit/test_autonomous_happy_path.py -v --cov=src --cov-report=term-missing:skip-covered)"
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_autonomous_flow_modes.py tests/unit/test_stop_flag_integration.py tests/unit/test_duplicate_detection.py tests/unit/test_autonomous_happy_path.py -v --cov=src --cov-report=term-missing:skip-covered)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_ai_only_decision.py::TestAIOnlyDecision::test_ai_decision_logs_usage_metrics -xvs)"
     ],
     "deny": [],
     "ask": []
