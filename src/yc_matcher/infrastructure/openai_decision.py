@@ -109,21 +109,60 @@ class OpenAIDecisionAdapter(DecisionPort):
         try:
             # Define API call functions for retry wrapper
             def call_gpt5() -> tuple[Any, str]:
-                # GPT-5 doesn't support response_format or temperature
-                # Must rely on prompt instructions for JSON
-                r = self.client.responses.create(
-                    model=self.model,
-                    input=[
+                # Try with all optional params first, fall back if they error
+                params = {
+                    "model": self.model,
+                    "input": [
                         {"role": "system", "content": sys_prompt},
-                        {
-                            "role": "user",
-                            "content": user_text
-                            + "\n\nIMPORTANT: Return your response as valid JSON with these exact keys: decision, rationale, draft, score, confidence",
-                        },
+                        {"role": "user", "content": user_text},
                     ],
-                    max_output_tokens=800,  # Responses API uses max_output_tokens
-                    # NOTE: GPT-5 doesn't support temperature or response_format parameters
-                )
+                    "max_output_tokens": 800,  # Required for Responses API
+                }
+                
+                # Try with response_format first (per contract section 6)
+                try:
+                    params["response_format"] = {
+                        "type": "json_schema",
+                        "json_schema": {
+                            "name": "decision_response",
+                            "strict": True,
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "decision": {"type": "string", "enum": ["YES", "NO"]},
+                                    "rationale": {"type": "string"},
+                                    "draft": {"type": "string"},
+                                    "score": {"type": "number", "minimum": 0, "maximum": 1},
+                                    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+                                },
+                                "required": ["decision", "rationale", "draft", "score", "confidence"],
+                                "additionalProperties": False,
+                            },
+                        },
+                    }
+                    params["temperature"] = 0.3  # Optional per contract section 7
+                    
+                    r = self.client.responses.create(**params)
+                    
+                except Exception as e:
+                    # Contract section 21: if 400 error, retry without optional params
+                    error_str = str(e)
+                    if self.logger:
+                        self.logger.emit({
+                            "event": "response_format_fallback",
+                            "error": error_str,
+                            "model": self.model,
+                        })
+                    
+                    # Remove optional params that might have failed
+                    params.pop("response_format", None)
+                    if "temperature" in error_str.lower():
+                        params.pop("temperature", None)
+                    
+                    # Add prompt instruction for JSON
+                    params["input"][1]["content"] += "\n\nIMPORTANT: Return your response as valid JSON with these exact keys: decision, rationale, draft, score, confidence"
+                    
+                    r = self.client.responses.create(**params)
                 # Extract content from Responses API format
                 # GPT-5 returns output array: [reasoning_item, message_item]
                 # Use output_text helper which aggregates all text (docs-recommended)
