@@ -208,10 +208,10 @@ class TestStreamlitUI:
         """Test that start button validates required inputs."""
         # Arrange - mark as logged in to get past login gate
         mock_st.session_state = {
-            "hil_pending": None, 
-            "last_screenshot": None, 
+            "hil_pending": None,
+            "last_screenshot": None,
             "login_ready": True,
-            "browser": Mock()  # Mock browser to avoid "None (dry run)" warning
+            "browser": Mock(),  # Mock browser to avoid "None (dry run)" warning
         }
         mock_st.columns.side_effect = lambda n: [
             MagicMock() for _ in range(n if isinstance(n, int) else len(n))
@@ -229,7 +229,7 @@ class TestStreamlitUI:
         mock_st.slider.return_value = 0.7
         mock_st.expander.return_value.__enter__ = Mock()
         mock_st.expander.return_value.__exit__ = Mock()
-        
+
         # Mock the browser to avoid initialization warnings
         mock_services = Mock()
         mock_services.browser = Mock()

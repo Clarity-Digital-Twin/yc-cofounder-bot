@@ -15,7 +15,9 @@ class TestDuplicateDetection:
         browser.open = Mock()
         browser.click_view_profile = Mock(return_value=True)
         # Return same profile text twice
-        browser.read_profile_text = Mock(side_effect=["Duplicate profile", "Duplicate profile", "Unique profile"])
+        browser.read_profile_text = Mock(
+            side_effect=["Duplicate profile", "Duplicate profile", "Unique profile"]
+        )
         browser.skip = Mock()
 
         evaluate = Mock(return_value={"decision": "NO", "rationale": "No match"})

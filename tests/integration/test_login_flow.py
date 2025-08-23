@@ -44,7 +44,9 @@ class TestLoginFlowIntegration:
         mock_client.responses.create.return_value = login_response
 
         # Create browser and mock the runner
-        with patch("yc_matcher.infrastructure.async_loop_runner.AsyncLoopRunner") as mock_runner_class:
+        with patch(
+            "yc_matcher.infrastructure.async_loop_runner.AsyncLoopRunner"
+        ) as mock_runner_class:
             mock_runner = Mock()
             mock_runner_class.return_value = mock_runner
             mock_runner.submit.return_value = None  # ensure_logged_in returns None
@@ -116,9 +118,7 @@ class TestLoginFlowIntegration:
         },
     )
     @patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI")
-    def test_cua_browser_uses_playwright_for_login_execution(
-        self, mock_openai: Mock
-    ) -> None:
+    def test_cua_browser_uses_playwright_for_login_execution(self, mock_openai: Mock) -> None:
         """Test that CUA browser uses Playwright to execute login actions."""
         # Arrange
         mock_client = Mock()
@@ -140,7 +140,9 @@ class TestLoginFlowIntegration:
         mock_client.responses.create.side_effect = [click_response, done_response]
 
         # Create browser with mocked runner
-        with patch("yc_matcher.infrastructure.async_loop_runner.AsyncLoopRunner") as mock_runner_class:
+        with patch(
+            "yc_matcher.infrastructure.async_loop_runner.AsyncLoopRunner"
+        ) as mock_runner_class:
             mock_runner = Mock()
             mock_runner_class.return_value = mock_runner
             mock_runner.submit.return_value = None  # ensure_logged_in returns None
@@ -210,7 +212,9 @@ class TestLoginFlowIntegration:
         mock_client.responses.create.return_value = error_response
 
         # Create browser with mocked runner that raises exception
-        with patch("yc_matcher.infrastructure.async_loop_runner.AsyncLoopRunner") as mock_runner_class:
+        with patch(
+            "yc_matcher.infrastructure.async_loop_runner.AsyncLoopRunner"
+        ) as mock_runner_class:
             mock_runner = Mock()
             mock_runner_class.return_value = mock_runner
             mock_runner.submit.side_effect = Exception("Login failed")

@@ -626,7 +626,7 @@ Complete the login process."""
 
             # Use CUA to perform login actions
             response = self.client.responses.create(
-                model=self.model_name,
+                model=self.model,
                 tools=[
                     {
                         "type": "computer_use_preview",
@@ -681,7 +681,7 @@ Complete the login process."""
 
                 # Send result back to CUA
                 response = self.client.responses.create(
-                    model=self.model_name,
+                    model=self.model,
                     previous_response_id=response.id,
                     tools=[
                         {

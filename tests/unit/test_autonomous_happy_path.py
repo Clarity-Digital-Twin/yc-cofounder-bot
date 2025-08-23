@@ -18,14 +18,16 @@ class TestAutonomousFlowHappyPath:
         browser.skip = Mock()
 
         # Evaluation returns YES with auto_send
-        evaluate = Mock(return_value={
-            "decision": "YES",
-            "rationale": "Perfect technical match",
-            "draft": "Hi! I'd love to connect.",
-            "auto_send": True,
-            "score": 0.95,
-            "confidence": 0.9,
-        })
+        evaluate = Mock(
+            return_value={
+                "decision": "YES",
+                "rationale": "Perfect technical match",
+                "draft": "Hi! I'd love to connect.",
+                "auto_send": True,
+                "score": 0.95,
+                "confidence": 0.9,
+            }
+        )
 
         # Send succeeds
         send = Mock(return_value=True)
@@ -105,10 +107,12 @@ class TestAutonomousFlowHappyPath:
         browser.skip = Mock()
 
         # First YES, second NO
-        evaluate = Mock(side_effect=[
-            {"decision": "YES", "draft": "Hi!", "auto_send": True, "rationale": "Good"},
-            {"decision": "NO", "rationale": "Not a match"},
-        ])
+        evaluate = Mock(
+            side_effect=[
+                {"decision": "YES", "draft": "Hi!", "auto_send": True, "rationale": "Good"},
+                {"decision": "NO", "rationale": "Not a match"},
+            ]
+        )
 
         send = Mock(return_value=True)
         seen = Mock()

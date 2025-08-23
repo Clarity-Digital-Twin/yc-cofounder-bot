@@ -27,11 +27,12 @@ class PreflightChecker:
         print("\n🔍 Checking environment variables...")
 
         # Critical variables
-        if not config.get_openai_api_key():
+        api_key = config.get_openai_api_key()
+        if not api_key:
             self.errors.append("❌ OPENAI_API_KEY not set")
             return False
         else:
-            self.info.append(f"✅ API Key: ...{config.get_openai_api_key()[-8:]}")
+            self.info.append(f"✅ API Key: ...{api_key[-8:]}")
 
         # YC credentials
         email, password = config.get_yc_credentials()

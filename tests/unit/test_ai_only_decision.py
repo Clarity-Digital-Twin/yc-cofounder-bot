@@ -95,7 +95,9 @@ class TestAIOnlyDecision:
 
         # Check if any usage or latency events were logged
         all_events = [call[0][0]["event"] for call in calls]
-        assert "model_usage" in all_events or "decision_latency" in all_events, f"Got events: {all_events}"
+        assert "model_usage" in all_events or "decision_latency" in all_events, (
+            f"Got events: {all_events}"
+        )
 
         # If model_usage was logged, verify its contents
         usage_events = [call[0][0] for call in calls if call[0][0]["event"] == "model_usage"]
