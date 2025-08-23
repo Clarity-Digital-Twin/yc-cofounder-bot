@@ -42,7 +42,7 @@ class TestOpenAICUABrowserResponsesAPI:
         page.close = AsyncMock()
         # Mock evaluate to always return a URL by default
         page.evaluate = AsyncMock(return_value="https://example.com")
-        
+
         # Mock locator chain for read_profile_text
         locator_mock = AsyncMock()
         locator_mock.count = AsyncMock(return_value=1)
@@ -314,7 +314,7 @@ class TestOpenAICUABrowserResponsesAPI:
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
-                
+
                 # Mock the runner's submit method to return expected value
                 mock_runner = Mock()
                 mock_runner.submit.return_value = "Profile text here"

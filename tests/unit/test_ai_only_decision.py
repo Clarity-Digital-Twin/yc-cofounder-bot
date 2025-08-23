@@ -19,10 +19,9 @@ class TestAIOnlyDecision:
         content_item = SimpleNamespace(
             text='{"decision": "YES", "rationale": "Strong match", "draft": "Hi!", "score": 0.85, "confidence": 0.9}'
         )
-        message_item = SimpleNamespace(type='message', content=[content_item])
+        message_item = SimpleNamespace(type="message", content=[content_item])
         mock_response = SimpleNamespace(
-            output=[message_item],
-            usage=SimpleNamespace(input_tokens=100, output_tokens=50)
+            output=[message_item], usage=SimpleNamespace(input_tokens=100, output_tokens=50)
         )
         mock_client.responses.create.return_value = mock_response
 
@@ -48,10 +47,9 @@ class TestAIOnlyDecision:
         content_item = SimpleNamespace(
             text=f'{{"decision": "YES", "rationale": "Match", "draft": "{personalized_draft}", "score": 0.8, "confidence": 0.85}}'
         )
-        message_item = SimpleNamespace(type='message', content=[content_item])
+        message_item = SimpleNamespace(type="message", content=[content_item])
         mock_response = SimpleNamespace(
-            output=[message_item],
-            usage=SimpleNamespace(input_tokens=150, output_tokens=80)
+            output=[message_item], usage=SimpleNamespace(input_tokens=150, output_tokens=80)
         )
         mock_client.responses.create.return_value = mock_response
 
@@ -75,10 +73,9 @@ class TestAIOnlyDecision:
         content_item = SimpleNamespace(
             text='{"decision": "NO", "rationale": "Not a match", "draft": "", "score": 0.3, "confidence": 0.8}'
         )
-        message_item = SimpleNamespace(type='message', content=[content_item])
+        message_item = SimpleNamespace(type="message", content=[content_item])
         mock_response = SimpleNamespace(
-            output=[message_item],
-            usage=SimpleNamespace(input_tokens=200, output_tokens=100)
+            output=[message_item], usage=SimpleNamespace(input_tokens=200, output_tokens=100)
         )
         mock_client.responses.create.return_value = mock_response
 
@@ -143,11 +140,8 @@ class TestAIOnlyDecision:
         content_item = SimpleNamespace(
             text='{"decision": "YES", "rationale": "Match", "draft": "Message", "score": 0.8, "confidence": 0.85}'
         )
-        message_item = SimpleNamespace(type='message', content=[content_item])
-        mock_response = SimpleNamespace(
-            output=[message_item],
-            usage=None
-        )
+        message_item = SimpleNamespace(type="message", content=[content_item])
+        mock_response = SimpleNamespace(output=[message_item], usage=None)
         mock_client.responses.create.return_value = mock_response
 
         adapter = OpenAIDecisionAdapter(client=mock_client, model="gpt-5")
@@ -169,11 +163,8 @@ class TestAIOnlyDecision:
         content_item = SimpleNamespace(
             text='{"decision": "YES", "rationale": "Match", "draft": "Hi", "score": 0.8, "confidence": 0.85}'
         )
-        message_item = SimpleNamespace(type='message', content=[content_item])
-        mock_response = SimpleNamespace(
-            output=[message_item],
-            usage=None
-        )
+        message_item = SimpleNamespace(type="message", content=[content_item])
+        mock_response = SimpleNamespace(output=[message_item], usage=None)
         mock_client.responses.create.return_value = mock_response
 
         # Create adapter with specific model

@@ -48,7 +48,7 @@ class TestLoginFlowIntegration:
         mock_runner = Mock()
         mock_runner_class.return_value = mock_runner
         mock_runner.submit.return_value = None  # ensure_logged_in returns None
-        
+
         # Create browser
         browser = OpenAICUABrowser()
 
@@ -122,7 +122,7 @@ class TestLoginFlowIntegration:
         mock_runner = Mock()
         mock_runner_class.return_value = mock_runner
         mock_runner.submit.return_value = None  # ensure_logged_in returns None
-        
+
         # Mock CUA response with login actions
         click_response = Mock(
             id="resp_1",
