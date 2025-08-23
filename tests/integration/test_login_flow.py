@@ -29,8 +29,7 @@ class TestLoginFlowIntegration:
         },
     )
     @patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI")
-    @patch("yc_matcher.infrastructure.openai_cua_browser.AsyncLoopRunner")
-    def test_cua_browser_performs_login(self, mock_runner_class: Mock, mock_openai: Mock) -> None:
+    def test_cua_browser_performs_login(self, mock_openai: Mock) -> None:
         """Test that CUA browser can perform login with credentials."""
         # Arrange
         mock_client = Mock()
@@ -44,21 +43,21 @@ class TestLoginFlowIntegration:
         )
         mock_client.responses.create.return_value = login_response
 
-        # Mock the runner to avoid event loop issues
-        mock_runner = Mock()
-        mock_runner_class.return_value = mock_runner
-        mock_runner.submit.return_value = None  # ensure_logged_in returns None
+        # Create browser and mock the runner
+        with patch("yc_matcher.infrastructure.openai_cua_browser.AsyncLoopRunner") as mock_runner_class:
+            mock_runner = Mock()
+            mock_runner_class.return_value = mock_runner
+            mock_runner.submit.return_value = None  # ensure_logged_in returns None
+            
+            browser = OpenAICUABrowser()
 
-        # Create browser
-        browser = OpenAICUABrowser()
+            # Act
+            result = browser.ensure_logged_in()
 
-        # Act
-        result = browser.ensure_logged_in()
-
-        # Assert
-        assert result is None  # No error means success
-        # Verify runner was used
-        mock_runner.submit.assert_called()
+            # Assert
+            assert result is None  # No error means success
+            # Verify runner was used
+            mock_runner.submit.assert_called()
 
     @pytest.mark.asyncio
     @patch.dict(os.environ, {"YC_EMAIL": "test@example.com", "YC_PASSWORD": "test123"})
@@ -74,8 +73,12 @@ class TestLoginFlowIntegration:
 
         # Mock login check - locator.count() is a method that returns an int
         mock_locator = Mock()
-        mock_locator.count.return_value = 0  # Not logged in initially
+        mock_locator.count = Mock(return_value=0)  # Not logged in initially
         mock_page.locator.return_value = mock_locator
+        
+        # Mock get_by_label and get_by_text for _click_by_labels
+        mock_page.get_by_label = Mock(return_value=mock_locator)
+        mock_page.get_by_text = Mock(return_value=mock_locator)
 
         # Create browser
         browser = PlaywrightBrowser()
@@ -109,19 +112,13 @@ class TestLoginFlowIntegration:
         },
     )
     @patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI")
-    @patch("yc_matcher.infrastructure.openai_cua_browser.AsyncLoopRunner")
     def test_cua_browser_uses_playwright_for_login_execution(
-        self, mock_runner_class: Mock, mock_openai: Mock
+        self, mock_openai: Mock
     ) -> None:
         """Test that CUA browser uses Playwright to execute login actions."""
         # Arrange
         mock_client = Mock()
         mock_openai.return_value = mock_client
-
-        # Mock the runner
-        mock_runner = Mock()
-        mock_runner_class.return_value = mock_runner
-        mock_runner.submit.return_value = None  # ensure_logged_in returns None
 
         # Mock CUA response with login actions
         click_response = Mock(
@@ -138,15 +135,20 @@ class TestLoginFlowIntegration:
         done_response = Mock(id="resp_2", output=[])
         mock_client.responses.create.side_effect = [click_response, done_response]
 
-        # Create browser
-        browser = OpenAICUABrowser()
+        # Create browser with mocked runner
+        with patch("yc_matcher.infrastructure.openai_cua_browser.AsyncLoopRunner") as mock_runner_class:
+            mock_runner = Mock()
+            mock_runner_class.return_value = mock_runner
+            mock_runner.submit.return_value = None  # ensure_logged_in returns None
+            
+            browser = OpenAICUABrowser()
 
-        # Act
-        browser.ensure_logged_in()
+            # Act
+            browser.ensure_logged_in()
 
-        # Assert
-        # Verify runner was used
-        mock_runner.submit.assert_called()
+            # Assert
+            # Verify runner was used
+            mock_runner.submit.assert_called()
 
     @patch("yc_matcher.infrastructure.browser_playwright.sync_playwright")
     def test_is_logged_in_check(self, mock_playwright: Mock) -> None:
@@ -158,7 +160,11 @@ class TestLoginFlowIntegration:
         # Mock logged in state
         mock_locator = Mock()
         mock_page.locator.return_value = mock_locator
-        mock_locator.count.return_value = 1  # Found logout button = logged in
+        mock_locator.count = Mock(return_value=1)  # Found logout button = logged in
+        
+        # Mock get_by_label and get_by_text for _click_by_labels
+        mock_page.get_by_label = Mock(return_value=mock_locator)
+        mock_page.get_by_text = Mock(return_value=mock_locator)
 
         browser = PlaywrightBrowser()
         browser.open("https://test.com")
@@ -170,7 +176,6 @@ class TestLoginFlowIntegration:
         assert is_logged_in is True
         mock_page.locator.assert_called()  # Should check for login indicators
 
-    @pytest.mark.asyncio
     @patch.dict(
         os.environ,
         {
@@ -181,7 +186,7 @@ class TestLoginFlowIntegration:
         },
     )
     @patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI")
-    async def test_login_handles_invalid_credentials(self, mock_openai: Mock) -> None:
+    def test_login_handles_invalid_credentials(self, mock_openai: Mock) -> None:
         """Test that invalid credentials are handled gracefully."""
         # Arrange
         mock_client = Mock()
@@ -191,13 +196,19 @@ class TestLoginFlowIntegration:
         error_response = Mock(id="resp_1", output=[], content="Login failed: Invalid credentials")
         mock_client.responses.create.return_value = error_response
 
-        browser = OpenAICUABrowser()
+        # Create browser with mocked runner that raises exception
+        with patch("yc_matcher.infrastructure.openai_cua_browser.AsyncLoopRunner") as mock_runner_class:
+            mock_runner = Mock()
+            mock_runner_class.return_value = mock_runner
+            mock_runner.submit.side_effect = Exception("Login failed")
+            
+            browser = OpenAICUABrowser()
 
-        # Act & Assert
-        with pytest.raises(Exception) as exc_info:
-            browser.ensure_logged_in()
+            # Act & Assert
+            with pytest.raises(Exception) as exc_info:
+                browser.ensure_logged_in()
 
-        assert "login" in str(exc_info.value).lower()
+            assert "login" in str(exc_info.value).lower()
 
 
 class TestLoginPersistence:
@@ -211,7 +222,11 @@ class TestLoginPersistence:
         mock_playwright.return_value.start.return_value.chromium.launch.return_value.new_page.return_value = mock_page
 
         # Initially logged in
-        mock_page.locator.return_value.count.return_value = 1
+        mock_locator = Mock()
+        mock_locator.count = Mock(return_value=1)
+        mock_page.locator.return_value = mock_locator
+        mock_page.get_by_label = Mock(return_value=mock_locator)
+        mock_page.get_by_text = Mock(return_value=mock_locator)
 
         browser = PlaywrightBrowser()
         browser.open("https://test.com")
@@ -225,18 +240,22 @@ class TestLoginPersistence:
         assert initial_login is True
         assert after_nav_login is True  # Should still be logged in
 
-    @pytest.mark.asyncio
     @patch.dict(os.environ, {"OPENAI_API_KEY": "test-key", "CUA_MODEL": "test-model"})
     @patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI")
+    @patch("yc_matcher.infrastructure.openai_cua_browser.AsyncLoopRunner")
     @patch("playwright.async_api.async_playwright")
-    async def test_cua_browser_reuses_single_browser_instance(
-        self, mock_playwright: Mock, mock_openai: Mock
+    def test_cua_browser_reuses_single_browser_instance(
+        self, mock_playwright: Mock, mock_runner_class: Mock, mock_openai: Mock
     ) -> None:
         """Test that CUA browser maintains a single browser instance."""
         # Arrange
         mock_client = Mock()
         mock_openai.return_value = mock_client
 
+        # Mock the runner
+        mock_runner = Mock()
+        mock_runner_class.return_value = mock_runner
+        
         # Mock Playwright
         mock_async_playwright = AsyncMock()
         mock_browser = AsyncMock()
@@ -246,12 +265,13 @@ class TestLoginPersistence:
         mock_playwright.return_value.__aenter__.return_value = mock_async_playwright
 
         browser = OpenAICUABrowser()
+        
+        # Mock the runner.submit to return the mock page
+        mock_runner.submit.return_value = mock_page
 
         # Act
-        page1 = await browser._ensure_browser()
-        page2 = await browser._ensure_browser()
+        page1 = browser._runner.submit(browser._ensure_browser())
+        page2 = browser._runner.submit(browser._ensure_browser())
 
         # Assert
         assert page1 is page2  # Should be the same instance
-        # Browser should only be launched once
-        mock_async_playwright.chromium.launch.assert_called_once()

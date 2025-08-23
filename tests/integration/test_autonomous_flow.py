@@ -380,7 +380,7 @@ class TestAutonomousFlow:
         error_calls = [
             call
             for call in logger.emit.call_args_list
-            if call[0][0].get("event") == "error"
+            if call[0][0].get("event") == "profile_processing_error"
             and "Network error" in str(call[0][0].get("error", ""))
         ]
         assert len(error_calls) > 0, "Should have logged the network error"
