@@ -361,6 +361,10 @@ class AutonomousFlow:
             # Advisor mode never auto-sends (requires HIL approval)
             return False
 
+        elif mode == "ai":
+            # AI mode checks the auto_send flag from the AI decision
+            return evaluation.get("auto_send", False)
+
         elif mode == "rubric":
             # Rubric auto-sends if score exceeds threshold
             score = evaluation.get("score", 0)

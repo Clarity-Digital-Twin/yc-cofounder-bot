@@ -129,6 +129,7 @@ class TestAutonomousBrowsingE2E:
             "rationale": "Perfect match",
             "draft": "Let's connect!",
             "score": 0.9,
+            "auto_send": True,  # Need this for AI mode to auto-send
         }
 
         mock_send = Mock(spec=SendMessage)
@@ -169,7 +170,9 @@ class TestAutonomousBrowsingE2E:
         assert results["results"][0]["sent"] is True
 
         # Verify message was sent
-        mock_send.assert_called_once_with("Let's connect!", 1)
+        assert mock_send.call_count == 1
+        assert mock_send.call_args[0][0] == "Let's connect!"
+        assert mock_send.call_args[0][1] == 1
 
     def test_stop_flag_halts_execution(self, setup_test_env: Path) -> None:
         """Test that STOP flag immediately halts execution."""
