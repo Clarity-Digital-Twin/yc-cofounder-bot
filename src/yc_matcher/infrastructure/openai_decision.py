@@ -148,6 +148,7 @@ class OpenAIDecisionAdapter(DecisionPort):
                             },
                         },
                         max_output_tokens=800,  # Responses API uses max_output_tokens
+                        temperature=0.3,  # Stable for structured outputs (0.2-0.5 recommended)
                     )
                 except Exception as format_err:
                     # Fallback: instruct JSON format in the prompt
@@ -170,6 +171,7 @@ class OpenAIDecisionAdapter(DecisionPort):
                             },
                         ],
                         max_output_tokens=800,  # Responses API uses max_output_tokens
+                        temperature=0.3,  # Stable for structured outputs (0.2-0.5 recommended)
                     )
                 # Extract content from Responses API format
                 # GPT-5 returns output array: [reasoning_item, message_item]
@@ -278,7 +280,7 @@ class OpenAIDecisionAdapter(DecisionPort):
                         {"role": "user", "content": user_text},
                     ],
                     response_format={"type": "json_object"},  # Force JSON response
-                    temperature=0.7,  # Some creativity for message drafting
+                    temperature=0.3,  # Stable for structured outputs (0.2-0.5 recommended)
                     max_tokens=800,  # Enough for decision + message
                 )
                 # Parse the JSON response

@@ -17,7 +17,12 @@ class ObservableBrowser:
         
     def open(self, url: str) -> bool:
         """Delegate to browser."""
-        return self.browser.open(url)
+        try:
+            self.browser.open(url)
+            return True
+        except Exception as e:
+            print(f"❌ Navigation failed: {e}")
+            return False
     
     def click_view_profile(self) -> bool:
         """Delegate to browser."""

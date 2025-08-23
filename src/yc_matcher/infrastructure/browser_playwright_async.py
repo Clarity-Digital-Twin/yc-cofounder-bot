@@ -63,19 +63,25 @@ class PlaywrightBrowserAsync:
             return self._runner.submit(self._ensure_page_async())
         raise RuntimeError("Runner not initialized")
 
-    def open(self, url: str) -> None:
+    def open(self, url: str) -> bool:
         """Open URL in browser (sync method)."""
 
-        async def _open() -> None:
-            page = await self._ensure_page_async()
-            await page.goto(url)
+        async def _open() -> bool:
+            try:
+                page = await self._ensure_page_async()
+                await page.goto(url)
 
-            # Auto-login if credentials are provided and we're on YC
-            if "startupschool.org" in url:
-                await self._auto_login_if_needed(page)
+                # Auto-login if credentials are provided and we're on YC
+                if "startupschool.org" in url:
+                    await self._auto_login_if_needed(page)
+                return True
+            except Exception as e:
+                print(f"❌ Navigation error: {e}")
+                return False
 
         if self._runner:
-            self._runner.submit(_open())
+            return self._runner.submit(_open())
+        return False
 
     async def _auto_login_if_needed(self, page: Page) -> None:
         """Automatically log in to YC if credentials are provided."""
@@ -95,33 +101,53 @@ class PlaywrightBrowserAsync:
                 print("✅ Already logged in to YC")
                 return
 
-            # Look for sign in link/button
-            sign_in = page.locator(
-                'a:has-text("Sign in"), button:has-text("Sign in"), a:has-text("Log in"), button:has-text("Log in")'
-            )
+            # Look for sign in link/button - more specific for YC
+            # First try the "Sign in" button which is visible on the main page
+            sign_in = page.locator('button:has-text("Sign in"), a:has-text("Sign in")')
             if await sign_in.count() > 0:
-                print("🔐 Clicking sign in button...")
+                print("🔐 Found Sign in button, clicking...")
                 await sign_in.first.click()
                 await page.wait_for_load_state("networkidle", timeout=5000)
+            else:
+                # If no sign in button, maybe we're already on login page
+                print("🔐 No Sign in button found, checking if on login page...")
 
             # Wait a bit after clicking sign in
             await page.wait_for_timeout(1000)
 
-            # Fill username/email field - look for VISIBLE text input
-            email_input = page.locator(
-                'input[type="text"]:visible, input[type="email"]:visible'
-            ).first
-            if await email_input.count() > 0:
-                print(f"📧 Entering email: {email}")
-                await email_input.fill(email)
-                await page.wait_for_timeout(500)  # Small delay
+            # Fill username/email field - look for VISIBLE text or email input
+            # Try more specific selectors first
+            email_selectors = [
+                'input[type="email"]:visible',
+                'input[type="text"]:visible',
+                'input[name="email"]',
+                'input[placeholder*="email" i]',
+                'input[placeholder*="username" i]'
+            ]
+            
+            email_filled = False
+            for selector in email_selectors:
+                email_input = page.locator(selector).first
+                if await email_input.count() > 0 and await email_input.is_visible():
+                    print(f"📧 Entering email in {selector}: {email}")
+                    await email_input.click()  # Focus first
+                    await email_input.fill(email)
+                    email_filled = True
+                    await page.wait_for_timeout(500)
+                    break
+            
+            if not email_filled:
+                print("⚠️  Could not find email input field")
 
             # Fill password field
             password_input = page.locator('input[type="password"]:visible').first
             if await password_input.count() > 0:
                 print("🔑 Entering password...")
+                await password_input.click()  # Focus first
                 await password_input.fill(password)
                 await page.wait_for_timeout(500)  # Small delay
+            else:
+                print("⚠️  Could not find password input field")
 
             # Submit the form - look for the Log In button
             submit_btn = page.locator(
@@ -407,16 +433,25 @@ class PlaywrightBrowserAsync:
         async def _fill() -> None:
             page = await self._ensure_page_async()
             
-            # Enhanced selectors for YC's message interface
+            # Enhanced selectors for YC's message interface - based on SCREEN_FOUR
             selectors = [
+                # Most specific first - based on the actual YC interface
+                "textarea[placeholder*='excited about potentially working' i]",
+                "textarea[placeholder*='type a short message' i]",
+                "textarea[placeholder*='Invite' i]",
+                # Generic textarea and input selectors
                 "textarea",  # Standard textarea
+                "textarea:visible",
+                # Contenteditable elements
                 "[contenteditable='true']",  # Contenteditable div
                 "div[role='textbox']",  # ARIA textbox
+                # Placeholder-based selectors
                 "[placeholder*='message' i]",  # Message placeholder
                 "[placeholder*='introduce' i]",  # Introduction placeholder
                 "textarea[placeholder*='message']",
                 "textarea[placeholder*='Message']",
                 "input[type='text'][placeholder*='message']",
+                # ID/name based
                 "#message",
                 "[name='message']",
             ]
@@ -424,19 +459,27 @@ class PlaywrightBrowserAsync:
             for selector in selectors:
                 try:
                     elem = page.locator(selector).first
-                    if await elem.count() > 0:
+                    if await elem.count() > 0 and await elem.is_visible():
+                        print(f"📝 Found message box with selector: {selector}")
                         await elem.click()  # Focus first
+                        await page.wait_for_timeout(200)  # Small delay
                         
                         # Handle contenteditable divs differently
                         if "contenteditable" in selector or "role='textbox'" in selector:
                             await page.keyboard.press("Control+a")  # Select all
                             await page.keyboard.type(text)  # Type new text
                         else:
+                            # Clear first then fill
+                            await elem.clear()
                             await elem.fill(text)
+                        
+                        print(f"✅ Message filled with {len(text)} chars")
                         return
-                except Exception:
+                except Exception as e:
+                    print(f"   Failed with {selector}: {e}")
                     pass
             
+            print("⚠️  No message box found with any selector, trying keyboard type as fallback")
             # Fallback: just type if focused
             await page.keyboard.type(text)
 
@@ -449,34 +492,35 @@ class PlaywrightBrowserAsync:
         async def _send() -> None:
             page = await self._ensure_page_async()
             
-            # Updated labels for YC interface
-            labels = [
-                "Invite to connect",  # YC specific (from screenshot)
-                "Send invitation",
-                "Connect",
-                "Send", 
-                "SEND", 
-                "Send message", 
-                "Send Message", 
-                "Submit"
+            # Specific selectors based on SCREEN_FOUR showing the green button
+            selectors = [
+                # Most specific - the green button we see in the screenshot
+                "button:has-text('Invite to connect')",
+                "button.bg-green-500",  # Green button by color class
+                "button.bg-green-600",
+                "button[class*='green']",
+                # Generic button selectors with text
+                "button:has-text('Invite')",
+                "button:has-text('Send')",
+                "button:has-text('Connect')",
+                # By role
+                "button[type='submit']",
+                "[role='button']:has-text('Invite')",
             ]
-
-            for label in labels:
+            
+            for selector in selectors:
                 try:
-                    # Try exact match
-                    btn = page.get_by_role("button", name=label)
-                    if await btn.count() > 0:
-                        await btn.first.click()
+                    elem = page.locator(selector).first
+                    if await elem.count() > 0 and await elem.is_visible():
+                        print(f"🚀 Found send button with selector: {selector}")
+                        await elem.click()
+                        print("✅ Clicked 'Invite to connect' button")
                         return
-                    
-                    # Try partial text match
-                    btn = page.locator(f"button:has-text('{label}')")
-                    if await btn.count() > 0:
-                        await btn.first.click()
-                        return
-                except Exception:
+                except Exception as e:
+                    print(f"   Failed with {selector}: {e}")
                     pass
             
+            print("⚠️  No send button found, trying Enter key as fallback")
             # Fallback: press Enter in focused element
             await page.keyboard.press("Enter")
 

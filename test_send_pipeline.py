@@ -24,6 +24,10 @@ def test_pure_playwright_send():
     print("PURE PLAYWRIGHT SEND TEST (No NLP)")
     print("="*60)
     
+    import os
+    # Set browser path
+    os.environ["PLAYWRIGHT_BROWSERS_PATH"] = ".ms-playwright"
+    
     from yc_matcher.infrastructure.browser_playwright_async import PlaywrightBrowserAsync
     from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
     from yc_matcher.infrastructure.send_pipeline_observer import SendPipelineObserver

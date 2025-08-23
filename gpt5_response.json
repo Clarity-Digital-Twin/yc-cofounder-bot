@@ -1,0 +1,12 @@
+{
+  "decision": "ERROR",
+  "rationale": "OpenAI API Error (JSONDecodeError): Unterminated string starting at: line 5 column 3 (char 337)",
+  "draft": "",
+  "score": 0.0,
+  "confidence": 0.0,
+  "error": "Unterminated string starting at: line 5 column 3 (char 337)",
+  "error_type": "JSONDecodeError",
+  "latency_ms": 33246,
+  "prompt_ver": "v1",
+  "rubric_ver": "v1"
+}

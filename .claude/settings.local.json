@@ -242,7 +242,16 @@
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_stop_flag_halts_cua_loop -xvs)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_decision_adapter.py tests/unit/test_ai_only_decision.py -q)",
       "Bash(PYTHONPATH=src uv run python debug_message_flow.py)",
-      "Bash(PYTHONPATH=src ENABLE_CUA=0 PLAYWRIGHT_HEADLESS=1 uv run python debug_message_flow.py)"
+      "Bash(PYTHONPATH=src ENABLE_CUA=0 PLAYWRIGHT_HEADLESS=1 uv run python debug_message_flow.py)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run python test_send_pipeline.py)",
+      "Bash(env PLAYWRIGHT_BROWSERS_PATH=.ms-playwright PACE_MIN_SECONDS=0 PYTHONPATH=src PLAYWRIGHT_HEADLESS=0 uv run python test_auto_send_flow.py)",
+      "Bash(env PLAYWRIGHT_BROWSERS_PATH=.ms-playwright PACE_MIN_SECONDS=0 PYTHONPATH=src PLAYWRIGHT_HEADLESS=1 uv run python test_auto_send_flow.py)",
+      "Bash(env PLAYWRIGHT_BROWSERS_PATH=.ms-playwright PACE_MIN_SECONDS=0 PYTHONPATH=src PLAYWRIGHT_HEADLESS=1 uv run python tests/e2e/test_real_send_flow.py --no-spam-test)",
+      "Bash(env PLAYWRIGHT_BROWSERS_PATH=.ms-playwright PACE_MIN_SECONDS=0 PYTHONPATH=src PLAYWRIGHT_HEADLESS=1 uv run pytest tests/e2e/test_real_send_flow.py::TestRealSendFlow::test_01_login_flow -xvs)",
+      "Bash(env PLAYWRIGHT_BROWSERS_PATH=.ms-playwright PACE_MIN_SECONDS=0 PYTHONPATH=src PLAYWRIGHT_HEADLESS=0 SHADOW_MODE=1 uv run pytest tests/e2e/test_real_send_flow.py::TestRealSendFlow -xvs)",
+      "Bash(env PLAYWRIGHT_BROWSERS_PATH=.ms-playwright PACE_MIN_SECONDS=0 PYTHONPATH=src PLAYWRIGHT_HEADLESS=0 SHADOW_MODE=0 uv run python test_send_debug.py)",
+      "Bash(env PLAYWRIGHT_BROWSERS_PATH=.ms-playwright PYTHONPATH=src uv run python test_full_flow_real.py)",
+      "Bash(env OPENAI_DECISION_MODEL=gpt-4o PLAYWRIGHT_BROWSERS_PATH=.ms-playwright PYTHONPATH=src uv run python test_full_flow_real.py)"
     ],
     "deny": [],
     "ask": []
