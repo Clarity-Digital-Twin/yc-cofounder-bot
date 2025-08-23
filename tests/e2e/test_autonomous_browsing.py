@@ -138,7 +138,7 @@ class TestAutonomousBrowsingE2E:
         mock_seen = Mock(spec=SQLiteSeenRepo)
         mock_seen.is_seen.return_value = False
         mock_quota = Mock(spec=SQLiteDailyWeeklyQuota)
-        mock_quota.can_send.return_value = True
+        mock_quota.check_and_increment.return_value = True  # Correct method name
         mock_stop = Mock(spec=FileStopFlag)
         mock_stop.is_stopped.return_value = False
 
@@ -240,7 +240,7 @@ class TestAutonomousBrowsingE2E:
 
         # Quota exhausted after first send
         mock_quota = Mock(spec=SQLiteDailyWeeklyQuota)
-        mock_quota.can_send.side_effect = [True, False]
+        mock_quota.check_and_increment.side_effect = [True, False]
 
         mock_stop = Mock(spec=FileStopFlag)
         mock_stop.is_stopped.return_value = False

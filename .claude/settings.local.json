@@ -223,7 +223,8 @@
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run python -c \"\nfrom types import SimpleNamespace\nfrom unittest.mock import Mock\nfrom yc_matcher.domain.entities import Criteria, Profile\nfrom yc_matcher.infrastructure.openai_decision import OpenAIDecisionAdapter\n\n# Test the mock structure\nmock_client = Mock()\ncontent_item = SimpleNamespace(\n    text=''{\"\"decision\"\": \"\"YES\"\", \"\"rationale\"\": \"\"Strong match\"\", \"\"draft\"\": \"\"Hi!\"\", \"\"score\"\": 0.85, \"\"confidence\"\": 0.9}''\n)\nmessage_item = SimpleNamespace(type=''message'', content=[content_item])\nmock_response = SimpleNamespace(\n    output=[message_item],\n    usage=SimpleNamespace(input_tokens=100, output_tokens=50)\n)\nmock_client.responses.create.return_value = mock_response\n\n# Create adapter with model specified\nadapter = OpenAIDecisionAdapter(client=mock_client, model=''gpt-4'')\nprofile = Profile(raw_text=''Python developer, 5 years experience'')\ncriteria = Criteria(text=''Looking for Python developers'')\n\n# Try to evaluate\nresult = adapter.evaluate(profile, criteria)\nprint(''Result:'', result)\nprint(''Decision:'', result.get(''decision''))\n\")",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/ -q --tb=line)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_ui_inputs_guard.py -q)",
-      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_ai_only_decision.py tests/unit/test_ui_inputs_guard.py -q)"
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_ai_only_decision.py tests/unit/test_ui_inputs_guard.py -q)",
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_browser_port_methods_use_cua_loop -xvs)"
     ],
     "deny": [],
     "ask": []

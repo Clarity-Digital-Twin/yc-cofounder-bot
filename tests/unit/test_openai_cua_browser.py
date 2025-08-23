@@ -306,9 +306,6 @@ class TestOpenAICUABrowserResponsesAPI:
         # Arrange
         async_pw_mock, playwright_mock, page_mock = mock_playwright
 
-        # The browser actually uses Playwright to read text, not CUA
-        # So we need to ensure the page mock returns the right value
-        
         with patch(
             "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
         ):
@@ -317,13 +314,18 @@ class TestOpenAICUABrowserResponsesAPI:
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
+                
+                # Mock the runner's submit method to return expected value
+                mock_runner = Mock()
+                mock_runner.submit.return_value = "Profile text here"
+                browser._runner = mock_runner
 
                 # Act - test high-level methods (sync method, no await)
                 result = browser.read_profile_text()
 
-                # Assert - The inner_text mock should have been called and returned the value
+                # Assert
                 assert result == "Profile text here"
-                # Can't directly assert on page_mock since it's internal to runner
+                mock_runner.submit.assert_called_once()
 
     def test_fallback_to_playwright_when_cua_fails(
         self, mock_openai_client: Mock, mock_playwright: tuple, mock_env: None

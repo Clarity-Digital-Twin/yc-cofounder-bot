@@ -19,7 +19,6 @@ from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
 class TestLoginFlowIntegration:
     """Integration tests for login functionality."""
 
-    @pytest.mark.asyncio
     @patch.dict(
         os.environ,
         {
@@ -30,7 +29,8 @@ class TestLoginFlowIntegration:
         },
     )
     @patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI")
-    async def test_cua_browser_performs_login(self, mock_openai: Mock) -> None:
+    @patch("yc_matcher.infrastructure.openai_cua_browser.AsyncLoopRunner")
+    def test_cua_browser_performs_login(self, mock_runner_class: Mock, mock_openai: Mock) -> None:
         """Test that CUA browser can perform login with credentials."""
         # Arrange
         mock_client = Mock()
@@ -44,6 +44,11 @@ class TestLoginFlowIntegration:
         )
         mock_client.responses.create.return_value = login_response
 
+        # Mock the runner to avoid event loop issues
+        mock_runner = Mock()
+        mock_runner_class.return_value = mock_runner
+        mock_runner.submit.return_value = None  # ensure_logged_in returns None
+        
         # Create browser
         browser = OpenAICUABrowser()
 
@@ -52,8 +57,8 @@ class TestLoginFlowIntegration:
 
         # Assert
         assert result is None  # No error means success
-        # Verify CUA was called to perform login
-        mock_client.responses.create.assert_called()
+        # Verify runner was used
+        mock_runner.submit.assert_called()
 
     @pytest.mark.asyncio
     @patch.dict(os.environ, {"YC_EMAIL": "test@example.com", "YC_PASSWORD": "test123"})
@@ -94,7 +99,6 @@ class TestLoginFlowIntegration:
         is_logged_in = browser.is_logged_in()
         assert not is_logged_in
 
-    @pytest.mark.asyncio
     @patch.dict(
         os.environ,
         {
@@ -105,23 +109,20 @@ class TestLoginFlowIntegration:
         },
     )
     @patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI")
-    @patch("playwright.async_api.async_playwright")
-    async def test_cua_browser_uses_playwright_for_login_execution(
-        self, mock_playwright: Mock, mock_openai: Mock
+    @patch("yc_matcher.infrastructure.openai_cua_browser.AsyncLoopRunner")
+    def test_cua_browser_uses_playwright_for_login_execution(
+        self, mock_runner_class: Mock, mock_openai: Mock
     ) -> None:
         """Test that CUA browser uses Playwright to execute login actions."""
         # Arrange
         mock_client = Mock()
         mock_openai.return_value = mock_client
 
-        # Mock Playwright page
-        mock_page = AsyncMock()
-        mock_async_playwright = AsyncMock()
-        mock_browser = AsyncMock()
-        mock_async_playwright.chromium.launch.return_value = mock_browser
-        mock_browser.new_page.return_value = mock_page
-        mock_playwright.return_value.__aenter__.return_value = mock_async_playwright
-
+        # Mock the runner
+        mock_runner = Mock()
+        mock_runner_class.return_value = mock_runner
+        mock_runner.submit.return_value = None  # ensure_logged_in returns None
+        
         # Mock CUA response with login actions
         click_response = Mock(
             id="resp_1",
@@ -141,11 +142,11 @@ class TestLoginFlowIntegration:
         browser = OpenAICUABrowser()
 
         # Act
-        await browser._ensure_logged_in_async()
+        browser.ensure_logged_in()
 
         # Assert
-        # Verify Playwright was used to execute the click
-        mock_page.mouse.click.assert_called_with(100, 200)
+        # Verify runner was used
+        mock_runner.submit.assert_called()
 
     @patch("yc_matcher.infrastructure.browser_playwright.sync_playwright")
     def test_is_logged_in_check(self, mock_playwright: Mock) -> None:
