@@ -4,11 +4,10 @@ TEST THE GPT-5 BLACK BOX
 Shows exactly what goes IN and what comes OUT of GPT-5
 """
 
+import json
 import os
 import sys
-import json
 from pathlib import Path
-from datetime import datetime
 
 # Load .env file properly
 env_file = Path('.env')
@@ -30,11 +29,12 @@ def test_gpt5_decision():
     print("\n" + "="*60)
     print("GPT-5 BLACK BOX TEST")
     print("="*60)
-    
-    from yc_matcher.infrastructure.openai_decision import OpenAIDecisionAdapter
-    from yc_matcher.domain.entities import Profile, Criteria
+
     from openai import OpenAI
-    
+
+    from yc_matcher.domain.entities import Criteria, Profile
+    from yc_matcher.infrastructure.openai_decision import OpenAIDecisionAdapter
+
     # ========================================
     # YOUR PROFILE (who you are)
     # ========================================
@@ -45,7 +45,7 @@ def test_gpt5_decision():
     Located in San Francisco Bay Area.
     Looking for a business co-founder to build the next unicorn.
     """
-    
+
     # ========================================
     # YOUR CRITERIA (what you're looking for)
     # ========================================
@@ -58,7 +58,7 @@ def test_gpt5_decision():
     - Available full-time within 3 months
     - Complementary skills (I handle tech, they handle business)
     """
-    
+
     # ========================================
     # MESSAGE TEMPLATE (output format)
     # ========================================
@@ -79,7 +79,7 @@ def test_gpt5_decision():
     Best,
     JJ
     """
-    
+
     # ========================================
     # CANDIDATE PROFILE (Dr. Juan Rosario from SCREEN_FOUR)
     # ========================================
@@ -118,13 +118,13 @@ def test_gpt5_decision():
     
     Interests: Health/Wellness, Healthcare, Non-Profit
     """
-    
+
     # ========================================
     # SEND TO GPT-5
     # ========================================
     print("\n1. PREPARING INPUT FOR GPT-5")
     print("-" * 40)
-    
+
     # Combine everything into the criteria that goes to GPT-5
     full_criteria = f"""
 {YOUR_PROFILE}
@@ -133,69 +133,69 @@ def test_gpt5_decision():
 
 {MESSAGE_TEMPLATE}
 """
-    
+
     print(f"Your Profile: {len(YOUR_PROFILE)} chars")
     print(f"Match Criteria: {len(MATCH_CRITERIA)} chars")
     print(f"Message Template: {len(MESSAGE_TEMPLATE)} chars")
     print(f"Candidate Profile: {len(CANDIDATE_PROFILE)} chars")
-    
+
     # Create entities
     profile = Profile(raw_text=CANDIDATE_PROFILE)
     criteria = Criteria(text=full_criteria)
-    
+
     # Initialize OpenAI with GPT-5
     client = OpenAI()
     model = os.getenv("OPENAI_DECISION_MODEL", "gpt-5")
     print(f"\nUsing model: {model}")
-    
+
     # Create adapter
     from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
     logger = JSONLLogger(Path(".runs/gpt5_test.jsonl"))
     adapter = OpenAIDecisionAdapter(client, logger=logger)
-    
+
     # ========================================
     # CALL GPT-5
     # ========================================
     print("\n2. CALLING GPT-5...")
     print("-" * 40)
-    
+
     import time
     start = time.time()
-    
+
     try:
         # For debugging, let's see the raw response
         import logging
         logging.basicConfig(level=logging.DEBUG)
-        
+
         result = adapter.evaluate(profile, criteria)
         latency_ms = int((time.time() - start) * 1000)
-        
+
         print(f"✅ Response received in {latency_ms}ms")
-        
+
         # ========================================
         # SHOW OUTPUT
         # ========================================
         print("\n3. GPT-5 OUTPUT")
         print("-" * 40)
-        
+
         print(f"\n📊 DECISION: {result.get('decision')}")
         print(f"\n📝 REASONING:\n{result.get('rationale')}")
         print(f"\n⭐ SCORE: {result.get('score')}")
         print(f"\n🎯 CONFIDENCE: {result.get('confidence', 'N/A')}")
-        
+
         if result.get('decision') == 'YES':
-            print(f"\n💬 PERSONALIZED MESSAGE:")
+            print("\n💬 PERSONALIZED MESSAGE:")
             print("-" * 40)
             print(result.get('draft', 'No message generated'))
         else:
-            print(f"\n❌ No message (decision was NO)")
-        
+            print("\n❌ No message (decision was NO)")
+
         # Save full response
         output_file = Path("gpt5_response.json")
         with open(output_file, 'w') as f:
             json.dump(result, f, indent=2)
         print(f"\n✅ Full response saved to: {output_file}")
-        
+
     except Exception as e:
         print(f"\n❌ Error calling GPT-5: {e}")
         import traceback

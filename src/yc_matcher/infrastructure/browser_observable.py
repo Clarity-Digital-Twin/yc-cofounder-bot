@@ -2,19 +2,20 @@
 Observable browser wrapper that adds pipeline tracing to any browser implementation.
 """
 
-from typing import Optional, Any
+from typing import Any
+
 from .send_pipeline_observer import SendPipelineObserver
 
 
 class ObservableBrowser:
     """Wrapper that adds observability to browser operations."""
-    
+
     def __init__(self, browser: Any, observer: SendPipelineObserver):
         self.browser = browser
         self.observer = observer
         self._last_selector = None
         self._last_button = None
-        
+
     def open(self, url: str) -> bool:
         """Delegate to browser."""
         try:
@@ -23,18 +24,18 @@ class ObservableBrowser:
         except Exception as e:
             print(f"❌ Navigation failed: {e}")
             return False
-    
+
     def click_view_profile(self) -> bool:
         """Delegate to browser."""
         return self.browser.click_view_profile()
-    
+
     def read_profile_text(self) -> str:
         """Read and observe profile extraction."""
         text = self.browser.read_profile_text()
         if text:
             self.observer.profile_extracted(text)
         return text
-    
+
     def focus_message_box(self) -> None:
         """Focus with observability."""
         selectors = [
@@ -45,7 +46,7 @@ class ObservableBrowser:
             "div[contenteditable='true']",
             "input[type='text'][placeholder*='message' i]"
         ]
-        
+
         # Try with page directly if available
         if hasattr(self.browser, 'page') and self.browser.page:
             page = self.browser.page
@@ -60,9 +61,9 @@ class ObservableBrowser:
                             selector_used=selector
                         )
                         return
-                except Exception as e:
+                except Exception:
                     continue
-            
+
             # All failed
             self.observer.focus_message_box_result(
                 ok=False,
@@ -78,7 +79,7 @@ class ObservableBrowser:
                     ok=False,
                     error=str(e)
                 )
-    
+
     def fill_message(self, text: str) -> None:
         """Fill with observability."""
         try:
@@ -86,14 +87,14 @@ class ObservableBrowser:
             if hasattr(self.browser, 'page') and self.browser.page and self._last_selector:
                 page = self.browser.page
                 elem = page.locator(self._last_selector).first
-                
+
                 if "contenteditable" in self._last_selector or "role='textbox'" in self._last_selector:
                     # Clear and type for contenteditable
                     page.keyboard.press("Control+a")
                     page.keyboard.type(text)
                 else:
                     elem.fill(text)
-                
+
                 self.observer.fill_message_result(
                     ok=True,
                     chars=len(text),
@@ -113,17 +114,17 @@ class ObservableBrowser:
                 error=str(e)
             )
             raise
-    
+
     def send(self) -> None:
         """Send with observability."""
         button_labels = [
             "Invite to connect",
-            "Send invitation", 
+            "Send invitation",
             "Connect",
             "Send",
             "Submit"
         ]
-        
+
         if hasattr(self.browser, 'page') and self.browser.page:
             page = self.browser.page
             for label in button_labels:
@@ -138,7 +139,7 @@ class ObservableBrowser:
                             button_variant=label
                         )
                         return
-                    
+
                     # Try partial match
                     btn = page.locator(f"button:has-text('{label}')")
                     if btn.count() > 0:
@@ -151,7 +152,7 @@ class ObservableBrowser:
                         return
                 except Exception:
                     continue
-            
+
             # No button found
             self.observer.click_send_result(
                 ok=False,
@@ -168,7 +169,7 @@ class ObservableBrowser:
                     error=str(e)
                 )
                 raise
-    
+
     def verify_sent(self) -> bool:
         """Verify with observability."""
         checks = [
@@ -178,13 +179,13 @@ class ObservableBrowser:
             "[role='alert']",
             "textarea:empty"
         ]
-        
+
         self.observer.verify_sent_attempt(checks)
-        
+
         if hasattr(self.browser, 'page') and self.browser.page:
             page = self.browser.page
             counts = {}
-            
+
             for check in checks:
                 try:
                     if check.startswith("text="):
@@ -199,9 +200,9 @@ class ObservableBrowser:
                             count = 0
                     else:
                         count = page.locator(check).count()
-                    
+
                     counts[check] = count
-                    
+
                     if count > 0:
                         self.observer.verify_sent_result(
                             ok=True,
@@ -211,7 +212,7 @@ class ObservableBrowser:
                         return True
                 except Exception:
                     counts[check] = 0
-            
+
             # Nothing matched
             self.observer.verify_sent_result(
                 ok=False,
@@ -223,11 +224,11 @@ class ObservableBrowser:
             result = self.browser.verify_sent()
             self.observer.verify_sent_result(ok=result)
             return result
-    
+
     def skip(self) -> None:
         """Delegate to browser."""
         self.browser.skip()
-    
+
     def close(self) -> None:
         """Delegate to browser."""
         if hasattr(self.browser, 'close'):

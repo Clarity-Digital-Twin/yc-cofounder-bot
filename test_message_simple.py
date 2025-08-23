@@ -6,7 +6,6 @@ Simple synchronous test of message flow to debug the issue.
 import os
 import sys
 import time
-from pathlib import Path
 
 # Setup environment
 os.environ["PLAYWRIGHT_HEADLESS"] = "0"  # Show browser
@@ -20,14 +19,14 @@ def test_playwright_browser():
     print("\n" + "="*60)
     print("TESTING PLAYWRIGHT BROWSER")
     print("="*60)
-    
+
     from yc_matcher.infrastructure.browser_playwright import PlaywrightBrowser
     from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
-    
+
     browser = PlaywrightBrowser()
     logger = JSONLLogger(".runs/test_simple.jsonl")
     browser.logger = logger
-    
+
     try:
         # Test with a simple HTML page
         print("\n1. Creating test page with textarea...")
@@ -42,25 +41,25 @@ def test_playwright_browser():
         </body>
         </html>
         """
-        
+
         # Use data URL to create test page
         test_url = f"data:text/html,{test_html}"
-        
+
         print("2. Opening test page...")
         success = browser.open(test_url)
         print(f"   Navigation: {'✅ SUCCESS' if success else '❌ FAILED'}")
-        
+
         if not success:
             print("   Failed to open page")
             return
-            
+
         # Wait for page to render
         time.sleep(2)
-        
+
         # Test message filling
         test_message = "Hello! This is a test message from the debugging script."
         print(f"\n3. Attempting to fill message: '{test_message}'")
-        
+
         try:
             browser.fill_message(test_message)
             print("   ✅ fill_message() called successfully")
@@ -68,10 +67,10 @@ def test_playwright_browser():
             print(f"   ❌ fill_message() failed: {e}")
             import traceback
             traceback.print_exc()
-            
+
         # Wait to see result
         time.sleep(2)
-        
+
         # Check if message appears in textarea
         print("\n4. Checking if message was filled...")
         if hasattr(browser, 'page') and browser.page:
@@ -83,7 +82,7 @@ def test_playwright_browser():
                     print(f"   ❌ Textarea value: '{value}' (expected: '{test_message}')")
             except Exception as e:
                 print(f"   ❌ Could not check textarea: {e}")
-                
+
         # Test clicking send button
         print("\n5. Attempting to click send button...")
         try:
@@ -91,14 +90,14 @@ def test_playwright_browser():
             print("   ✅ send() called successfully")
         except Exception as e:
             print(f"   ❌ send() failed: {e}")
-            
+
         print("\n6. Keeping browser open for 5 seconds...")
         time.sleep(5)
-        
+
     finally:
         if hasattr(browser, 'close'):
             browser.close()
-            
+
     print("\n" + "="*60)
     print("TEST COMPLETE")
     print("="*60)
@@ -108,18 +107,18 @@ def test_cua_browser():
     if not os.getenv("OPENAI_API_KEY") or not os.getenv("CUA_MODEL"):
         print("❌ CUA not configured - skipping CUA test")
         return
-        
+
     print("\n" + "="*60)
     print("TESTING CUA BROWSER")
     print("="*60)
-    
-    from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
+
     from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
-    
+    from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
+
     browser = OpenAICUABrowser()
     logger = JSONLLogger(".runs/test_cua.jsonl")
     browser.logger = logger
-    
+
     try:
         # Test with simple page
         test_html = """
@@ -133,22 +132,22 @@ def test_cua_browser():
         </body>
         </html>
         """
-        
+
         test_url = f"data:text/html,{test_html}"
-        
+
         print("1. Opening test page...")
         success = browser.open(test_url)
         print(f"   Navigation: {'✅ SUCCESS' if success else '❌ FAILED'}")
-        
+
         if not success:
             return
-            
+
         time.sleep(2)
-        
+
         # Test message filling via CUA
         test_message = "Hello from CUA! This is a test message."
         print(f"\n2. Attempting to fill message via CUA: '{test_message}'")
-        
+
         try:
             browser.fill_message(test_message)
             print("   ✅ fill_message() called successfully")
@@ -156,9 +155,9 @@ def test_cua_browser():
             print(f"   ❌ fill_message() failed: {e}")
             import traceback
             traceback.print_exc()
-            
+
         time.sleep(3)
-        
+
         # Test send
         print("\n3. Attempting to click send via CUA...")
         try:
@@ -166,10 +165,10 @@ def test_cua_browser():
             print("   ✅ send() called successfully")
         except Exception as e:
             print(f"   ❌ send() failed: {e}")
-            
+
         print("\n4. Test complete. Keeping browser open for 5 seconds...")
         time.sleep(5)
-        
+
     finally:
         if hasattr(browser, 'close'):
             browser.close()
@@ -179,18 +178,18 @@ def test_use_case():
     print("\n" + "="*60)
     print("TESTING USE CASE FLOW")
     print("="*60)
-    
+
     from yc_matcher.application.use_cases import SendMessage
     from yc_matcher.infrastructure.browser_playwright import PlaywrightBrowser
     from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
-    from yc_matcher.infrastructure.stop_flag import StopFlagAdapter
     from yc_matcher.infrastructure.sqlite_quota import SqliteQuotaAdapter
-    
+    from yc_matcher.infrastructure.stop_flag import StopFlagAdapter
+
     browser = PlaywrightBrowser()
     logger = JSONLLogger(".runs/test_use_case.jsonl")
     stop_flag = StopFlagAdapter()
     quota = SqliteQuotaAdapter(".runs/test_quota.sqlite")
-    
+
     # Create use case
     send_message = SendMessage(
         browser=browser,
@@ -198,7 +197,7 @@ def test_use_case():
         stop_flag=stop_flag,
         quota=quota
     )
-    
+
     # Open test page
     test_html = """
     <html>
@@ -211,11 +210,11 @@ def test_use_case():
     """
     browser.open(f"data:text/html,{test_html}")
     time.sleep(1)
-    
+
     # Test sending message
     print("\n1. Testing send_message use case...")
     test_draft = "Test message from use case"
-    
+
     try:
         result = send_message(test_draft, limit=100)
         print(f"   Result: {result}")
@@ -227,7 +226,7 @@ def test_use_case():
         print(f"   ❌ Error: {e}")
         import traceback
         traceback.print_exc()
-        
+
     time.sleep(3)
     browser.close()
 
@@ -238,9 +237,9 @@ def main():
     print("2. CUA browser test")
     print("3. Use case test")
     print("4. All tests")
-    
+
     choice = input("Enter 1-4 (default 1): ").strip() or "1"
-    
+
     if choice == "2":
         test_cua_browser()
     elif choice == "3":

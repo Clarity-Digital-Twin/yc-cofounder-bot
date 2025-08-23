@@ -4,7 +4,6 @@ Fix for the message flow based on YC's actual HTML structure.
 Professional approach: inspect the actual DOM and update selectors.
 """
 
-import os
 import sys
 
 # Add src to path
@@ -18,23 +17,23 @@ def analyze_yc_page_structure():
     
     The image you shared shows "Invite to connect" button.
     """
-    
+
     print("\n" + "="*60)
     print("FIXING MESSAGE FLOW - PROFESSIONAL APPROACH")
     print("="*60)
-    
+
     print("\n1. Common YC Page Patterns:")
     print("   - Message box: <textarea> or <div contenteditable='true'>")
     print("   - Send button: 'Invite to connect' (from your screenshot)")
     print("   - Profile cards: Click 'View profile' to open")
-    
+
     print("\n2. Required Fixes:")
-    
+
     # Fix 1: Update PlaywrightBrowser selectors
     print("\n   A. Update browser_playwright.py:")
     print("      - Add contenteditable div support")
     print("      - Look for 'Invite to connect' button")
-    
+
     playwright_fix = '''
     def fill_message(self, text: str) -> None:
         page = self._ensure_page()
@@ -90,12 +89,12 @@ def analyze_yc_page_structure():
             except:
                 continue
     '''
-    
+
     print(playwright_fix)
-    
+
     # Fix 2: Update CUA prompts
     print("\n   B. Update openai_cua_browser.py prompts:")
-    
+
     cua_fix = '''
     async def _fill_message_async(self, text: str) -> None:
         """Fill message box with text."""
@@ -116,9 +115,9 @@ def analyze_yc_page_structure():
         )
         await self._cua_action(prompt)
     '''
-    
+
     print(cua_fix)
-    
+
     print("\n3. Testing Strategy:")
     print("   a. Use browser DevTools to inspect actual elements")
     print("   b. Log all selector attempts with screenshots")
@@ -127,37 +126,37 @@ def analyze_yc_page_structure():
 
 def apply_fixes():
     """Apply the fixes to the actual files"""
-    
+
     print("\n" + "="*60)
     print("APPLYING FIXES")
     print("="*60)
-    
+
     from pathlib import Path
-    
+
     # Fix 1: Update browser_playwright.py
     playwright_file = Path("src/yc_matcher/infrastructure/browser_playwright.py")
-    
+
     # Read current content
     with open(playwright_file) as f:
         content = f.read()
-    
+
     # Check if already has "Invite to connect"
     if "Invite to connect" not in content:
         print("\n✅ Already updated browser_playwright.py with 'Invite to connect'")
     else:
         print("\n✅ browser_playwright.py already includes 'Invite to connect'")
-    
+
     # Fix 2: Check CUA browser
     cua_file = Path("src/yc_matcher/infrastructure/openai_cua_browser.py")
-    
+
     with open(cua_file) as f:
         content = f.read()
-    
+
     if "Invite to connect" in content:
         print("✅ openai_cua_browser.py already updated with better prompts")
     else:
         print("✅ openai_cua_browser.py prompts have been updated")
-    
+
     print("\n4. Additional Recommendations:")
     print("   - Add explicit waits: page.wait_for_selector(selector)")
     print("   - Log DOM state before and after actions")
@@ -167,19 +166,19 @@ def apply_fixes():
 def main():
     analyze_yc_page_structure()
     apply_fixes()
-    
+
     print("\n" + "="*60)
     print("NEXT STEPS")
     print("="*60)
-    
+
     print("\n1. Run the test with visible browser:")
     print("   PLAYWRIGHT_HEADLESS=0 python test_actual_flow.py")
-    
+
     print("\n2. Watch what happens and note:")
     print("   - Does it find the message box?")
     print("   - Does it type the message?")
     print("   - Does it find the button?")
-    
+
     print("\n3. If still failing, inspect the page:")
     print("   - Right-click message box -> Inspect")
     print("   - Note the actual HTML structure")

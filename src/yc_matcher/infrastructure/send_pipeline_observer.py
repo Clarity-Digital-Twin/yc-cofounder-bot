@@ -3,27 +3,26 @@ Professional send pipeline observability layer.
 Implements the 10-event trace pattern to diagnose send failures.
 """
 
-import time
 import hashlib
-from typing import Optional, Dict, Any
 from datetime import datetime
+from typing import Any
 from uuid import uuid4
 
 
 class SendPipelineObserver:
     """Trace every step of the send pipeline with deterministic events."""
-    
+
     def __init__(self, logger):
         self.logger = logger
         self.run_id = str(uuid4())[:8]  # Short run ID
         self.profile_seq = 0
-        
+
     def new_profile(self) -> int:
         """Start tracking a new profile."""
         self.profile_seq += 1
         return self.profile_seq
-        
-    def _emit(self, event: str, data: Dict[str, Any]) -> None:
+
+    def _emit(self, event: str, data: dict[str, Any]) -> None:
         """Emit event with run_id and profile_seq."""
         self.logger.emit({
             "event": event,
@@ -32,7 +31,7 @@ class SendPipelineObserver:
             "timestamp": datetime.now().isoformat(),
             **data
         })
-    
+
     # 1. Profile extraction
     def profile_extracted(self, text: str) -> None:
         """Log profile extraction."""
@@ -40,7 +39,7 @@ class SendPipelineObserver:
             "extracted_len": len(text),
             "hash": hashlib.md5(text.encode()).hexdigest()[:8]
         })
-    
+
     # 2. Decision request
     def decision_request(self, model: str, input_text: str) -> None:
         """Log decision request."""
@@ -48,10 +47,10 @@ class SendPipelineObserver:
             "model": model,
             "input_len": len(input_text)
         })
-    
+
     # 3. Decision response
-    def decision_response(self, 
-                         decision: str, 
+    def decision_response(self,
+                         decision: str,
                          auto_send: bool,
                          output_types: list,
                          latency_ms: int,
@@ -64,7 +63,7 @@ class SendPipelineObserver:
             "output_types": output_types,
             "latency_ms": latency_ms
         })
-    
+
     # 4. Send gate checks
     def send_gate(self,
                   stop: bool,
@@ -82,25 +81,25 @@ class SendPipelineObserver:
             "auto_send": auto_send,
             "remaining_quota": remaining_quota
         })
-    
+
     # 5. Focus message box
     def focus_message_box_result(self,
                                  ok: bool,
-                                 selector_used: Optional[str] = None,
-                                 error: Optional[str] = None) -> None:
+                                 selector_used: str | None = None,
+                                 error: str | None = None) -> None:
         """Log focus attempt result."""
         self._emit("focus_message_box_result", {
             "ok": ok,
             "selector_used": selector_used,
             "error": error
         })
-    
+
     # 6. Fill message
     def fill_message_result(self,
                            ok: bool,
                            chars: int,
-                           selector_used: Optional[str] = None,
-                           error: Optional[str] = None) -> None:
+                           selector_used: str | None = None,
+                           error: str | None = None) -> None:
         """Log fill attempt result."""
         self._emit("fill_message_result", {
             "ok": ok,
@@ -108,38 +107,38 @@ class SendPipelineObserver:
             "selector_used": selector_used,
             "error": error
         })
-    
+
     # 7. Click send
     def click_send_result(self,
                          ok: bool,
-                         button_variant: Optional[str] = None,
-                         error: Optional[str] = None) -> None:
+                         button_variant: str | None = None,
+                         error: str | None = None) -> None:
         """Log send button click result."""
         self._emit("click_send_result", {
             "ok": ok,
             "button_variant": button_variant,
             "error": error
         })
-    
+
     # 8. Verify sent attempt
     def verify_sent_attempt(self, checks_tried: list) -> None:
         """Log verification checks attempted."""
         self._emit("verify_sent_attempt", {
             "checks_tried": checks_tried
         })
-    
+
     # 9. Verify sent result
     def verify_sent_result(self,
                           ok: bool,
-                          matched_selector: Optional[str] = None,
-                          counts: Optional[dict] = None) -> None:
+                          matched_selector: str | None = None,
+                          counts: dict | None = None) -> None:
         """Log verification result."""
         self._emit("verify_sent_result", {
             "ok": ok,
             "matched_selector": matched_selector,
             "counts": counts or {}
         })
-    
+
     # 10. Final sent event
     def sent(self) -> None:
         """Log successful send (only if verify was ok)."""

@@ -124,7 +124,7 @@ class PlaywrightBrowserAsync:
                 'input[placeholder*="email" i]',
                 'input[placeholder*="username" i]'
             ]
-            
+
             email_filled = False
             for selector in email_selectors:
                 email_input = page.locator(selector).first
@@ -135,7 +135,7 @@ class PlaywrightBrowserAsync:
                     email_filled = True
                     await page.wait_for_timeout(500)
                     break
-            
+
             if not email_filled:
                 print("⚠️  Could not find email input field")
 
@@ -432,7 +432,7 @@ class PlaywrightBrowserAsync:
 
         async def _fill() -> None:
             page = await self._ensure_page_async()
-            
+
             # Enhanced selectors for YC's message interface - based on SCREEN_FOUR
             selectors = [
                 # Most specific first - based on the actual YC interface
@@ -463,7 +463,7 @@ class PlaywrightBrowserAsync:
                         print(f"📝 Found message box with selector: {selector}")
                         await elem.click()  # Focus first
                         await page.wait_for_timeout(200)  # Small delay
-                        
+
                         # Handle contenteditable divs differently
                         if "contenteditable" in selector or "role='textbox'" in selector:
                             await page.keyboard.press("Control+a")  # Select all
@@ -472,13 +472,13 @@ class PlaywrightBrowserAsync:
                             # Clear first then fill
                             await elem.clear()
                             await elem.fill(text)
-                        
+
                         print(f"✅ Message filled with {len(text)} chars")
                         return
                 except Exception as e:
                     print(f"   Failed with {selector}: {e}")
                     pass
-            
+
             print("⚠️  No message box found with any selector, trying keyboard type as fallback")
             # Fallback: just type if focused
             await page.keyboard.type(text)
@@ -491,7 +491,7 @@ class PlaywrightBrowserAsync:
 
         async def _send() -> None:
             page = await self._ensure_page_async()
-            
+
             # Specific selectors based on SCREEN_FOUR showing the green button
             selectors = [
                 # Most specific - the green button we see in the screenshot
@@ -507,7 +507,7 @@ class PlaywrightBrowserAsync:
                 "button[type='submit']",
                 "[role='button']:has-text('Invite')",
             ]
-            
+
             for selector in selectors:
                 try:
                     elem = page.locator(selector).first
@@ -519,7 +519,7 @@ class PlaywrightBrowserAsync:
                 except Exception as e:
                     print(f"   Failed with {selector}: {e}")
                     pass
-            
+
             print("⚠️  No send button found, trying Enter key as fallback")
             # Fallback: press Enter in focused element
             await page.keyboard.press("Enter")
