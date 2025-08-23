@@ -132,7 +132,8 @@ class PlaywrightBrowser:
         page.locator("textarea").first.fill(text)
 
     def send(self) -> None:
-        if self._click_by_labels(["Send", "Submit", "Post"]):
+        # Try more button labels including "Invite to connect"
+        if self._click_by_labels(["Send", "Submit", "Post", "Invite to connect", "Connect"]):
             return
         # fallback: press Enter in focused textbox
         page = self._ensure_page()

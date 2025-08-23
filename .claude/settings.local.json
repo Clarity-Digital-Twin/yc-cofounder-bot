@@ -240,7 +240,9 @@
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_cua_screenshot_loop_with_computer_call_output -xvs --tb=short)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_stop_flag_halts_cua_loop -xvs --tb=short)",
       "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_stop_flag_halts_cua_loop -xvs)",
-      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_decision_adapter.py tests/unit/test_ai_only_decision.py -q)"
+      "Bash(env PACE_MIN_SECONDS=0 PYTHONPATH=src uv run pytest tests/unit/test_openai_decision_adapter.py tests/unit/test_ai_only_decision.py -q)",
+      "Bash(PYTHONPATH=src uv run python debug_message_flow.py)",
+      "Bash(PYTHONPATH=src ENABLE_CUA=0 PLAYWRIGHT_HEADLESS=1 uv run python debug_message_flow.py)"
     ],
     "deny": [],
     "ask": []

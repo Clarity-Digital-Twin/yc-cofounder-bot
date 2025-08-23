@@ -541,7 +541,12 @@ class OpenAICUABrowser:
 
     async def _fill_message_async(self, text: str) -> None:
         """Fill message box with text."""
-        await self._cua_action(f"Type the following message: {text}")
+        # More specific instruction for CUA
+        prompt = (
+            f"Find the message textarea or input box on the page. "
+            f"Click on it to focus it, then type the following message: {text}"
+        )
+        await self._cua_action(prompt)
 
     def send(self) -> None:
         """Send message using single browser instance."""
@@ -549,7 +554,12 @@ class OpenAICUABrowser:
 
     async def _send_async(self) -> None:
         """Click send button to send the message."""
-        await self._cua_action("Click the Send button to send the message")
+        # More specific instruction for CUA
+        prompt = (
+            "Find and click the 'Send' or 'Invite to connect' button. "
+            "It should be near the message box. If you see 'Invite to connect', click that."
+        )
+        await self._cua_action(prompt)
 
     def press_send(self) -> None:
         """Alias for send() for compatibility."""
