@@ -123,13 +123,36 @@ class PlaywrightBrowser:
 
     def fill_message(self, text: str) -> None:
         page = self._ensure_page()
-        try:
-            el = page.get_by_role("textbox")
-            el.first.fill(text)
-            return
-        except Exception:
-            pass
-        page.locator("textarea").first.fill(text)
+        
+        # Try multiple selector strategies for YC's message box
+        selectors = [
+            "textarea",  # Standard textarea
+            "[contenteditable='true']",  # Contenteditable div (common in modern apps)
+            "div[role='textbox']",  # ARIA textbox
+            "[placeholder*='message' i]",  # Any element with message placeholder
+            "[placeholder*='introduce' i]",  # Introduction placeholder
+            "input[type='text']",  # Text input
+        ]
+        
+        for selector in selectors:
+            try:
+                elem = page.locator(selector).first
+                if elem.count() > 0:
+                    elem.click()  # Focus the element
+                    
+                    # For contenteditable divs, we need to clear and type
+                    if "contenteditable" in selector or "role='textbox'" in selector:
+                        page.keyboard.press("Control+a")  # Select all
+                        page.keyboard.type(text)  # Type new text
+                    else:
+                        # For regular inputs/textareas
+                        elem.fill(text)
+                    return
+            except Exception:
+                continue
+        
+        # Fallback: just type if element is already focused
+        page.keyboard.type(text)
 
     def send(self) -> None:
         # Try more button labels including "Invite to connect"

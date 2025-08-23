@@ -406,7 +406,14 @@ class PlaywrightBrowserAsync:
 
         async def _fill() -> None:
             page = await self._ensure_page_async()
+            
+            # Enhanced selectors for YC's message interface
             selectors = [
+                "textarea",  # Standard textarea
+                "[contenteditable='true']",  # Contenteditable div
+                "div[role='textbox']",  # ARIA textbox
+                "[placeholder*='message' i]",  # Message placeholder
+                "[placeholder*='introduce' i]",  # Introduction placeholder
                 "textarea[placeholder*='message']",
                 "textarea[placeholder*='Message']",
                 "input[type='text'][placeholder*='message']",
@@ -418,10 +425,20 @@ class PlaywrightBrowserAsync:
                 try:
                     elem = page.locator(selector).first
                     if await elem.count() > 0:
-                        await elem.fill(text)
+                        await elem.click()  # Focus first
+                        
+                        # Handle contenteditable divs differently
+                        if "contenteditable" in selector or "role='textbox'" in selector:
+                            await page.keyboard.press("Control+a")  # Select all
+                            await page.keyboard.type(text)  # Type new text
+                        else:
+                            await elem.fill(text)
                         return
                 except Exception:
                     pass
+            
+            # Fallback: just type if focused
+            await page.keyboard.type(text)
 
         if self._runner:
             self._runner.submit(_fill())
@@ -431,16 +448,37 @@ class PlaywrightBrowserAsync:
 
         async def _send() -> None:
             page = await self._ensure_page_async()
-            labels = ["Send", "SEND", "Send message", "Send Message", "Submit"]
+            
+            # Updated labels for YC interface
+            labels = [
+                "Invite to connect",  # YC specific (from screenshot)
+                "Send invitation",
+                "Connect",
+                "Send", 
+                "SEND", 
+                "Send message", 
+                "Send Message", 
+                "Submit"
+            ]
 
             for label in labels:
                 try:
+                    # Try exact match
                     btn = page.get_by_role("button", name=label)
+                    if await btn.count() > 0:
+                        await btn.first.click()
+                        return
+                    
+                    # Try partial text match
+                    btn = page.locator(f"button:has-text('{label}')")
                     if await btn.count() > 0:
                         await btn.first.click()
                         return
                 except Exception:
                     pass
+            
+            # Fallback: press Enter in focused element
+            await page.keyboard.press("Enter")
 
         if self._runner:
             self._runner.submit(_send())

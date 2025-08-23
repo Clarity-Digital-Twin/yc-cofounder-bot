@@ -39,12 +39,25 @@ class SendMessage:
     stop: StopController | None = None
 
     def __call__(self, draft: str, limit: int) -> bool:
+        # Log send gate checks
+        stop_is_set = self.stop and self.stop.is_stopped()
+        quota_ok = self.quota.check_and_increment(limit) if not stop_is_set else False
+        
+        # Emit comprehensive gate event
+        self.logger.emit({
+            "event": "send_gate",
+            "stop": stop_is_set,
+            "quota_ok": quota_ok,
+            "draft_len": len(draft),
+            "limit": limit
+        })
+        
         # Check stop flag at the very beginning
-        if self.stop and self.stop.is_stopped():
+        if stop_is_set:
             self.logger.emit({"event": "stopped", "where": "send_message_start"})
             return False
 
-        if not self.quota.check_and_increment(limit):
+        if not quota_ok:
             self.logger.emit({"event": "quota_block", "limit": limit})
             return False
 
