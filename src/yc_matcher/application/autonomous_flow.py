@@ -363,7 +363,7 @@ class AutonomousFlow:
 
         elif mode == "ai":
             # AI mode checks the auto_send flag from the AI decision
-            return evaluation.get("auto_send", False)
+            return bool(evaluation.get("auto_send", False))
 
         elif mode == "rubric":
             # Rubric auto-sends if score exceeds threshold
