@@ -40,10 +40,10 @@ def mock_locator_count(count: int) -> Mock:
 
 def mock_playwright_page(logged_in: bool = False) -> Mock:
     """Create a mock Playwright page with common methods.
-    
+
     Args:
         logged_in: Whether is_logged_in() should return True
-        
+
     Returns:
         Mock page with locator, goto, etc.
     """
