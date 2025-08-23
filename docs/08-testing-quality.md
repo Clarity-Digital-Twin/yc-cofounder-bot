@@ -102,10 +102,10 @@ MPLCONFIGDIR=.mplconfig
 - For integration tests (no network): listing page with tiles, profile page with message box
 - Located in `tests/fixtures/` or generated dynamically
 
-### CUA/Agents Stubs
+### CUA Stubs
 For contract tests:
-- Prefer stubbing the Responses API and providing deterministic `computer_call` actions
-- If using Agents Runner, monkeypatch `from agents import Agent, ComputerTool, Session` with in-memory fakes
+- Stub the Responses API and provide deterministic `computer_call` actions
+- Mock `client.responses.create()` to return expected response structures with reasoning/message items
 
 ### Ephemeral State
 For tests:

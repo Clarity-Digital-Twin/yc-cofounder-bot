@@ -207,7 +207,7 @@ tests/
 ## Conventions
 
 - **Naming:** `snake_case` files, `CapWords` classes, `lower_snake` env keys in code
-- **Imports:** Prefer Responses API directly for CUA; Agents Runner (`from agents import ...`) is optional
+- **Imports:** Use Responses API directly for CUA (Agents SDK is not used)
 - **Logging:** only via JSONL logger; no `print` in adapters/use-cases
 - **Type hints & docstrings:** required in `domain/` and `application/`
 

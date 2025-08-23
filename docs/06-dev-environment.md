@@ -15,14 +15,14 @@
 ### Runtime
 - `openai>=1.*`                 # OpenAI base SDK (Responses API)
 - `playwright`                  # Browser control (executor)
-- `openai-agents`               # Optional: Agents Runner wrapper (imports as `agents`)
+# Note: openai-agents package NOT used - we use Responses API directly
 - `streamlit`                   # Web UI dashboard
 - `python-dotenv`               # Environment configuration
 - `pydantic>=2.0.0`            # Data validation
 - `sqlite3`                     # Built-in, for quotas and deduplication
 
 ### Import Surface (IMPORTANT)
-Prefer Responses API directly for CUA; if you use Agents Runner, the package installs as `openai-agents` and imports as `agents`.
+We use the Responses API directly for CUA. The legacy Agents SDK (`openai-agents`) is not required.
 
 ### Development
 - `pytest` - Testing framework
@@ -330,12 +330,12 @@ which python  # Should show .venv/bin/python
 uv sync --all-extras --refresh
 ```
 
-### Agents SDK Import Issues (Optional)
-If using Agents Runner and `from agents import ...` fails:
+### CUA Access Issues
+If CUA isn't working:
 ```bash
-# Verify package installed
-uv pip list | grep openai-agents
+# Check CUA access via Responses API
+make check-cua
 
-# Reinstall if needed
-uv pip install openai-agents --force-reinstall
+# Verify environment variables
+cat .env | grep CUA_MODEL
 ```

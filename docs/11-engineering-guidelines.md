@@ -336,8 +336,8 @@ export SHADOW_MODE=1
 
 ## Common Pitfalls
 
-### Notes on Agents Runner (optional)
-If you use the Agents SDK Runner, the package is `openai-agents` but imports as `agents`. This project prefers the Responses API directly for the CUA loop; use the Runner only if it simplifies your integration.
+### Notes on CUA Implementation
+This project uses the Responses API directly for the CUA loop. The legacy Agents SDK (`openai-agents`) is NOT used. All CUA interactions go through `client.responses.create()` with proper handling of reasoning items.
 
 ### Hardcoded Models
 ```python

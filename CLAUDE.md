@@ -159,16 +159,20 @@ ENABLE_CUA=1                               # Use CUA as primary
 ENABLE_PLAYWRIGHT_FALLBACK=1               # Fallback when CUA fails
 ```
 
-## Current Refactoring Status
+## Current Status
 
-The codebase is **80% complete** but needs critical fixes:
+The codebase is **95% complete** with recent fixes applied:
 
-### What Needs Fixing (see MASTER_REFACTOR_PLAN.md)
-1. **openai_cua_browser.py**: Currently uses Agents SDK - must migrate to Responses API loop
-2. **ui_streamlit.py**: Add 3-input mode behind feature flag (currently paste-based)
-3. **di.py**: Wire decision mode selection
-4. **use_cases.py**: Replace SEND_DELAY_MS with PACE_MIN_SECONDS
-5. **check_cua.py**: Update to check Responses API instead of Agents SDK
+### Recently Fixed (December 2025)
+1. **openai_cua_browser.py**: ✅ Migrated to Responses API with proper response parsing
+2. **openai_decision.py**: ✅ Fixed GPT-5 response parsing to handle reasoning items
+3. **check_cua.py**: ✅ Updated to verify access via Responses API (no Agents SDK)
+4. **Response Parsing**: ✅ Now properly uses `output_text` helper and handles reasoning items
+
+### Still Needs Work
+1. **ui_streamlit.py**: Add 3-input mode behind feature flag (currently paste-based)
+2. **di.py**: Wire decision mode selection
+3. **use_cases.py**: Replace SEND_DELAY_MS with PACE_MIN_SECONDS
 
 ### OpenAI CUA Implementation Pattern (Correct)
 ```python
@@ -250,12 +254,13 @@ async def test_rubric_score_calculation() -> None:
 
 ## Common Issues & Solutions
 
-1. **"Agents SDK not found"**: The code currently uses the wrong API - see REAL_REFACTOR_SECTION_1_CUA.md
+1. **"Responses API not working"**: Check that your OpenAI SDK supports Responses API and CUA_MODEL is set correctly
 2. **"SEND_DELAY_MS undefined"**: Use PACE_MIN_SECONDS instead (45 seconds minimum)
 3. **Browser not launching**: Run `make browsers` to install Playwright locally
 4. **CUA not working**: Check `make check-cua` and verify CUA_MODEL in your OpenAI account
 5. **"model gpt-5-thinking not found"**: Use `gpt-5` instead (see GPT5_FACTS.md)
-6. **"unsupported parameter: max_tokens"**: GPT-5 uses `max_completion_tokens` with Responses API
+6. **"unsupported parameter: max_tokens"**: GPT-5 uses `max_output_tokens` with Responses API
+7. **"Silent skips/no messages sent"**: Fixed - was due to incorrect parsing of GPT-5 reasoning items
 
 ## Key Invariants
 
