@@ -539,7 +539,7 @@ class OpenAICUABrowser:
                     if inspect.iscoroutinefunction(count_method):
                         count = await count_method()
                     else:
-                        count = count_method()
+                        count = count_method()  # type: ignore[assignment]
                 else:
                     count = count_method
             else:

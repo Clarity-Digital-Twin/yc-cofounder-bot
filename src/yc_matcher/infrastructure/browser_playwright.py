@@ -10,8 +10,8 @@ except Exception:  # pragma: no cover
     class _Stub:  # minimal stub types to satisfy annotations
         pass
 
-    Page = _Stub
-    sync_playwright = None
+    Page = _Stub  # type: ignore[misc,assignment]
+    sync_playwright = None  # type: ignore[assignment]
 
 
 class PlaywrightBrowser:
@@ -32,7 +32,7 @@ class PlaywrightBrowser:
                 "Playwright not available; install with `python -m playwright install chromium`"
             )
         pl = sync_playwright()
-        self._pl = pl
+        self._pl = pl  # type: ignore[assignment]
         # Default to VISIBLE browser for YC login flow
         headless = os.getenv("PLAYWRIGHT_HEADLESS", "0") in {"1", "true", "True"}
         # Set browser path if provided
@@ -40,7 +40,7 @@ class PlaywrightBrowser:
         launch_args = {"headless": headless}
         if browsers_path:
             os.environ["PLAYWRIGHT_BROWSERS_PATH"] = browsers_path
-        browser = pl.start().chromium.launch(**launch_args)
+        browser = pl.start().chromium.launch(**launch_args)  # type: ignore[arg-type]
         ctx = browser.new_context(viewport={"width": 1280, "height": 800})
         self._page = ctx.new_page()
         return self._page
