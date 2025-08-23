@@ -44,7 +44,7 @@ class TestLoginFlowIntegration:
         mock_client.responses.create.return_value = login_response
 
         # Create browser and mock the runner
-        with patch("yc_matcher.infrastructure.openai_cua_browser.AsyncLoopRunner") as mock_runner_class:
+        with patch("yc_matcher.infrastructure.async_loop_runner.AsyncLoopRunner") as mock_runner_class:
             mock_runner = Mock()
             mock_runner_class.return_value = mock_runner
             mock_runner.submit.return_value = None  # ensure_logged_in returns None
@@ -59,21 +59,25 @@ class TestLoginFlowIntegration:
             # Verify runner was used
             mock_runner.submit.assert_called()
 
-    @pytest.mark.asyncio
     @patch.dict(os.environ, {"YC_EMAIL": "test@example.com", "YC_PASSWORD": "test123"})
     @patch("yc_matcher.infrastructure.browser_playwright.sync_playwright")
     def test_playwright_browser_performs_login(self, mock_playwright: Mock) -> None:
         """Test that Playwright browser can perform login with credentials."""
         # Arrange
-        mock_browser = Mock()
         mock_page = Mock()
-
-        mock_playwright.return_value.start.return_value.chromium.launch.return_value = mock_browser
-        mock_browser.new_page.return_value = mock_page
+        mock_context = Mock()
+        mock_browser = Mock()
+        mock_pl = Mock()
+        
+        # Set up the chain of calls
+        mock_playwright.return_value = mock_pl
+        mock_pl.start.return_value.chromium.launch.return_value = mock_browser
+        mock_browser.new_context.return_value = mock_context
+        mock_context.new_page.return_value = mock_page
 
         # Mock login check - locator.count() is a method that returns an int
         mock_locator = Mock()
-        mock_locator.count = Mock(return_value=0)  # Not logged in initially
+        mock_locator.count = lambda: 0  # Not logged in initially (return int directly)
         mock_page.locator.return_value = mock_locator
         
         # Mock get_by_label and get_by_text for _click_by_labels
@@ -136,7 +140,7 @@ class TestLoginFlowIntegration:
         mock_client.responses.create.side_effect = [click_response, done_response]
 
         # Create browser with mocked runner
-        with patch("yc_matcher.infrastructure.openai_cua_browser.AsyncLoopRunner") as mock_runner_class:
+        with patch("yc_matcher.infrastructure.async_loop_runner.AsyncLoopRunner") as mock_runner_class:
             mock_runner = Mock()
             mock_runner_class.return_value = mock_runner
             mock_runner.submit.return_value = None  # ensure_logged_in returns None
@@ -155,16 +159,25 @@ class TestLoginFlowIntegration:
         """Test the is_logged_in check works correctly."""
         # Arrange
         mock_page = Mock()
-        mock_playwright.return_value.start.return_value.chromium.launch.return_value.new_page.return_value = mock_page
+        mock_context = Mock()
+        mock_browser = Mock()
+        mock_pl = Mock()
+        
+        # Set up the chain of calls
+        mock_playwright.return_value = mock_pl
+        mock_pl.start.return_value.chromium.launch.return_value = mock_browser
+        mock_browser.new_context.return_value = mock_context
+        mock_context.new_page.return_value = mock_page
 
         # Mock logged in state
         mock_locator = Mock()
         mock_page.locator.return_value = mock_locator
-        mock_locator.count = Mock(return_value=1)  # Found logout button = logged in
+        mock_locator.count = lambda: 1  # Found logout button = logged in (return int directly)
         
         # Mock get_by_label and get_by_text for _click_by_labels
         mock_page.get_by_label = Mock(return_value=mock_locator)
         mock_page.get_by_text = Mock(return_value=mock_locator)
+        mock_page.goto = Mock()  # Mock the goto method
 
         browser = PlaywrightBrowser()
         browser.open("https://test.com")
@@ -197,7 +210,7 @@ class TestLoginFlowIntegration:
         mock_client.responses.create.return_value = error_response
 
         # Create browser with mocked runner that raises exception
-        with patch("yc_matcher.infrastructure.openai_cua_browser.AsyncLoopRunner") as mock_runner_class:
+        with patch("yc_matcher.infrastructure.async_loop_runner.AsyncLoopRunner") as mock_runner_class:
             mock_runner = Mock()
             mock_runner_class.return_value = mock_runner
             mock_runner.submit.side_effect = Exception("Login failed")
@@ -219,14 +232,23 @@ class TestLoginPersistence:
         """Test that login persists when navigating between pages."""
         # Arrange
         mock_page = Mock()
-        mock_playwright.return_value.start.return_value.chromium.launch.return_value.new_page.return_value = mock_page
+        mock_context = Mock()
+        mock_browser = Mock()
+        mock_pl = Mock()
+        
+        # Set up the chain of calls
+        mock_playwright.return_value = mock_pl
+        mock_pl.start.return_value.chromium.launch.return_value = mock_browser
+        mock_browser.new_context.return_value = mock_context
+        mock_context.new_page.return_value = mock_page
 
         # Initially logged in
         mock_locator = Mock()
-        mock_locator.count = Mock(return_value=1)
+        mock_locator.count = lambda: 1  # Return int directly
         mock_page.locator.return_value = mock_locator
         mock_page.get_by_label = Mock(return_value=mock_locator)
         mock_page.get_by_text = Mock(return_value=mock_locator)
+        mock_page.goto = Mock()  # Mock the goto method
 
         browser = PlaywrightBrowser()
         browser.open("https://test.com")
@@ -242,7 +264,7 @@ class TestLoginPersistence:
 
     @patch.dict(os.environ, {"OPENAI_API_KEY": "test-key", "CUA_MODEL": "test-model"})
     @patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI")
-    @patch("yc_matcher.infrastructure.openai_cua_browser.AsyncLoopRunner")
+    @patch("yc_matcher.infrastructure.async_loop_runner.AsyncLoopRunner")
     @patch("playwright.async_api.async_playwright")
     def test_cua_browser_reuses_single_browser_instance(
         self, mock_playwright: Mock, mock_runner_class: Mock, mock_openai: Mock
