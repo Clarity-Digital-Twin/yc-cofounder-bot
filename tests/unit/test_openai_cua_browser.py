@@ -43,6 +43,14 @@ class TestOpenAICUABrowserResponsesAPI:
         # Mock evaluate to always return a URL by default
         page.evaluate = AsyncMock(return_value="https://example.com")
 
+        # Mock locator chain for read_profile_text
+        locator_mock = AsyncMock()
+        locator_mock.count = AsyncMock(return_value=1)
+        locator_mock.inner_text = AsyncMock(return_value="Profile text here")
+        locator_mock.first = locator_mock  # Chain for .first
+        page.locator = Mock(return_value=locator_mock)
+        page.inner_text = AsyncMock(return_value="Profile text here")  # Fallback
+
         browser = AsyncMock()
         browser.new_page = AsyncMock(return_value=page)
         browser.close = AsyncMock()
@@ -298,12 +306,6 @@ class TestOpenAICUABrowserResponsesAPI:
         # Arrange
         async_pw_mock, playwright_mock, page_mock = mock_playwright
 
-        # Mock simple response with text output (correct API structure)
-        mock_response = Mock(
-            id="resp_1", output=[Mock(type="output_text", text="Profile text here")]
-        )
-        mock_openai_client.responses.create.return_value = mock_response
-
         with patch(
             "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
         ):
@@ -313,12 +315,17 @@ class TestOpenAICUABrowserResponsesAPI:
             ):
                 browser = OpenAICUABrowser()
 
+                # Mock the runner's submit method to return expected value
+                mock_runner = Mock()
+                mock_runner.submit.return_value = "Profile text here"
+                browser._runner = mock_runner
+
                 # Act - test high-level methods (sync method, no await)
                 result = browser.read_profile_text()
 
                 # Assert
                 assert result == "Profile text here"
-                mock_openai_client.responses.create.assert_called()
+                mock_runner.submit.assert_called_once()
 
     def test_fallback_to_playwright_when_cua_fails(
         self, mock_openai_client: Mock, mock_playwright: tuple, mock_env: None

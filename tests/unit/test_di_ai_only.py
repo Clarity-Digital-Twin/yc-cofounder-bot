@@ -25,6 +25,7 @@ class TestAIOnlyDI:
             assert logger is not None
             # Decision adapter is internal but we can verify the use case works
             from yc_matcher.domain.entities import Criteria, Profile
+
             profile = Profile(raw_text="Test profile")
             criteria = Criteria(text="Test criteria")
             # This will use LocalDecisionAdapter in test mode but proves wiring works

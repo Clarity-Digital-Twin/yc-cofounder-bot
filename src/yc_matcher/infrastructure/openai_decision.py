@@ -99,11 +99,12 @@ class OpenAIDecisionAdapter(DecisionPort):
             initial_delay=2.0,
             logger=self.logger,
         )
-        
+
         # Track latency
         import time
+
         decision_start = time.time()
-        
+
         # Use the correct OpenAI chat completions API
         try:
             # Define API call functions for retry wrapper
@@ -129,28 +130,44 @@ class OpenAIDecisionAdapter(DecisionPort):
                                         "rationale": {"type": "string"},
                                         "draft": {"type": "string"},
                                         "score": {"type": "number", "minimum": 0, "maximum": 1},
-                                        "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+                                        "confidence": {
+                                            "type": "number",
+                                            "minimum": 0,
+                                            "maximum": 1,
+                                        },
                                     },
-                                    "required": ["decision", "rationale", "draft", "score", "confidence"],
-                                    "additionalProperties": False
-                                }
-                            }
+                                    "required": [
+                                        "decision",
+                                        "rationale",
+                                        "draft",
+                                        "score",
+                                        "confidence",
+                                    ],
+                                    "additionalProperties": False,
+                                },
+                            },
                         },
                         max_output_tokens=800,  # Responses API uses max_output_tokens
                     )
                 except Exception as format_err:
                     # Fallback: instruct JSON format in the prompt
                     if self.logger:
-                        self.logger.emit({
-                            "event": "response_format_fallback",
-                            "error": str(format_err),
-                            "model": self.model
-                        })
+                        self.logger.emit(
+                            {
+                                "event": "response_format_fallback",
+                                "error": str(format_err),
+                                "model": self.model,
+                            }
+                        )
                     r = self.client.responses.create(
                         model=self.model,
                         input=[
                             {"role": "system", "content": sys_prompt},
-                            {"role": "user", "content": user_text + "\n\nIMPORTANT: Return your response as valid JSON."},
+                            {
+                                "role": "user",
+                                "content": user_text
+                                + "\n\nIMPORTANT: Return your response as valid JSON.",
+                            },
                         ],
                         max_output_tokens=800,  # Responses API uses max_output_tokens
                     )
@@ -158,18 +175,18 @@ class OpenAIDecisionAdapter(DecisionPort):
                 # GPT-5 returns output array: [reasoning_item, message_item]
                 # We need the text from the message item (type='message')
                 c = None
-                if hasattr(r, 'output') and isinstance(r.output, list):
+                if hasattr(r, "output") and isinstance(r.output, list):
                     for item in r.output:
                         # Look specifically for the message item (not reasoning)
-                        if getattr(item, 'type', None) == 'message':
+                        if getattr(item, "type", None) == "message":
                             # Found the message item, extract text from its content
-                            if hasattr(item, 'content') and item.content:
+                            if hasattr(item, "content") and item.content:
                                 for content_item in item.content:
-                                    if hasattr(content_item, 'text'):
+                                    if hasattr(content_item, "text"):
                                         c = content_item.text
                                         break
                             break
-                
+
                 if not c:
                     # Fallback if structure is different
                     raise ValueError(
@@ -177,9 +194,9 @@ class OpenAIDecisionAdapter(DecisionPort):
                         f"Output items: {len(r.output) if hasattr(r, 'output') else 0}, "
                         f"Types: {[getattr(item, 'type', 'unknown') for item in r.output] if hasattr(r, 'output') else []}"
                     )
-                
+
                 return r, c
-            
+
             def call_gpt4() -> tuple[Any, str]:
                 # Fallback to Chat Completions for GPT-4 and older
                 r = self.client.chat.completions.create(
@@ -195,7 +212,7 @@ class OpenAIDecisionAdapter(DecisionPort):
                 # Parse the JSON response
                 c = r.choices[0].message.content
                 return r, c
-            
+
             # Use Responses API for GPT-5, Chat Completions for GPT-4
             if self.model.startswith("gpt-5"):
                 resp, content = retry.execute(
@@ -234,7 +251,7 @@ class OpenAIDecisionAdapter(DecisionPort):
                 "criteria_length": len(criteria.text),
             }
             self.logger.emit(error_detail) if self.logger else None
-            
+
             # Return ERROR decision (not NO) to distinguish from real rejections
             payload = {
                 "decision": "ERROR",
@@ -249,7 +266,7 @@ class OpenAIDecisionAdapter(DecisionPort):
         # Add latency to payload
         decision_ms = int((time.time() - decision_start) * 1000)
         payload["latency_ms"] = decision_ms
-        
+
         # Stamp versions to the payload for downstream use
         payload.setdefault("prompt_ver", self.prompt_ver)
         payload.setdefault("rubric_ver", self.rubric_ver)
@@ -257,11 +274,13 @@ class OpenAIDecisionAdapter(DecisionPort):
         # Log usage if present (with latency)
         if self.logger and "resp" in locals():
             self._log_usage(resp)
-            self.logger.emit({
-                "event": "decision_latency",
-                "model": self.model,
-                "latency_ms": decision_ms,
-                "success": payload.get("decision") != "ERROR"
-            })
+            self.logger.emit(
+                {
+                    "event": "decision_latency",
+                    "model": self.model,
+                    "latency_ms": decision_ms,
+                    "success": payload.get("decision") != "ERROR",
+                }
+            )
 
         return dict(payload)

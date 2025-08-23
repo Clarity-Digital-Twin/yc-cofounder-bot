@@ -148,10 +148,11 @@ class AutonomousFlow:
 
                 # Extract profile text
                 import time
+
                 extract_start = time.time()
                 profile_text = self.browser.read_profile_text()
                 extract_ms = int((time.time() - extract_start) * 1000)
-                
+
                 # Determine engine type
                 engine = "unknown"
                 if hasattr(self.browser, "__class__"):
@@ -160,27 +161,31 @@ class AutonomousFlow:
                         engine = "cua"
                     elif "Playwright" in class_name:
                         engine = "playwright"
-                
+
                 if not profile_text:
-                    self.logger.emit({
-                        "event": "empty_profile", 
-                        "at_profile": i,
-                        "engine": engine,
-                        "skip_reason": "No profile text extracted",
-                        "extract_ms": extract_ms
-                    })
+                    self.logger.emit(
+                        {
+                            "event": "empty_profile",
+                            "at_profile": i,
+                            "engine": engine,
+                            "skip_reason": "No profile text extracted",
+                            "extract_ms": extract_ms,
+                        }
+                    )
                     self.browser.skip()
                     skipped_count += 1
                     continue
-                
+
                 # Log extraction metrics
-                self.logger.emit({
-                    "event": "profile_extracted",
-                    "profile": i,
-                    "extracted_len": len(profile_text),
-                    "engine": engine,
-                    "extract_ms": extract_ms
-                })
+                self.logger.emit(
+                    {
+                        "event": "profile_extracted",
+                        "profile": i,
+                        "extracted_len": len(profile_text),
+                        "engine": engine,
+                        "extract_ms": extract_ms,
+                    }
+                )
 
                 # Check if seen (DRY - reuse deduplication)
                 profile_hash = hash_profile_text(profile_text)
@@ -199,7 +204,7 @@ class AutonomousFlow:
 
                 # Evaluate profile (delegates to use case)
                 evaluation = self.evaluate(profile, criteria_obj)
-                
+
                 # Check for evaluation errors
                 if evaluation.get("decision") == "ERROR":
                     error_msg = evaluation.get("error", "Unknown error")
@@ -296,7 +301,7 @@ class AutonomousFlow:
                     "traceback": str(e.__traceback__) if hasattr(e, "__traceback__") else None,
                 }
                 self.logger.emit(error_detail)
-                
+
                 # Add to results for UI visibility
                 results.append(
                     {
@@ -309,7 +314,7 @@ class AutonomousFlow:
                         "mode": mode,
                     }
                 )
-                
+
                 # Try to continue
                 try:
                     self.browser.skip()
@@ -355,6 +360,10 @@ class AutonomousFlow:
         if mode == "advisor":
             # Advisor mode never auto-sends (requires HIL approval)
             return False
+
+        elif mode == "ai":
+            # AI mode checks the auto_send flag from the AI decision
+            return bool(evaluation.get("auto_send", False))
 
         elif mode == "rubric":
             # Rubric auto-sends if score exceeds threshold

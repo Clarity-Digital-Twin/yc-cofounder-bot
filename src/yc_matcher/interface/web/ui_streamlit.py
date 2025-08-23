@@ -134,7 +134,7 @@ def render_three_input_mode() -> None:
         st.code(f"""
 Environment Settings:
 • PLAYWRIGHT_HEADLESS: {config.is_headless()}
-• PLAYWRIGHT_BROWSERS_PATH: {os.getenv("PLAYWRIGHT_BROWSERS_PATH", "not set")}
+• PLAYWRIGHT_BROWSERS_PATH: {config.get_playwright_browsers_path() or "not set"}
 • CUA_MODEL: {config.get_cua_model() or "not set"}
 • CUA_MAX_TURNS: {config.get_cua_max_turns()}
 • PACE_MIN_SECONDS: {config.get_pace_seconds()}
@@ -241,55 +241,18 @@ Environment Settings:
             # Decision mode
             st.info(f"📊 **Decision**: {mode.capitalize()}")
 
+    # Check if inputs are valid before showing action button
+    if not your_profile.strip() or not criteria_text.strip():
+        st.warning("Please fill both your profile and match criteria to start.")
+        render_events_panel()
+        return
+
     # Last Events Panel
-    if os.path.exists(".runs/events.jsonl"):
-        with st.expander("📝 Recent Events", expanded=False):
-            try:
-                import json
-
-                # Read last 10 events
-                events_path = Path(".runs/events.jsonl")
-                lines = events_path.read_text().strip().split("\n")
-                recent_events = []
-                for line in lines[-10:]:
-                    if line.strip():
-                        try:
-                            event = json.loads(line)
-                            recent_events.append(event)
-                        except Exception:
-                            pass
-
-                # Display in reverse order (newest first)
-                for event in reversed(recent_events):
-                    event_type = event.get("event", "unknown")
-                    timestamp = event.get("timestamp", "")
-
-                    # Color-code by event type with more detail
-                    if event_type == "sent":
-                        st.success(f"✅ {timestamp} - {event_type}")
-                    elif event_type in ["error", "stopped", "login_failed", "evaluation_error", "profile_processing_error", "openai_error"]:
-                        error_msg = event.get("error", "Unknown error")
-                        st.error(f"❌ {timestamp} - {event_type}: {error_msg[:100]}")
-                    elif event_type == "decision":
-                        decision = event.get("data", {}).get("decision", "")
-                        if decision == "YES":
-                            st.info(f"👍 {timestamp} - decision: YES")
-                        elif decision == "ERROR":
-                            st.error(f"⚠️ {timestamp} - decision: ERROR")
-                        else:
-                            st.warning(f"👎 {timestamp} - decision: NO")
-                    else:
-                        st.text(f"• {timestamp} - {event_type}")
-            except Exception as e:
-                st.error(f"Could not read events: {e}")
+    render_events_panel()
 
     # Main action button
     st.markdown("---")
     if st.button("🚀 Start Autonomous Browsing", type="primary", use_container_width=True):
-        if not your_profile or not criteria_text:
-            st.error("Please fill in Your Profile and Match Criteria")
-            return
-
         # Store configuration in session state
         st.session_state["auto_config"] = {
             "your_profile": your_profile,
@@ -393,25 +356,29 @@ Environment Settings:
                 st.success("✅ Autonomous browsing complete!")
 
                 # Count errors
-                error_count = sum(1 for r in results.get("results", []) if r.get("decision") == "ERROR")
-                
+                error_count = sum(
+                    1 for r in results.get("results", []) if r.get("decision") == "ERROR"
+                )
+
                 col_metrics1, col_metrics2, col_metrics3, col_metrics4 = st.columns(4)
                 with col_metrics1:
-                    st.metric("Evaluated", results["total_evaluated"])
+                    st.metric("Evaluated", results.get("total_evaluated", 0))
                 with col_metrics2:
-                    st.metric("Sent", results["total_sent"])
+                    st.metric("Sent", results.get("total_sent", 0))
                 with col_metrics3:
-                    st.metric("Skipped", results["total_skipped"])
+                    st.metric("Skipped", results.get("total_skipped", 0))
                 with col_metrics4:
                     st.metric("⚠️ Errors", error_count)
-                
+
                 # Show errors prominently if any occurred
                 if error_count > 0:
                     st.error(f"⚠️ {error_count} profiles failed to evaluate!")
                     with st.expander("🔴 Error Details", expanded=True):
                         for r in results.get("results", []):
                             if r.get("decision") == "ERROR":
-                                st.error(f"Profile {r.get('profile_num')}: {r.get('rationale', 'Unknown error')}")
+                                st.error(
+                                    f"Profile {r.get('profile_num')}: {r.get('rationale', 'Unknown error')}"
+                                )
                                 if "error" in r:
                                     st.code(r["error"])
 
@@ -421,9 +388,11 @@ Environment Settings:
                     for r in results.get("results", []):
                         decision = r.get("decision", "?")
                         profile = r.get("profile_num", "?")
-                        
+
                         if decision == "YES":
-                            st.success(f"Profile {profile}: ✅ {decision} - {r.get('rationale', '')}")
+                            st.success(
+                                f"Profile {profile}: ✅ {decision} - {r.get('rationale', '')}"
+                            )
                         elif decision == "NO":
                             st.info(f"Profile {profile}: ❌ {decision} - {r.get('rationale', '')}")
                         elif decision == "ERROR":
@@ -435,6 +404,118 @@ Environment Settings:
                 st.error(f"Failed to start: {e}")
                 with st.expander("Error Details", expanded=True):
                     st.code(traceback.format_exc())
+
+
+def render_events_panel() -> None:
+    """Render the Recent Events panel with Clear and Refresh buttons.
+
+    Clean Code Principles:
+    - Single Responsibility: Only handles events display
+    - Testable: Extracted as separate function
+    - Error Handling: Gracefully handles all edge cases
+    """
+    if not os.path.exists(".runs/events.jsonl"):
+        return
+
+    with st.expander("📝 Recent Events", expanded=False):
+        col1, col2, col3 = st.columns([2, 1, 1])
+        with col2:
+            if st.button("🔄 Refresh", key="refresh_events"):
+                st.rerun()
+        with col3:
+            if st.button("🗑️ Clear", key="clear_events"):
+                # Clear the events file
+                with open(".runs/events.jsonl", "w") as f:
+                    f.write("")
+                st.rerun()
+
+        try:
+            import json
+            from datetime import datetime, timedelta
+
+            # Read last 20 events (more context)
+            events_path = Path(".runs/events.jsonl")
+            content = events_path.read_text().strip()
+            recent_events = []  # Initialize here to avoid undefined variable
+
+            if not content:
+                st.info("No recent events")
+            else:
+                lines = content.split("\n")
+
+                # Get only recent events (last hour)
+                cutoff_time = datetime.now() - timedelta(hours=1)
+
+                for line in lines[-20:]:
+                    if line.strip():
+                        try:
+                            event = json.loads(line)
+                            # Try to parse timestamp (handle both 'timestamp' and 'ts' fields)
+                            timestamp_str = event.get("timestamp", "")
+                            ts_unix = event.get("ts", None)
+
+                            if timestamp_str:
+                                try:
+                                    event_time = datetime.fromisoformat(
+                                        timestamp_str.replace("Z", "+00:00")
+                                    )
+                                    # Only include recent events
+                                    if event_time.replace(tzinfo=None) > cutoff_time:
+                                        recent_events.append(event)
+                                except Exception:
+                                    # If can't parse time, include it anyway (for backwards compat)
+                                    recent_events.append(event)
+                            elif ts_unix:
+                                # Handle Unix timestamp format
+                                try:
+                                    event_time = datetime.fromtimestamp(ts_unix)
+                                    if event_time > cutoff_time:
+                                        # Convert ts to readable timestamp for display
+                                        event["timestamp"] = event_time.strftime(
+                                            "%Y-%m-%d %H:%M:%S"
+                                        )
+                                        recent_events.append(event)
+                                except Exception:
+                                    recent_events.append(event)
+                            else:
+                                # No timestamp at all, include it
+                                recent_events.append(event)
+                        except Exception:
+                            pass
+
+            # Display in reverse order (newest first)
+            if not recent_events:
+                st.info("No events in the last hour. Events are cleared after 1 hour.")
+
+            for event in reversed(recent_events):
+                event_type = event.get("event", "unknown")
+                timestamp = event.get("timestamp", "")
+
+                # Color-code by event type with more detail
+                if event_type == "sent":
+                    st.success(f"✅ {timestamp} - {event_type}")
+                elif event_type in [
+                    "error",
+                    "stopped",
+                    "login_failed",
+                    "evaluation_error",
+                    "profile_processing_error",
+                    "openai_error",
+                ]:
+                    error_msg = event.get("error", "Unknown error")
+                    st.error(f"❌ {timestamp} - {event_type}: {error_msg[:100]}")
+                elif event_type == "decision":
+                    decision = event.get("data", {}).get("decision", "")
+                    if decision == "YES":
+                        st.info(f"👍 {timestamp} - decision: YES")
+                    elif decision == "ERROR":
+                        st.error(f"⚠️ {timestamp} - decision: ERROR")
+                    else:
+                        st.warning(f"👎 {timestamp} - decision: NO")
+                else:
+                    st.text(f"• {timestamp} - {event_type}")
+        except Exception as e:
+            st.error(f"Could not read events: {e}")
 
 
 def render_paste_mode() -> None:
@@ -535,7 +616,10 @@ def render_paste_mode() -> None:
                             seen=seen,
                             logger=logger2,
                         )
-                        url = getattr(settings, "yc_match_url", None) or "https://www.startupschool.org/cofounder-matching"
+                        url = (
+                            getattr(settings, "yc_match_url", None)
+                            or "https://www.startupschool.org/cofounder-matching"
+                        )
                         pc(
                             url=str(url),
                             criteria=Criteria(text=criteria_text),

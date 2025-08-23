@@ -6,7 +6,8 @@ Implements retry logic, exponential backoff, and fallback strategies.
 from __future__ import annotations
 
 import time
-from typing import Any, Callable, TypeVar
+from collections.abc import Callable
+from typing import TypeVar
 
 from ..application.ports import LoggerPort
 
@@ -148,9 +149,7 @@ class CircuitBreaker:
                 self.is_open = False
                 self.failure_count = 0
                 if self.logger:
-                    self.logger.emit(
-                        {"event": "circuit_reset", "operation": operation_name}
-                    )
+                    self.logger.emit({"event": "circuit_reset", "operation": operation_name})
             else:
                 raise CircuitOpenError(
                     f"Circuit breaker is open for {operation_name}. "
