@@ -175,7 +175,7 @@ class OpenAIDecisionAdapter(DecisionPort):
                 # GPT-5 returns output array: [reasoning_item, message_item]
                 # Use output_text helper which aggregates all text (docs-recommended)
                 c = None
-                
+
                 # First try the SDK's output_text helper (fastest, most reliable)
                 if hasattr(r, "output_text"):
                     c = r.output_text
@@ -185,30 +185,34 @@ class OpenAIDecisionAdapter(DecisionPort):
                         except (TypeError, AttributeError):
                             # Handle mocks in tests
                             text_len = 0
-                        self.logger.emit({
-                            "event": "gpt5_parse_method",
-                            "method": "output_text",
-                            "text_len": text_len
-                        })
-                
+                        self.logger.emit(
+                            {
+                                "event": "gpt5_parse_method",
+                                "method": "output_text",
+                                "text_len": text_len,
+                            }
+                        )
+
                 # Fallback to manual parsing if output_text not available
                 elif hasattr(r, "output") and isinstance(r.output, list):
                     text_parts = []
                     output_types = []
-                    
+
                     for item in r.output:
                         item_type = getattr(item, "type", "unknown")
                         output_types.append(item_type)
-                        
+
                         # Skip reasoning items (only log them)
                         if item_type == "reasoning":
                             if self.logger:
-                                self.logger.emit({
-                                    "event": "gpt5_reasoning_item",
-                                    "content": str(getattr(item, "content", ""))[:200]
-                                })
+                                self.logger.emit(
+                                    {
+                                        "event": "gpt5_reasoning_item",
+                                        "content": str(getattr(item, "content", ""))[:200],
+                                    }
+                                )
                             continue
-                        
+
                         # Process message items
                         if item_type == "message":
                             if hasattr(item, "content"):
@@ -217,26 +221,31 @@ class OpenAIDecisionAdapter(DecisionPort):
                                     for content_item in item.content:
                                         if hasattr(content_item, "text"):
                                             text_parts.append(content_item.text)
-                                        elif hasattr(content_item, "type") and content_item.type == "output_text":
+                                        elif (
+                                            hasattr(content_item, "type")
+                                            and content_item.type == "output_text"
+                                        ):
                                             # Some SDKs use output_text type in content
                                             text_parts.append(getattr(content_item, "text", ""))
                                 elif isinstance(item.content, str):
                                     text_parts.append(item.content)
-                    
+
                     c = "".join(text_parts)
-                    
+
                     if self.logger:
                         try:
                             text_len = len(c) if c else 0
                         except (TypeError, AttributeError):
                             # Handle mocks in tests
                             text_len = 0
-                        self.logger.emit({
-                            "event": "gpt5_parse_method",
-                            "method": "manual_iteration",
-                            "output_types": output_types,
-                            "text_len": text_len
-                        })
+                        self.logger.emit(
+                            {
+                                "event": "gpt5_parse_method",
+                                "method": "manual_iteration",
+                                "output_types": output_types,
+                                "text_len": text_len,
+                            }
+                        )
 
                 if not c:
                     # Log detailed error for debugging
@@ -244,12 +253,14 @@ class OpenAIDecisionAdapter(DecisionPort):
                         "event": "gpt5_parse_failure",
                         "has_output": hasattr(r, "output"),
                         "has_output_text": hasattr(r, "output_text"),
-                        "output_items": len(r.output) if hasattr(r, 'output') and r.output else 0,
-                        "output_types": [getattr(item, 'type', 'unknown') for item in r.output] if hasattr(r, 'output') and r.output else []
+                        "output_items": len(r.output) if hasattr(r, "output") and r.output else 0,
+                        "output_types": [getattr(item, "type", "unknown") for item in r.output]
+                        if hasattr(r, "output") and r.output
+                        else [],
                     }
                     if self.logger:
                         self.logger.emit(error_detail)
-                    
+
                     raise ValueError(
                         f"Could not extract text from GPT-5 response. "
                         f"Output items: {error_detail['output_items']}, "

@@ -1,4 +1,14 @@
-"""Check OpenAI Computer Use access via Agents SDK."""
+"""Check OpenAI Computer Use access via Responses API.
+
+This CLI verifies that:
+- `OPENAI_API_KEY` is set and the OpenAI SDK is usable
+- The configured `CUA_MODEL` is accessible
+- A minimal Responses API call with the `computer_use_preview` tool works
+
+It does NOT require the legacy Agents SDK and does not attempt to launch a
+browser; it only checks that your account can call the CUA tool via the
+Responses API.
+"""
 
 from __future__ import annotations
 
@@ -52,17 +62,7 @@ def main() -> int:
     except Exception as e:
         _print(f"Warning: could not list models: {e}")
 
-    # Step 2: Check Agents SDK availability
-    try:
-        from agents import Agent, ComputerTool
-
-        _print("SUCCESS: Agents SDK (openai-agents package) is installed.")
-    except ImportError:
-        _print("ERROR: Agents SDK not installed.")
-        _print("Run: pip install openai-agents")
-        return 2
-
-    # Step 3: Try to initialize Computer Use
+    # Step 2: Try a minimal Responses API call with computer_use_preview
     try:
         cua_model = os.getenv("CUA_MODEL")
         if not cua_model:
@@ -70,32 +70,60 @@ def main() -> int:
             _print("Visit: https://platform.openai.com/account/models")
             return 1
 
-        agent = Agent(model=cua_model, tools=[ComputerTool()], temperature=0.3)
+        # Minimal probe: do not require a browser. Ask the model to just reply "ready".
+        # This validates that the account can call the model with the CUA tool.
+        resp = client.responses.create(
+            model=cua_model,
+            tools=[
+                {
+                    "type": "computer_use_preview",
+                    "display_width": 1280,
+                    "display_height": 800,
+                    "environment": "browser",
+                }
+            ],
+            input=[
+                {
+                    "role": "user",
+                    "content": [{"type": "input_text", "text": "Just reply: ready."}],
+                }
+            ],
+            truncation="auto",
+            max_output_tokens=50,
+        )
 
-        _print(f"SUCCESS: Computer Use agent initialized with model: {cua_model}")
-        _print("Note: Full functionality requires a browser/VM environment.")
+        # Success if call returns; extract any text if available for display
+        output_text = getattr(resp, "output_text", None)
+        if not output_text:
+            # Fallback to manual extraction for older SDK variants
+            try:
+                parts = []
+                for item in getattr(resp, "output", []) or []:
+                    if getattr(item, "type", "") == "message" and hasattr(item, "content"):
+                        if isinstance(item.content, list):
+                            for c in item.content:
+                                if hasattr(c, "text"):
+                                    parts.append(c.text)
+                        elif isinstance(item.content, str):
+                            parts.append(item.content)
+                output_text = "".join(parts) if parts else None
+            except Exception:
+                output_text = None
 
-        # Try a minimal test if possible
-        try:
-            # This may fail without proper environment setup
-            agent.run(
-                messages=[{"role": "user", "content": "Just confirm you're ready."}],
-                tools=[ComputerTool()],
-                max_tokens=50,
-            )
-            _print("SUCCESS: Agent responded. Computer Use is available.")
-        except Exception as e:
-            _print(f"INFO: Agent test failed (expected without browser environment): {e}")
-            _print("This is normal - Computer Use needs a browser/VM to function fully.")
-
+        _print(f"SUCCESS: Responses API call succeeded for model: {cua_model}")
+        if output_text:
+            preview = output_text.strip().splitlines()[0][:120]
+            _print(f"Preview: {preview}")
+        else:
+            _print("Note: No textual output returned (ok for CUA probes).")
         return 0
 
     except Exception as e:
-        _print(f"ERROR: Could not initialize Computer Use: {e}")
+        _print(f"ERROR: Responses API call failed: {e}")
         _print("Check that:")
         _print("1. Your account has tier 3-5 access")
         _print("2. CUA_MODEL env var points to a valid Computer Use model")
-        _print("3. The OpenAI Agents SDK is properly installed")
+        _print("3. The Responses API is available in your SDK version")
         return 1
 
 
