@@ -48,7 +48,7 @@ class TestLoginFlowIntegration:
             mock_runner = Mock()
             mock_runner_class.return_value = mock_runner
             mock_runner.submit.return_value = None  # ensure_logged_in returns None
-            
+
             browser = OpenAICUABrowser()
 
             # Act
@@ -68,7 +68,7 @@ class TestLoginFlowIntegration:
         mock_context = Mock()
         mock_browser = Mock()
         mock_pl = Mock()
-        
+
         # Set up the chain of calls
         mock_playwright.return_value = mock_pl
         mock_pl.start.return_value.chromium.launch.return_value = mock_browser
@@ -79,7 +79,7 @@ class TestLoginFlowIntegration:
         mock_locator = Mock()
         mock_locator.count = lambda: 0  # Not logged in initially (return int directly)
         mock_page.locator.return_value = mock_locator
-        
+
         # Mock get_by_label and get_by_text for _click_by_labels
         mock_page.get_by_label = Mock(return_value=mock_locator)
         mock_page.get_by_text = Mock(return_value=mock_locator)
@@ -144,7 +144,7 @@ class TestLoginFlowIntegration:
             mock_runner = Mock()
             mock_runner_class.return_value = mock_runner
             mock_runner.submit.return_value = None  # ensure_logged_in returns None
-            
+
             browser = OpenAICUABrowser()
 
             # Act
@@ -162,7 +162,7 @@ class TestLoginFlowIntegration:
         mock_context = Mock()
         mock_browser = Mock()
         mock_pl = Mock()
-        
+
         # Set up the chain of calls
         mock_playwright.return_value = mock_pl
         mock_pl.start.return_value.chromium.launch.return_value = mock_browser
@@ -173,7 +173,7 @@ class TestLoginFlowIntegration:
         mock_locator = Mock()
         mock_page.locator.return_value = mock_locator
         mock_locator.count = lambda: 1  # Found logout button = logged in (return int directly)
-        
+
         # Mock get_by_label and get_by_text for _click_by_labels
         mock_page.get_by_label = Mock(return_value=mock_locator)
         mock_page.get_by_text = Mock(return_value=mock_locator)
@@ -214,7 +214,7 @@ class TestLoginFlowIntegration:
             mock_runner = Mock()
             mock_runner_class.return_value = mock_runner
             mock_runner.submit.side_effect = Exception("Login failed")
-            
+
             browser = OpenAICUABrowser()
 
             # Act & Assert
@@ -235,7 +235,7 @@ class TestLoginPersistence:
         mock_context = Mock()
         mock_browser = Mock()
         mock_pl = Mock()
-        
+
         # Set up the chain of calls
         mock_playwright.return_value = mock_pl
         mock_pl.start.return_value.chromium.launch.return_value = mock_browser
@@ -277,7 +277,7 @@ class TestLoginPersistence:
         # Mock the runner
         mock_runner = Mock()
         mock_runner_class.return_value = mock_runner
-        
+
         # Mock Playwright
         mock_async_playwright = AsyncMock()
         mock_browser = AsyncMock()
@@ -287,7 +287,7 @@ class TestLoginPersistence:
         mock_playwright.return_value.__aenter__.return_value = mock_async_playwright
 
         browser = OpenAICUABrowser()
-        
+
         # Mock the runner.submit to return the mock page
         mock_runner.submit.return_value = mock_page
 

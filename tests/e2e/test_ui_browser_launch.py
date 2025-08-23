@@ -111,15 +111,15 @@ with sync_playwright() as p:
 
     def test_browser_can_be_launched_async(self) -> None:
         """Test that browser can be launched using async playwright."""
-        from unittest.mock import patch, AsyncMock
-        
+        from unittest.mock import AsyncMock, patch
+
         # Mock async_playwright to avoid event loop issues
         with patch("playwright.async_api.async_playwright") as mock_async_playwright:
             mock_p = AsyncMock()
             mock_p.chromium = AsyncMock()
             mock_p.chromium.launch = AsyncMock()
             mock_async_playwright.return_value.__aenter__.return_value = mock_p
-            
+
             # Verify the API structure is correct
             assert hasattr(mock_p, "chromium")
             assert callable(mock_p.chromium.launch)
