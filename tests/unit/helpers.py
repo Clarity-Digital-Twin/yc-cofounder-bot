@@ -13,10 +13,10 @@ def make_context_manager() -> Mock:
 
 def mock_streamlit_columns(spec: int | list[float]) -> list[Mock]:
     """Mock st.columns() to return correct number of context managers.
-    
+
     Args:
         spec: Either an int (number of columns) or list of relative widths
-        
+
     Returns:
         List of mock context managers
     """
@@ -26,10 +26,10 @@ def mock_streamlit_columns(spec: int | list[float]) -> list[Mock]:
 
 def mock_locator_count(count: int) -> Mock:
     """Create a mock locator with a count method returning an int.
-    
+
     Args:
         count: The count to return
-        
+
     Returns:
         Mock locator with count() -> int
     """
