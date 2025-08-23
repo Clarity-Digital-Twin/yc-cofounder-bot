@@ -255,7 +255,7 @@ class OpenAICUABrowser:
             # STOP gate (bail immediately and log)
             if self._should_stop():
                 self._log_event({"event": "stopped", "where": "_cua_action", "reason": "stop_flag"})
-                break
+                return None  # Return None immediately when stop flag is detected
 
             # Parse output list items; find the first computer_call
             output_items = getattr(response, "output", []) or []
@@ -344,13 +344,70 @@ class OpenAICUABrowser:
             )
             self._prev_response_id = response.id
 
-        # 3) Extract any text output (robust parsing)
+        # 3) Extract any text output (robust parsing per OpenAI docs)
         text_output = None
-        output_items = getattr(response, "output", []) or []
-        for item in output_items:
-            if getattr(item, "type", "") == "output_text":
-                text_output = getattr(item, "text", None)
-                break
+        
+        # First try the SDK's output_text helper (fastest, most reliable)
+        if hasattr(response, "output_text"):
+            text_output = response.output_text
+            try:
+                text_len = len(text_output) if text_output else 0
+            except (TypeError, AttributeError):
+                # Handle mocks in tests
+                text_len = 0
+            self._log_event({
+                "event": "cua_parse_method",
+                "method": "output_text",
+                "text_len": text_len
+            })
+        else:
+            # Fallback to manual parsing if output_text not available
+            output_items = getattr(response, "output", []) or []
+            text_parts = []
+            output_types = []
+            
+            for item in output_items:
+                item_type = getattr(item, "type", "unknown")
+                output_types.append(item_type)
+                
+                # Skip reasoning items (only log them for debugging)
+                if item_type == "reasoning":
+                    self._log_event({
+                        "event": "cua_reasoning_item",
+                        "content": str(getattr(item, "content", ""))[:200]
+                    })
+                    continue
+                
+                # Process message items
+                if item_type == "message":
+                    if hasattr(item, "content"):
+                        # Handle both list and direct text content
+                        if isinstance(item.content, list):
+                            for content_item in item.content:
+                                if hasattr(content_item, "text"):
+                                    text_parts.append(content_item.text)
+                                elif hasattr(content_item, "type") and content_item.type == "output_text":
+                                    text_parts.append(getattr(content_item, "text", ""))
+                        elif isinstance(item.content, str):
+                            text_parts.append(item.content)
+                
+                # Also handle direct output_text items (older format)
+                elif item_type == "output_text":
+                    text_parts.append(getattr(item, "text", ""))
+            
+            if text_parts:
+                text_output = "".join(text_parts)
+                try:
+                    text_len = len(text_output) if text_output else 0
+                except (TypeError, AttributeError):
+                    # Handle mocks in tests
+                    text_len = 0
+                self._log_event({
+                    "event": "cua_parse_method",
+                    "method": "manual_iteration",
+                    "output_types": output_types,
+                    "text_len": text_len
+                })
 
         return text_output
 

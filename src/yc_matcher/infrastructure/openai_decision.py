@@ -173,26 +173,87 @@ class OpenAIDecisionAdapter(DecisionPort):
                     )
                 # Extract content from Responses API format
                 # GPT-5 returns output array: [reasoning_item, message_item]
-                # We need the text from the message item (type='message')
+                # Use output_text helper which aggregates all text (docs-recommended)
                 c = None
-                if hasattr(r, "output") and isinstance(r.output, list):
+                
+                # First try the SDK's output_text helper (fastest, most reliable)
+                if hasattr(r, "output_text"):
+                    c = r.output_text
+                    if self.logger:
+                        try:
+                            text_len = len(c) if c else 0
+                        except (TypeError, AttributeError):
+                            # Handle mocks in tests
+                            text_len = 0
+                        self.logger.emit({
+                            "event": "gpt5_parse_method",
+                            "method": "output_text",
+                            "text_len": text_len
+                        })
+                
+                # Fallback to manual parsing if output_text not available
+                elif hasattr(r, "output") and isinstance(r.output, list):
+                    text_parts = []
+                    output_types = []
+                    
                     for item in r.output:
-                        # Look specifically for the message item (not reasoning)
-                        if getattr(item, "type", None) == "message":
-                            # Found the message item, extract text from its content
-                            if hasattr(item, "content") and item.content:
-                                for content_item in item.content:
-                                    if hasattr(content_item, "text"):
-                                        c = content_item.text
-                                        break
-                            break
+                        item_type = getattr(item, "type", "unknown")
+                        output_types.append(item_type)
+                        
+                        # Skip reasoning items (only log them)
+                        if item_type == "reasoning":
+                            if self.logger:
+                                self.logger.emit({
+                                    "event": "gpt5_reasoning_item",
+                                    "content": str(getattr(item, "content", ""))[:200]
+                                })
+                            continue
+                        
+                        # Process message items
+                        if item_type == "message":
+                            if hasattr(item, "content"):
+                                # Handle both list and direct text content
+                                if isinstance(item.content, list):
+                                    for content_item in item.content:
+                                        if hasattr(content_item, "text"):
+                                            text_parts.append(content_item.text)
+                                        elif hasattr(content_item, "type") and content_item.type == "output_text":
+                                            # Some SDKs use output_text type in content
+                                            text_parts.append(getattr(content_item, "text", ""))
+                                elif isinstance(item.content, str):
+                                    text_parts.append(item.content)
+                    
+                    c = "".join(text_parts)
+                    
+                    if self.logger:
+                        try:
+                            text_len = len(c) if c else 0
+                        except (TypeError, AttributeError):
+                            # Handle mocks in tests
+                            text_len = 0
+                        self.logger.emit({
+                            "event": "gpt5_parse_method",
+                            "method": "manual_iteration",
+                            "output_types": output_types,
+                            "text_len": text_len
+                        })
 
                 if not c:
-                    # Fallback if structure is different
+                    # Log detailed error for debugging
+                    error_detail = {
+                        "event": "gpt5_parse_failure",
+                        "has_output": hasattr(r, "output"),
+                        "has_output_text": hasattr(r, "output_text"),
+                        "output_items": len(r.output) if hasattr(r, 'output') and r.output else 0,
+                        "output_types": [getattr(item, 'type', 'unknown') for item in r.output] if hasattr(r, 'output') and r.output else []
+                    }
+                    if self.logger:
+                        self.logger.emit(error_detail)
+                    
                     raise ValueError(
                         f"Could not extract text from GPT-5 response. "
-                        f"Output items: {len(r.output) if hasattr(r, 'output') else 0}, "
-                        f"Types: {[getattr(item, 'type', 'unknown') for item in r.output] if hasattr(r, 'output') else []}"
+                        f"Output items: {error_detail['output_items']}, "
+                        f"Types: {error_detail['output_types']}"
                     )
 
                 return r, c
