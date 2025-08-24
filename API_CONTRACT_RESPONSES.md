@@ -4,7 +4,7 @@
 
 1. **Primary decision model**: `gpt-5` (or a concrete snapshot like `gpt-5-2025-08-07`). List models and pick the best available at startup; cache it for the run. ([OpenAI Platform][2])
 2. **Tool/planning model** (optional): your CUA model (e.g., `"computer-use-preview"`). Use only via **Responses** with the Computer Use tool. ([OpenAI Platform][3])
-3. **Fallback**: a Chat-Completions model (e.g., `gpt-4o`) is okay *only* for the text-only decision call if GPT-5 is unavailable. **Do not** use Chat for tool use. ([OpenAI Platform][1])
+3. **Fallback**: a Chat-Completions model (`gpt-4o` preferred, then `gpt-4o-mini`, lastly `gpt-4`) is okay *only* for the text-only decision call if GPT-5 is unavailable. **Do not** use Chat for tool use. ([OpenAI Platform][1])
 
 ---
 
