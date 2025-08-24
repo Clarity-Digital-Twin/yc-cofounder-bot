@@ -154,15 +154,25 @@ class OpenAIDecisionAdapter(DecisionPort):
                             "model": self.model,
                         })
                     
-                    # Remove optional params that might have failed
+                    # Remove ALL optional params on any error
                     params.pop("response_format", None)
-                    if "temperature" in error_str.lower():
-                        params.pop("temperature", None)
+                    params.pop("temperature", None)  # Always remove temperature on error
                     
                     # Add prompt instruction for JSON
                     params["input"][1]["content"] += "\n\nIMPORTANT: Return your response as valid JSON with these exact keys: decision, rationale, draft, score, confidence"
                     
-                    r = self.client.responses.create(**params)
+                    try:
+                        r = self.client.responses.create(**params)
+                    except Exception as e2:
+                        # If still failing, log what params we tried
+                        if self.logger:
+                            self.logger.emit({
+                                "event": "gpt5_final_fallback",
+                                "error": str(e2),
+                                "params_used": list(params.keys()),
+                                "model": self.model,
+                            })
+                        raise e2
                 # Extract content from Responses API format
                 # GPT-5 returns output array: [reasoning_item, message_item]
                 # Use output_text helper which aggregates all text (docs-recommended)
