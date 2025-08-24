@@ -38,7 +38,7 @@ test: ## Run tests (parallel without coverage to avoid xdist issues)
 	PACE_MIN_SECONDS=0 PYTHONPATH=src $(PY) pytest -q -n auto -p no:cov
 
 test-cov: ## Run tests with coverage (serial to avoid xdist/coverage conflicts)
-	PACE_MIN_SECONDS=0 PYTHONPATH=src COVERAGE_FILE=/tmp/.coverage $(PY) pytest -q --maxfail=1 --cov=src --cov-report=term-missing
+	PACE_MIN_SECONDS=0 PYTHONPATH=src COVERAGE_FILE=/tmp/.coverage $(PY) pytest -q --maxfail=1 --cov=src/yc_matcher --cov-report=term-missing:skip-covered --cov-report=html:.coverage_html --cov-branch
 
 test-int: ## Run integration tests
 	PACE_MIN_SECONDS=0 PYTHONPATH=src $(PY) pytest -q -m integration
