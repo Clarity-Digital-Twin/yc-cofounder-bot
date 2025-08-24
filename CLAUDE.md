@@ -8,12 +8,15 @@ YC Co-Founder Matching Bot - Autonomous browser automation for YC/Startup School
 
 The system takes 3 inputs (Your Profile, Match Criteria, Message Template) and autonomously browses YC Cofounder Matching, evaluates profiles using AI (GPT-5 when available, GPT-4 fallback), and sends messages when match quality exceeds threshold.
 
-⚠️ **IMPORTANT GPT-5 FACTS (August 2025 - Verified with Context7)**:
+⚠️ **IMPORTANT GPT-5 FACTS (December 2025 - Verified with Context7 MCP)**:
 - GPT-5 model ID is `gpt-5` (NOT `gpt-5-thinking`)
-- GPT-5 uses Responses API with `max_output_tokens` up to 128,000 (we use 4000)
-- Temperature (0-2), top_p, truncation, store are ALL supported
+- GPT-5 uses Responses API with `max_output_tokens` up to 128,000 (we use 4000 default)
+- Parameters (Per Context7 Official Docs):
+  - `text: { verbosity: "low" }` - Nested in text object, NOT top-level
+  - `reasoning: { effort: "minimal" }` - For speed optimization
+  - `temperature` (0-2), `top_p`, `truncation`, `store` all supported
 - Not all API keys have GPT-5 access - check with `client.models.list()`
-- See GPT5_FACTS.md for complete Context7-verified details
+- See CONTEXT7_TRUTH.md for complete Context7 MCP-verified documentation
 
 ## Development Philosophy - Clean Code Principles
 

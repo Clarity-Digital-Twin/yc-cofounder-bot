@@ -146,6 +146,7 @@ class OpenAIDecisionAdapter(DecisionPort):
                 temperature = config.get_gpt5_temperature() if self.model.startswith("gpt-5") else 0.3
                 top_p = config.get_gpt5_top_p() if self.model.startswith("gpt-5") else 0.9
                 
+                # Build params according to Context7 documentation
                 params = {
                     "model": self.model,
                     "input": [
@@ -159,6 +160,16 @@ class OpenAIDecisionAdapter(DecisionPort):
                     "store": True,  # Save response for retrieval
                     "service_tier": config.get_service_tier(),  # Configurable via SERVICE_TIER
                 }
+                
+                # Add verbosity in text object per Context7 docs
+                if self.model.startswith("gpt-5"):
+                    params["text"] = {
+                        "verbosity": config.get_gpt5_verbosity()  # Per Context7: nested in text
+                    }
+                    # Add reasoning effort for speed optimization
+                    params["reasoning"] = {
+                        "effort": config.get_gpt5_reasoning_effort()  # Per Context7: minimal for speed
+                    }
 
                 # Try with response_format first (per contract section 6)
                 try:
@@ -204,7 +215,8 @@ class OpenAIDecisionAdapter(DecisionPort):
 
                     # Remove only unsupported params on error
                     params.pop("response_format", None)  # May not be in SDK yet
-                    params.pop("verbosity", None)  # Not in params anymore
+                    params.pop("text", None)  # Remove if not supported by SDK
+                    params.pop("reasoning", None)  # Remove if not supported by SDK
                     # Keep temperature, top_p, truncation, store - all supported per Context7
 
                     # Add prompt instruction for JSON

@@ -184,3 +184,13 @@ def get_gpt5_top_p() -> float:
 def get_service_tier() -> str:
     """Get service tier for API requests (auto, default, flex, priority)."""
     return os.getenv("SERVICE_TIER", "auto")
+
+
+def get_gpt5_verbosity() -> str:
+    """Get verbosity for GPT-5 text responses (low, medium, high per Context7 docs)."""
+    return os.getenv("GPT5_VERBOSITY", "low")
+
+
+def get_gpt5_reasoning_effort() -> str:
+    """Get reasoning effort for GPT-5 (minimal, low, medium, high per Context7 docs)."""
+    return os.getenv("GPT5_REASONING_EFFORT", "minimal")
