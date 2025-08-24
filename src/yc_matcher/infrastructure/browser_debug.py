@@ -5,9 +5,10 @@ Professional teams would add this level of instrumentation.
 
 import json
 import time
-from .time_utils import utc_now, utc_isoformat
 from pathlib import Path
 from typing import Any
+
+from .time_utils import utc_isoformat, utc_now
 
 
 class BrowserDebugger:
@@ -115,11 +116,11 @@ class BrowserDebugger:
                     const textareas = Array.from(document.querySelectorAll('textarea'));
                     const inputs = Array.from(document.querySelectorAll('input[type="text"]'));
                     const editables = Array.from(document.querySelectorAll('[contenteditable="true"]'));
-                    
+
                     // Find all buttons
                     const buttons = Array.from(document.querySelectorAll('button'));
                     const submitButtons = Array.from(document.querySelectorAll('[type="submit"]'));
-                    
+
                     return {
                         url: window.location.href,
                         title: document.title,

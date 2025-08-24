@@ -14,7 +14,7 @@ def analyze_yc_page_structure():
     Based on common patterns in YC/Startup School, the message flow likely uses:
     1. A textarea or contenteditable div for the message
     2. A button labeled "Send" or "Invite to connect"
-    
+
     The image you shared shows "Invite to connect" button.
     """
 
@@ -37,7 +37,7 @@ def analyze_yc_page_structure():
     playwright_fix = '''
     def fill_message(self, text: str) -> None:
         page = self._ensure_page()
-        
+
         # Try multiple selector strategies
         selectors = [
             "textarea",  # Standard textarea
@@ -46,7 +46,7 @@ def analyze_yc_page_structure():
             "[placeholder*='message' i]",  # Any element with message placeholder
             "[placeholder*='introduce' i]",  # Introduction placeholder
         ]
-        
+
         for selector in selectors:
             try:
                 elem = page.locator(selector).first
@@ -58,10 +58,10 @@ def analyze_yc_page_structure():
                     return
             except:
                 continue
-                
+
         # If nothing worked, try focusing and typing
         page.keyboard.type(text)
-    
+
     def send(self) -> None:
         # Updated to look for "Invite to connect"
         labels = [
@@ -71,7 +71,7 @@ def analyze_yc_page_structure():
             "Send message",
             "Send",
         ]
-        
+
         page = self._ensure_page()
         for label in labels:
             try:
@@ -80,7 +80,7 @@ def analyze_yc_page_structure():
                 if btn.count() > 0:
                     btn.first.click()
                     return
-                    
+
                 # Try partial match
                 btn = page.locator(f"button:has-text('{label}')")
                 if btn.count() > 0:
@@ -105,7 +105,7 @@ def analyze_yc_page_structure():
             "clear any existing text, then type: " + text
         )
         await self._cua_action(prompt)
-    
+
     async def _send_async(self) -> None:
         """Click send button to send the message."""
         prompt = (

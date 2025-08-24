@@ -189,7 +189,7 @@ Would love to connect and discuss potential collaboration!
     print(f"   Message: {test_message[:50]}...")
 
     # Using SendMessage use case (the real flow)
-    send_use_case = SendMessage(
+    SendMessage(
         browser=base_browser,
         logger=logger,
         stop=stop_flag,

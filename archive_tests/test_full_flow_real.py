@@ -151,14 +151,14 @@ def main():
 
     MESSAGE_TEMPLATE = """
     Hi {name}!
-    
+
     I noticed your {specific_detail_from_profile}.
-    
+
     I'm a technical founder with experience in {relevant_experience}.
     Currently building {what_you're_building} and looking for a business co-founder.
-    
+
     Would love to connect and explore potential collaboration!
-    
+
     Best,
     [Your name]
     """

@@ -64,18 +64,18 @@ def test_gpt5_decision():
     # ========================================
     MESSAGE_TEMPLATE = """
     When writing a message, follow this template:
-    
+
     Hi [Name]!
-    
+
     I noticed your [specific experience/background from their profile].
-    
-    I'm a technical founder with [relevant experience]. Currently exploring 
+
+    I'm a technical founder with [relevant experience]. Currently exploring
     [relevant domain] and looking for a business co-founder.
-    
+
     [One specific thing about why they're a good match based on their profile]
-    
+
     Would love to connect and explore potential collaboration!
-    
+
     Best,
     JJ
     """
@@ -88,34 +88,34 @@ def test_gpt5_decision():
     Location: Rhode Island, USA
     Age: 34
     Last seen: 4 days ago
-    
-    I'm technical, passively looking, and could help a co-founder with their existing idea or 
+
+    I'm technical, passively looking, and could help a co-founder with their existing idea or
     explore new ideas together.
-    
+
     I'm willing to do Operations and Sales and marketing.
-    
+
     About Me:
-    Dr. Juan E. Rosario Jr. is a bilingual (English & Spanish) healthcare provider, 2x founder, 
-    and personal development coach whose mission is to empower individuals and organizations 
-    through coaching. He is passionate about helping others realize their full potential and 
-    overcome doubt to achieve a much more fulfilling and balanced life. Dr. Rosario provides 
-    dynamic planning solutions for those preparing to enter the healthcare job market. 
-    His expertise extends to working with leading healthcare organizations that are invested 
-    in positively impacting society. Dr. Rosario is a true master in building relationships 
+    Dr. Juan E. Rosario Jr. is a bilingual (English & Spanish) healthcare provider, 2x founder,
+    and personal development coach whose mission is to empower individuals and organizations
+    through coaching. He is passionate about helping others realize their full potential and
+    overcome doubt to achieve a much more fulfilling and balanced life. Dr. Rosario provides
+    dynamic planning solutions for those preparing to enter the healthcare job market.
+    His expertise extends to working with leading healthcare organizations that are invested
+    in positively impacting society. Dr. Rosario is a true master in building relationships
     and delivering current strategies that elevate all members of organizations.
-    
+
     Free Time: Travel, gym, coffee, family time
-    
+
     Background:
     - Founder and Director of Myelinated Solutions (boutique coaching practice)
     - Founder and President of Latino y Sano! (International BiPOC psychoeducational nonprofit)
     - Education: 2024- Doctorate in Clinical Neuropsychology, 2016 B.A. Justice Studies
     - Employment: Hospital and Private practice (mental health settings)
-    
-    What I'm looking for: 
+
+    What I'm looking for:
     - Co-founder in my country (United States)
     - Ideally aligned with my interests
-    
+
     Interests: Health/Wellness, Healthcare, Non-Profit
     """
 

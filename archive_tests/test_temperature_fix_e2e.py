@@ -72,19 +72,19 @@ def test_openai_decision_only():
     test_profile_text = """
     Name: Sarah Chen
     Location: San Francisco, CA
-    
+
     Background:
     - 10 years in business development and sales
     - Former VP of Sales at a B2B SaaS startup (grew revenue from $1M to $20M)
     - MBA from Stanford GSB
     - Founded and sold an e-commerce business
-    
+
     Looking for:
     - Technical co-founder with AI/ML expertise
     - Building in the AI/education space
     - Full-time commitment
     - Based in SF Bay Area
-    
+
     What I bring:
     - Proven track record in B2B sales and partnerships
     - Strong network in the education sector
@@ -102,7 +102,7 @@ def test_openai_decision_only():
     MATCH_CRITERIA = """
     Looking for:
     - Business/sales background
-    - Startup experience  
+    - Startup experience
     - Located in SF Bay Area
     - Passionate about AI/education
     - Available full-time
@@ -110,14 +110,14 @@ def test_openai_decision_only():
 
     MESSAGE_TEMPLATE = """
     Hi {name}!
-    
+
     I noticed your {specific_detail}.
-    
+
     I'm a technical founder with experience in {relevant_experience}.
     Currently exploring ideas in {space} and looking for a business co-founder.
-    
+
     Would love to connect and explore potential collaboration!
-    
+
     Best,
     Alex
     """

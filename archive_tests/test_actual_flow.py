@@ -72,7 +72,7 @@ def test_send_message_flow():
     input()
 
     # Test message
-    test_message = """Hi! I noticed your profile and I'm really interested in your startup idea. 
+    test_message = """Hi! I noticed your profile and I'm really interested in your startup idea.
 I have experience in similar technologies and would love to connect to discuss potential collaboration.
 Looking forward to hearing from you!"""
 

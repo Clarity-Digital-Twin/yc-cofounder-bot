@@ -192,7 +192,7 @@ class MessageFlowDebugger:
 
         print("\n📊 Test Results:")
         for key, value in self.results.items():
-            status = "✅" if value == True or value == "SUCCESS" else "❌"
+            status = "✅" if value or value == "SUCCESS" else "❌"
             print(f"   {status} {key}: {value}")
 
         print("\n🔍 Root Cause Analysis:")

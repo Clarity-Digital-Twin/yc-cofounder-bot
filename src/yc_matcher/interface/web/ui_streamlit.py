@@ -431,7 +431,13 @@ def render_events_panel() -> None:
 
         try:
             import json
-            from ...infrastructure.time_utils import parse_timestamp, is_within_hours, format_for_display, unix_to_datetime
+
+            from ...infrastructure.time_utils import (
+                format_for_display,
+                is_within_hours,
+                parse_timestamp,
+                unix_to_datetime,
+            )
 
             # Read last 20 events (more context)
             events_path = Path(".runs/events.jsonl")
@@ -452,7 +458,7 @@ def render_events_panel() -> None:
                             # Try to parse timestamp (handle both 'timestamp' and 'ts' fields)
                             timestamp_str = event.get("timestamp", "")
                             ts_unix = event.get("ts", None)
-                            
+
                             event_time = None
                             if timestamp_str:
                                 try:
@@ -464,7 +470,7 @@ def render_events_panel() -> None:
                                     event_time = unix_to_datetime(ts_unix)
                                 except Exception:
                                     pass
-                            
+
                             # Filter by time window (1 hour)
                             if event_time:
                                 if is_within_hours(event_time, hours=1.0):

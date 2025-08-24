@@ -142,7 +142,7 @@ TEST MESSAGE {datetime.now().strftime('%H:%M:%S')}"""
     print(f"   Message preview: {test_message[:50]}...")
 
     # Create SendMessage use case
-    send_message = SendMessage(
+    SendMessage(
         browser=base_browser,
         logger=logger,
         stop=stop_flag,

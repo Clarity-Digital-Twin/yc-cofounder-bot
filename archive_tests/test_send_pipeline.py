@@ -212,7 +212,7 @@ def test_with_real_decision():
     - Strong engineering background
     - Startup experience
     - Located in SF Bay Area
-    
+
     Message Template:
     Hi! I noticed your profile and your experience with [specific thing from profile].
     I'm working on [my startup] and looking for a technical co-founder.
@@ -320,7 +320,7 @@ def analyze_pipeline_log():
 
     # Check for failures
     for event in run_events:
-        if event.get("ok") == False:
+        if not event.get("ok"):
             print(f"\n   ❌ Failed: {event['event']}")
             if event.get("error"):
                 print(f"      Error: {event['error']}")

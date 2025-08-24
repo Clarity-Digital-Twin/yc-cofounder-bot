@@ -10,12 +10,11 @@ This module ensures all timestamps in the codebase are handled consistently.
 """
 
 from datetime import UTC, datetime, timedelta
-from typing import Optional
 
 
 def utc_now() -> datetime:
     """Get current time in UTC with timezone info.
-    
+
     Returns:
         datetime: Current UTC time with tzinfo=UTC
     """
@@ -24,7 +23,7 @@ def utc_now() -> datetime:
 
 def utc_timestamp() -> float:
     """Get current Unix timestamp (seconds since epoch).
-    
+
     Returns:
         float: Unix timestamp
     """
@@ -33,7 +32,7 @@ def utc_timestamp() -> float:
 
 def utc_isoformat() -> str:
     """Get current UTC time as ISO 8601 string.
-    
+
     Returns:
         str: ISO format string like '2025-08-24T04:00:00.000000+00:00'
     """
@@ -42,55 +41,55 @@ def utc_isoformat() -> str:
 
 def parse_timestamp(timestamp_str: str) -> datetime:
     """Parse ISO timestamp string to timezone-aware datetime.
-    
+
     Args:
         timestamp_str: ISO format timestamp string
-        
+
     Returns:
         datetime: Timezone-aware datetime object
-        
+
     Raises:
         ValueError: If timestamp format is invalid
     """
     # Handle both 'Z' suffix and '+00:00' for UTC
     if timestamp_str.endswith('Z'):
         timestamp_str = timestamp_str[:-1] + '+00:00'
-    
+
     # Parse ISO format
     dt = datetime.fromisoformat(timestamp_str)
-    
+
     # If no timezone, assume UTC
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=UTC)
-    
+
     return dt
 
 
 def is_within_hours(timestamp: datetime, hours: float = 1.0) -> bool:
     """Check if timestamp is within the last N hours.
-    
+
     Args:
         timestamp: Timezone-aware datetime to check
         hours: Number of hours to look back (default 1)
-        
+
     Returns:
         bool: True if timestamp is within the time window
     """
     # Ensure timestamp is timezone-aware
     if timestamp.tzinfo is None:
         timestamp = timestamp.replace(tzinfo=UTC)
-    
+
     cutoff = utc_now() - timedelta(hours=hours)
     return timestamp > cutoff
 
 
 def format_for_display(timestamp: datetime, format: str = "%Y-%m-%d %H:%M:%S") -> str:
     """Format timestamp for UI display.
-    
+
     Args:
         timestamp: Datetime to format
         format: strftime format string
-        
+
     Returns:
         str: Formatted timestamp string
     """
@@ -98,16 +97,16 @@ def format_for_display(timestamp: datetime, format: str = "%Y-%m-%d %H:%M:%S") -
     # For now, we'll display UTC with indicator
     if timestamp.tzinfo is None:
         timestamp = timestamp.replace(tzinfo=UTC)
-    
+
     return timestamp.strftime(format) + " UTC"
 
 
 def unix_to_datetime(unix_ts: float) -> datetime:
     """Convert Unix timestamp to UTC datetime.
-    
+
     Args:
         unix_ts: Unix timestamp (seconds since epoch)
-        
+
     Returns:
         datetime: UTC datetime with timezone info
     """
@@ -116,10 +115,10 @@ def unix_to_datetime(unix_ts: float) -> datetime:
 
 def local_to_utc(local_dt: datetime) -> datetime:
     """Convert local/naive datetime to UTC.
-    
+
     Args:
         local_dt: Local or naive datetime
-        
+
     Returns:
         datetime: UTC datetime with timezone info
     """

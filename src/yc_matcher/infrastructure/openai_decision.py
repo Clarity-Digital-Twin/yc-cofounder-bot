@@ -11,7 +11,7 @@ from .error_recovery import RetryWithBackoff
 
 def _validate_decision(d: dict[str, Any]) -> tuple[bool, str | None]:
     """Validate decision response against schema.
-    
+
     Returns:
         (is_valid, error_reason)
     """
@@ -25,9 +25,9 @@ def _validate_decision(d: dict[str, Any]) -> tuple[bool, str | None]:
             return False, "bad_rationale"
         if not isinstance(d["draft"], str):
             return False, "bad_draft"
-        if not (isinstance(d["score"], (int, float)) and 0.0 <= d["score"] <= 1.0):
+        if not (isinstance(d["score"], int | float) and 0.0 <= d["score"] <= 1.0):
             return False, "bad_score"
-        if not (isinstance(d["confidence"], (int, float)) and 0.0 <= d["confidence"] <= 1.0):
+        if not (isinstance(d["confidence"], int | float) and 0.0 <= d["confidence"] <= 1.0):
             return False, "bad_confidence"
         # If decision==NO it's OK for draft to be empty; if YES, draft must not be empty
         if d["decision"] == "YES" and not d["draft"].strip():
@@ -291,13 +291,13 @@ class OpenAIDecisionAdapter(DecisionPort):
                             if getattr(item, "type", None) == "reasoning" and hasattr(item, "content"):
                                 reasoning_rescue_attempted = True
                                 reasoning_text = str(item.content)
-                                
+
                                 # Look for JSON in reasoning
                                 import re
                                 # Match JSON with our expected keys
                                 json_pattern = r'\{[^{}]*"decision"[^{}]*"rationale"[^{}]*\}'
                                 matches = re.finditer(json_pattern, reasoning_text, re.DOTALL)
-                                
+
                                 for match in matches:
                                     try:
                                         potential_json = match.group()
@@ -322,10 +322,10 @@ class OpenAIDecisionAdapter(DecisionPort):
                                                 "error": str(e)[:100]
                                             })
                                         continue
-                                
+
                                 if c:  # Found valid JSON in reasoning
                                     break
-                    
+
                     # If still no content, log and raise
                     if not c:
                         # Log detailed error for debugging
