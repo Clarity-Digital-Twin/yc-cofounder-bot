@@ -431,7 +431,7 @@ def render_events_panel() -> None:
 
         try:
             import json
-            from datetime import datetime, timedelta
+            from ...infrastructure.time_utils import parse_timestamp, is_within_hours, format_for_display, unix_to_datetime
 
             # Read last 20 events (more context)
             events_path = Path(".runs/events.jsonl")
@@ -443,8 +443,7 @@ def render_events_panel() -> None:
             else:
                 lines = content.split("\n")
 
-                # Get only recent events (last hour)
-                cutoff_time = datetime.now() - timedelta(hours=1)
+                # Get only recent events (last hour) - using UTC consistently
 
                 for line in lines[-20:]:
                     if line.strip():
@@ -453,39 +452,34 @@ def render_events_panel() -> None:
                             # Try to parse timestamp (handle both 'timestamp' and 'ts' fields)
                             timestamp_str = event.get("timestamp", "")
                             ts_unix = event.get("ts", None)
-
+                            
+                            event_time = None
                             if timestamp_str:
                                 try:
-                                    event_time = datetime.fromisoformat(
-                                        timestamp_str.replace("Z", "+00:00")
-                                    )
-                                    # Only include recent events
-                                    if event_time.replace(tzinfo=None) > cutoff_time:
-                                        recent_events.append(event)
+                                    event_time = parse_timestamp(timestamp_str)
                                 except Exception:
-                                    # If can't parse time, include it anyway (for backwards compat)
-                                    recent_events.append(event)
+                                    pass
                             elif ts_unix:
-                                # Handle Unix timestamp format
                                 try:
-                                    event_time = datetime.fromtimestamp(ts_unix)
-                                    if event_time > cutoff_time:
-                                        # Convert ts to readable timestamp for display
-                                        event["timestamp"] = event_time.strftime(
-                                            "%Y-%m-%d %H:%M:%S"
-                                        )
-                                        recent_events.append(event)
+                                    event_time = unix_to_datetime(ts_unix)
                                 except Exception:
+                                    pass
+                            
+                            # Filter by time window (1 hour)
+                            if event_time:
+                                if is_within_hours(event_time, hours=1.0):
+                                    # Format timestamp for display
+                                    event["timestamp"] = format_for_display(event_time)
                                     recent_events.append(event)
                             else:
-                                # No timestamp at all, include it
+                                # No valid timestamp, include anyway for backwards compat
                                 recent_events.append(event)
                         except Exception:
                             pass
 
             # Display in reverse order (newest first)
             if not recent_events:
-                st.info("No events in the last hour. Events are cleared after 1 hour.")
+                st.info("No events in the last hour. Only showing recent events (1 hour window).")
 
             for event in reversed(recent_events):
                 event_type = event.get("event", "unknown")

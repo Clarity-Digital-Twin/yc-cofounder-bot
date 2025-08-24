@@ -5,7 +5,7 @@ Professional teams would add this level of instrumentation.
 
 import json
 import time
-from datetime import datetime
+from .time_utils import utc_now, utc_isoformat
 from pathlib import Path
 from typing import Any
 
@@ -16,13 +16,13 @@ class BrowserDebugger:
     def __init__(self, log_dir: str = ".runs/debug"):
         self.log_dir = Path(log_dir)
         self.log_dir.mkdir(exist_ok=True)
-        self.session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.session_id = utc_now().strftime("%Y%m%d_%H%M%S")
         self.action_log = []
 
     def log_action(self, action: str, details: dict) -> None:
         """Log every browser action with full context"""
         entry = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": utc_isoformat(),
             "action": action,
             "details": details,
             "stack_trace": self._get_stack_trace()
