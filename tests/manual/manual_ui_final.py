@@ -15,9 +15,9 @@ os.environ["ENABLE_CUA"] = "0"
 os.environ["PLAYWRIGHT_HEADLESS"] = "0"  # Visible browser
 
 from yc_matcher.application.autonomous_flow import AutonomousFlow
+from yc_matcher.infrastructure.control.stop_flag import FileStopFlag
 from yc_matcher.infrastructure.persistence.sqlite_quota import SQLiteDailyWeeklyQuota
 from yc_matcher.infrastructure.persistence.sqlite_repo import SQLiteSeenRepo
-from yc_matcher.infrastructure.control.stop_flag import FileStopFlag
 from yc_matcher.interface.di import build_services
 
 # Sample inputs matching the UI

@@ -81,9 +81,9 @@ def test_pure_playwright_send():
 
     # Check gates
     print("\n5. Checking send gates...")
+    from yc_matcher.infrastructure.control.stop_flag import StopFlagAdapter
     from yc_matcher.infrastructure.persistence.sqlite_quota import SqliteQuotaAdapter
     from yc_matcher.infrastructure.persistence.sqlite_repo import SqliteRepoAdapter
-    from yc_matcher.infrastructure.control.stop_flag import StopFlagAdapter
 
     stop_flag = StopFlagAdapter()
     quota = SqliteQuotaAdapter(".runs/test_quota.sqlite")
@@ -155,9 +155,9 @@ def test_with_real_decision():
     print("=" * 60)
 
     from yc_matcher.domain.entities import Criteria, Profile
+    from yc_matcher.infrastructure.ai.openai_decision import OpenAIDecisionAdapter
     from yc_matcher.infrastructure.browser.observable import ObservableBrowser
     from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger
-    from yc_matcher.infrastructure.ai.openai_decision import OpenAIDecisionAdapter
     from yc_matcher.infrastructure.logging.pipeline_observer import SendPipelineObserver
 
     # Check if OpenAI is configured

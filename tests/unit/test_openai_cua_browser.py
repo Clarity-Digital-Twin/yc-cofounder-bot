@@ -83,7 +83,7 @@ class TestOpenAICUABrowserResponsesAPI:
         """Test that CUA browser uses Responses API, not Agents SDK."""
         # Arrange
         with patch(
-            "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
+            "yc_matcher.infrastructure.browser.openai_cua.OpenAI", return_value=mock_openai_client
         ):
             browser = OpenAICUABrowser()
 
@@ -104,10 +104,10 @@ class TestOpenAICUABrowserResponsesAPI:
         async_pw_mock, playwright_mock, page_mock = mock_playwright
 
         with patch(
-            "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
+            "yc_matcher.infrastructure.browser.openai_cua.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
+                "yc_matcher.infrastructure.browser.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
@@ -147,10 +147,10 @@ class TestOpenAICUABrowserResponsesAPI:
         mock_openai_client.responses.create.side_effect = [mock_response, mock_follow]
 
         with patch(
-            "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
+            "yc_matcher.infrastructure.browser.openai_cua.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
+                "yc_matcher.infrastructure.browser.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
@@ -217,10 +217,10 @@ class TestOpenAICUABrowserResponsesAPI:
         ]
 
         with patch(
-            "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
+            "yc_matcher.infrastructure.browser.openai_cua.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
+                "yc_matcher.infrastructure.browser.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
@@ -276,10 +276,10 @@ class TestOpenAICUABrowserResponsesAPI:
         mock_openai_client.responses.create.side_effect = responses
 
         with patch(
-            "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
+            "yc_matcher.infrastructure.browser.openai_cua.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
+                "yc_matcher.infrastructure.browser.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
@@ -307,10 +307,10 @@ class TestOpenAICUABrowserResponsesAPI:
         async_pw_mock, playwright_mock, page_mock = mock_playwright
 
         with patch(
-            "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
+            "yc_matcher.infrastructure.browser.openai_cua.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
+                "yc_matcher.infrastructure.browser.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
@@ -336,10 +336,10 @@ class TestOpenAICUABrowserResponsesAPI:
         mock_openai_client.responses.create.side_effect = Exception("API Error")
 
         with patch(
-            "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
+            "yc_matcher.infrastructure.browser.openai_cua.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
+                "yc_matcher.infrastructure.browser.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
@@ -360,7 +360,7 @@ class TestOpenAICUABrowserResponsesAPI:
 
         # Act & Assert
         with pytest.raises(ValueError, match="No Computer Use model available"):
-            with patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI"):
+            with patch("yc_matcher.infrastructure.browser.openai_cua.OpenAI"):
                 OpenAICUABrowser()
 
     @pytest.mark.asyncio
@@ -374,10 +374,10 @@ class TestOpenAICUABrowserResponsesAPI:
         page_mock.screenshot.return_value = screenshot_bytes
 
         with patch(
-            "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
+            "yc_matcher.infrastructure.browser.openai_cua.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
+                "yc_matcher.infrastructure.browser.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
@@ -422,11 +422,11 @@ class TestOpenAICUABrowserResponsesAPI:
 
         try:
             with patch(
-                "yc_matcher.infrastructure.openai_cua_browser.OpenAI",
+                "yc_matcher.infrastructure.browser.openai_cua.OpenAI",
                 return_value=mock_openai_client,
             ):
                 with patch(
-                    "yc_matcher.infrastructure.async_loop_runner.async_playwright",
+                    "yc_matcher.infrastructure.browser.async_loop_runner.async_playwright",
                     return_value=async_pw_mock,
                 ):
                     browser = OpenAICUABrowser()
@@ -475,10 +475,10 @@ class TestOpenAICUABrowserResponsesAPI:
         mock_openai_client.responses.create.return_value = mock_response
 
         with patch(
-            "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
+            "yc_matcher.infrastructure.browser.openai_cua.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
+                "yc_matcher.infrastructure.browser.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()
@@ -513,10 +513,10 @@ class TestOpenAICUABrowserResponsesAPI:
         page_mock.locator = Mock(return_value=locator_mock)  # Make locator synchronous
 
         with patch(
-            "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_openai_client
+            "yc_matcher.infrastructure.browser.openai_cua.OpenAI", return_value=mock_openai_client
         ):
             with patch(
-                "yc_matcher.infrastructure.async_loop_runner.async_playwright",
+                "yc_matcher.infrastructure.browser.async_loop_runner.async_playwright",
                 return_value=async_pw_mock,
             ):
                 browser = OpenAICUABrowser()

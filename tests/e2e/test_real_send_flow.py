@@ -157,8 +157,8 @@ class TestRealSendFlow:
             pytest.skip("Browser not available in test environment")
 
         from yc_matcher.infrastructure.browser.observable import ObservableBrowser
-        from yc_matcher.infrastructure.persistence.sqlite_quota import SQLiteDailyWeeklyQuota
         from yc_matcher.infrastructure.control.stop_flag import FileStopFlag
+        from yc_matcher.infrastructure.persistence.sqlite_quota import SQLiteDailyWeeklyQuota
 
         observer, log_path = pipeline_observer
 

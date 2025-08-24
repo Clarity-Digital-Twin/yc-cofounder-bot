@@ -24,9 +24,9 @@ def test_send_message_flow():
     print("=" * 60)
 
     from yc_matcher.application.use_cases import SendMessage
+    from yc_matcher.infrastructure.control.stop_flag import StopFlagAdapter
     from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger
     from yc_matcher.infrastructure.persistence.sqlite_quota import SqliteQuotaAdapter
-    from yc_matcher.infrastructure.control.stop_flag import StopFlagAdapter
 
     # Choose browser based on ENABLE_CUA
     if os.getenv("ENABLE_CUA") == "1":

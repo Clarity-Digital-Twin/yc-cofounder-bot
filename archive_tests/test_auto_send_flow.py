@@ -30,10 +30,10 @@ def test_full_auto_flow():
     from yc_matcher.application.use_cases import SendMessage
     from yc_matcher.infrastructure.browser.observable import ObservableBrowser
     from yc_matcher.infrastructure.browser.playwright_async import PlaywrightBrowserAsync
+    from yc_matcher.infrastructure.control.stop_flag import FileStopFlag
     from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger
     from yc_matcher.infrastructure.logging.pipeline_observer import SendPipelineObserver
     from yc_matcher.infrastructure.persistence.sqlite_quota import SQLiteDailyWeeklyQuota
-    from yc_matcher.infrastructure.control.stop_flag import FileStopFlag
 
     # Setup
     logger = JSONLLogger(".runs/auto_flow_test.jsonl")

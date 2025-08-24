@@ -12,9 +12,9 @@ from yc_matcher.application.autonomous_flow import AutonomousFlow
 from yc_matcher.application.use_cases import ProcessCandidate
 from yc_matcher.config import load_settings
 from yc_matcher.domain.entities import Criteria, Profile
+from yc_matcher.infrastructure.control.stop_flag import FileStopFlag
 from yc_matcher.infrastructure.persistence.sqlite_quota import SQLiteDailyWeeklyQuota
 from yc_matcher.infrastructure.persistence.sqlite_repo import SQLiteSeenRepo
-from yc_matcher.infrastructure.control.stop_flag import FileStopFlag
 from yc_matcher.infrastructure.persistence.storage import read_count
 from yc_matcher.infrastructure.utils.template_loader import load_default_template
 from yc_matcher.interface.di import build_services
@@ -432,7 +432,7 @@ def render_events_panel() -> None:
         try:
             import json
 
-            from ...infrastructure.time_utils import (
+            from ...infrastructure.utils.time_utils import (
                 format_for_display,
                 is_within_hours,
                 parse_timestamp,

@@ -37,9 +37,9 @@ class TestEndToEndFlow:
     def test_full_flow_with_shadow_mode(self) -> None:
         """Test complete flow: UI input → evaluation → (no send in shadow)."""
         from yc_matcher.application.autonomous_flow import AutonomousFlow
+        from yc_matcher.infrastructure.control.stop_flag import FileStopFlag
         from yc_matcher.infrastructure.persistence.sqlite_quota import SQLiteDailyWeeklyQuota
         from yc_matcher.infrastructure.persistence.sqlite_repo import SQLiteSeenRepo
-        from yc_matcher.infrastructure.control.stop_flag import FileStopFlag
         from yc_matcher.interface.di import build_services
 
         # Build services with test inputs

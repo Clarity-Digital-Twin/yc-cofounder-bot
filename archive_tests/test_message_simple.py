@@ -115,8 +115,8 @@ def test_cua_browser():
     print("TESTING CUA BROWSER")
     print("=" * 60)
 
-    from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger
     from yc_matcher.infrastructure.browser.openai_cua import OpenAICUABrowser
+    from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger
 
     browser = OpenAICUABrowser()
     logger = JSONLLogger(".runs/test_cua.jsonl")
@@ -186,9 +186,9 @@ def test_use_case():
 
     from yc_matcher.application.use_cases import SendMessage
     from yc_matcher.infrastructure.browser.playwright_sync import PlaywrightBrowser
+    from yc_matcher.infrastructure.control.stop_flag import StopFlagAdapter
     from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger
     from yc_matcher.infrastructure.persistence.sqlite_quota import SqliteQuotaAdapter
-    from yc_matcher.infrastructure.control.stop_flag import StopFlagAdapter
 
     browser = PlaywrightBrowser()
     logger = JSONLLogger(".runs/test_use_case.jsonl")

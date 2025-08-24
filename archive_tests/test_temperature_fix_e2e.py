@@ -50,8 +50,8 @@ def test_openai_decision_only():
     from openai import OpenAI
 
     from yc_matcher.domain.entities import Criteria, Profile
-    from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger
     from yc_matcher.infrastructure.ai.openai_decision import OpenAIDecisionAdapter
+    from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger
 
     # Setup logger
     log_path = Path(".runs/temperature_test.jsonl")

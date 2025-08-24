@@ -8,13 +8,13 @@ from typing import cast
 from .. import config
 from ..application.ports import BrowserPort, DecisionPort
 from ..application.use_cases import EvaluateProfile, SendMessage
-from ..infrastructure.logging.jsonl_logger import JSONLLogger
 from ..infrastructure.ai.local_decision import LocalDecisionAdapter
-from ..infrastructure.logging.stamped_logger import LoggerWithStamps
 from ..infrastructure.ai.model_resolver import resolve_and_set_models
 from ..infrastructure.control.quota import FileQuota
-from ..infrastructure.persistence.sqlite_quota import SQLiteDailyWeeklyQuota
 from ..infrastructure.control.stop_flag import FileStopFlag
+from ..infrastructure.logging.jsonl_logger import JSONLLogger
+from ..infrastructure.logging.stamped_logger import LoggerWithStamps
+from ..infrastructure.persistence.sqlite_quota import SQLiteDailyWeeklyQuota
 from ..infrastructure.utils.template_loader import load_default_template
 from ..infrastructure.utils.templates import TemplateRenderer
 
@@ -47,7 +47,7 @@ def build_services(
         try:
             from openai import OpenAI
 
-            from ..infrastructure.openai_decision import OpenAIDecisionAdapter
+            from ..infrastructure.ai.openai_decision import OpenAIDecisionAdapter
 
             client = OpenAI()
             decision = OpenAIDecisionAdapter(

@@ -17,9 +17,9 @@ logging.basicConfig(
 # Add src to path
 sys.path.insert(0, "src")
 
+from yc_matcher.infrastructure.browser.openai_cua import OpenAICUABrowser  # noqa: E402
 from yc_matcher.infrastructure.browser.playwright_sync import PlaywrightBrowser  # noqa: E402
 from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger  # noqa: E402
-from yc_matcher.infrastructure.browser.openai_cua import OpenAICUABrowser  # noqa: E402
 
 
 class MessageFlowDebugger:
@@ -142,9 +142,9 @@ class MessageFlowDebugger:
         print("=" * 60)
 
         from yc_matcher.application.use_cases import ProcessCandidateUseCase
+        from yc_matcher.infrastructure.control.stop_flag import StopFlagAdapter
         from yc_matcher.infrastructure.persistence.sqlite_quota import SqliteQuotaAdapter
         from yc_matcher.infrastructure.persistence.sqlite_repo import SqliteRepoAdapter
-        from yc_matcher.infrastructure.control.stop_flag import StopFlagAdapter
 
         try:
             # Setup dependencies

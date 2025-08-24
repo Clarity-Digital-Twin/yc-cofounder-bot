@@ -4,7 +4,7 @@ import argparse
 from pathlib import Path
 
 from ...domain.entities import Criteria, Profile
-from ...infrastructure.template_loader import load_default_template
+from ...infrastructure.utils.template_loader import load_default_template
 from ..di import build_services
 
 

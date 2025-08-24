@@ -12,7 +12,7 @@ class TestCUAToggleFix:
     def test_enable_cua_parameter_overrides_env_false(self) -> None:
         """Test that enable_cua=True works even when env var is False."""
         with patch.dict(os.environ, {"ENABLE_CUA": "0", "OPENAI_API_KEY": "test"}):
-            with patch("yc_matcher.infrastructure.openai_cua_browser.OpenAICUABrowser") as mock_cua:
+            with patch("yc_matcher.infrastructure.browser.openai_cua.OpenAICUABrowser") as mock_cua:
                 mock_browser = Mock()
                 mock_cua.return_value = mock_browser
 
@@ -32,7 +32,7 @@ class TestCUAToggleFix:
             os.environ, {"ENABLE_CUA": "1", "ENABLE_PLAYWRIGHT": "1", "OPENAI_API_KEY": "test"}
         ):
             with patch(
-                "yc_matcher.infrastructure.browser_playwright_async.PlaywrightBrowserAsync"
+                "yc_matcher.infrastructure.browser.playwright_async.PlaywrightBrowserAsync"
             ) as mock_playwright:
                 mock_browser = Mock()
                 mock_playwright.return_value = mock_browser
@@ -50,7 +50,7 @@ class TestCUAToggleFix:
     def test_enable_cua_none_uses_env_var(self) -> None:
         """Test that enable_cua=None falls back to env var."""
         with patch.dict(os.environ, {"ENABLE_CUA": "1", "OPENAI_API_KEY": "test"}):
-            with patch("yc_matcher.infrastructure.openai_cua_browser.OpenAICUABrowser") as mock_cua:
+            with patch("yc_matcher.infrastructure.browser.openai_cua.OpenAICUABrowser") as mock_cua:
                 mock_browser = Mock()
                 mock_cua.return_value = mock_browser
 
@@ -70,7 +70,7 @@ class TestCUAToggleFix:
             os.environ, {"ENABLE_CUA": "0", "ENABLE_PLAYWRIGHT": "1", "OPENAI_API_KEY": "test"}
         ):
             with patch(
-                "yc_matcher.infrastructure.browser_playwright_async.PlaywrightBrowserAsync"
+                "yc_matcher.infrastructure.browser.playwright_async.PlaywrightBrowserAsync"
             ) as mock_playwright:
                 mock_browser = Mock()
                 mock_playwright.return_value = mock_browser

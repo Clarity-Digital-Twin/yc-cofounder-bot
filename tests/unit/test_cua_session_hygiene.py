@@ -19,7 +19,7 @@ class TestCUASessionHygiene:
 
         with patch.dict(os.environ, {"CUA_MODEL": "test-model", "OPENAI_API_KEY": "test-key"}):
             with patch(
-                "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_client
+                "yc_matcher.infrastructure.browser.openai_cua.OpenAI", return_value=mock_client
             ):
                 browser = OpenAICUABrowser()
 
@@ -44,7 +44,7 @@ class TestCUASessionHygiene:
 
         with patch.dict(os.environ, {"CUA_MODEL": "test-model", "OPENAI_API_KEY": "test-key"}):
             with patch(
-                "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_client
+                "yc_matcher.infrastructure.browser.openai_cua.OpenAI", return_value=mock_client
             ):
                 browser = OpenAICUABrowser()
 
@@ -81,7 +81,7 @@ class TestCUASessionHygiene:
 
         with patch.dict(os.environ, {"CUA_MODEL": "test-model", "OPENAI_API_KEY": "test-key"}):
             with patch(
-                "yc_matcher.infrastructure.openai_cua_browser.OpenAI", return_value=mock_client
+                "yc_matcher.infrastructure.browser.openai_cua.OpenAI", return_value=mock_client
             ):
                 browser = OpenAICUABrowser()
                 browser._page_mock = mock_page  # Inject page mock
