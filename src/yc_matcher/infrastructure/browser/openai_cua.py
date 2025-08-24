@@ -49,7 +49,7 @@ class OpenAICUABrowser:
         self.max_tokens = config.get_cua_max_tokens()
 
         # CRITICAL FIX: Use AsyncLoopRunner for single browser instance
-        from ..browser.async_loop_runner import AsyncLoopRunner
+        from .async_loop_runner import AsyncLoopRunner
 
         self._runner = AsyncLoopRunner()
 

@@ -108,14 +108,14 @@ def build_services(
     use_cua = enable_cua if enable_cua is not None else config.is_cua_enabled()
     if use_cua:
         try:
-            from ..infrastructure.openai_cua_browser import OpenAICUABrowser
+            from ..infrastructure.browser.openai_cua import OpenAICUABrowser
 
             browser = cast(BrowserPort, OpenAICUABrowser())
         except Exception:
             # Fallback to Playwright if CUA fails
             if config.get_playwright_fallback_enabled():
                 # Use async-compatible version to avoid "Sync API in asyncio loop" error
-                from ..infrastructure.browser_playwright_async import PlaywrightBrowserAsync
+                from ..infrastructure.browser.playwright_async import PlaywrightBrowserAsync
 
                 browser = cast(BrowserPort, PlaywrightBrowserAsync())
             else:
@@ -123,7 +123,7 @@ def build_services(
     # FALLBACK: Playwright when CUA not enabled
     elif config.is_playwright_enabled():
         # Use async-compatible version to avoid "Sync API in asyncio loop" error
-        from ..infrastructure.browser_playwright_async import PlaywrightBrowserAsync
+        from ..infrastructure.browser.playwright_async import PlaywrightBrowserAsync
 
         browser = cast(BrowserPort, PlaywrightBrowserAsync())
     else:

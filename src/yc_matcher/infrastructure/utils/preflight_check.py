@@ -97,7 +97,7 @@ class PreflightChecker:
         try:
             from openai import OpenAI
 
-            from ..infrastructure.openai_decision import OpenAIDecisionAdapter
+            from ..ai.openai_decision import OpenAIDecisionAdapter
 
             client = OpenAI(api_key=config.get_openai_api_key())
             adapter = OpenAIDecisionAdapter(client=client, model=model)
