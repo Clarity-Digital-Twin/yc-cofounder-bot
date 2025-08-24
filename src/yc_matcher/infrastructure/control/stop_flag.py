@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ..application.ports import StopController
+from yc_matcher.application.ports import StopController
 
 
 class FileStopFlag(StopController):

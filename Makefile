@@ -34,11 +34,14 @@ format: ## Apply ruff formatting
 type: ## Run mypy
 	$(PY) mypy src
 
-test: ## Run tests
-	PACE_MIN_SECONDS=0 PYTHONPATH=src $(PY) pytest -q
+test: ## Run tests (parallel)
+	PACE_MIN_SECONDS=0 PYTHONPATH=src $(PY) pytest -q -n auto
 
 test-int: ## Run integration tests
 	PACE_MIN_SECONDS=0 PYTHONPATH=src $(PY) pytest -q -m integration
+
+test-serial: ## Run tests serially (for debugging)
+	PACE_MIN_SECONDS=0 PYTHONPATH=src $(PY) pytest -q
 
 verify: ## Run lint, type, tests
 	make lint

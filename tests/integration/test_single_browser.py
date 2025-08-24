@@ -17,7 +17,7 @@ def test_single_browser_instance() -> None:
 
     # Patch BEFORE import
     with (
-        patch("yc_matcher.infrastructure.async_loop_runner.AsyncLoopRunner") as mock_runner,
+        patch("yc_matcher.infrastructure.browser.async_loop_runner.AsyncLoopRunner") as mock_runner,
         patch("playwright.async_api.async_playwright") as mock_pw,
         patch("openai.OpenAI") as mock_openai,
     ):

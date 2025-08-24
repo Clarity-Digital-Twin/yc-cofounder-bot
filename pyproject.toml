@@ -143,4 +143,5 @@ dev = [
     "pytest-asyncio>=1.1.0",
     "pytest-cov>=4.1.0",
     "pytest-sugar>=0.9.7",
+    "pytest-xdist>=3.8.0",
 ]

@@ -28,7 +28,7 @@ class TestLoginFlowIntegration:
             "CUA_MODEL": "test-model",
         },
     )
-    @patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI")
+    @patch("yc_matcher.infrastructure.browser.openai_cua.OpenAI")
     def test_cua_browser_performs_login(self, mock_openai: Mock) -> None:
         """Test that CUA browser can perform login with credentials."""
         # Arrange
@@ -45,7 +45,7 @@ class TestLoginFlowIntegration:
 
         # Create browser and mock the runner
         with patch(
-            "yc_matcher.infrastructure.async_loop_runner.AsyncLoopRunner"
+            "yc_matcher.infrastructure.browser.async_loop_runner.AsyncLoopRunner"
         ) as mock_runner_class:
             mock_runner = Mock()
             mock_runner_class.return_value = mock_runner
@@ -62,7 +62,7 @@ class TestLoginFlowIntegration:
             mock_runner.submit.assert_called()
 
     @patch.dict(os.environ, {"YC_EMAIL": "test@example.com", "YC_PASSWORD": "test123"})
-    @patch("yc_matcher.infrastructure.browser_playwright.sync_playwright")
+    @patch("yc_matcher.infrastructure.browser.playwright_sync.sync_playwright")
     def test_playwright_browser_performs_login(self, mock_playwright: Mock) -> None:
         """Test that Playwright browser can perform login with credentials."""
         # Arrange
@@ -117,7 +117,7 @@ class TestLoginFlowIntegration:
             "CUA_MODEL": "test-model",
         },
     )
-    @patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI")
+    @patch("yc_matcher.infrastructure.browser.openai_cua.OpenAI")
     def test_cua_browser_uses_playwright_for_login_execution(self, mock_openai: Mock) -> None:
         """Test that CUA browser uses Playwright to execute login actions."""
         # Arrange
@@ -141,7 +141,7 @@ class TestLoginFlowIntegration:
 
         # Create browser with mocked runner
         with patch(
-            "yc_matcher.infrastructure.async_loop_runner.AsyncLoopRunner"
+            "yc_matcher.infrastructure.browser.async_loop_runner.AsyncLoopRunner"
         ) as mock_runner_class:
             mock_runner = Mock()
             mock_runner_class.return_value = mock_runner
@@ -156,7 +156,7 @@ class TestLoginFlowIntegration:
             # Verify runner was used
             mock_runner.submit.assert_called()
 
-    @patch("yc_matcher.infrastructure.browser_playwright.sync_playwright")
+    @patch("yc_matcher.infrastructure.browser.playwright_sync.sync_playwright")
     def test_is_logged_in_check(self, mock_playwright: Mock) -> None:
         """Test the is_logged_in check works correctly."""
         # Arrange
@@ -200,7 +200,7 @@ class TestLoginFlowIntegration:
             "CUA_MODEL": "test-model",
         },
     )
-    @patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI")
+    @patch("yc_matcher.infrastructure.browser.openai_cua.OpenAI")
     def test_login_handles_invalid_credentials(self, mock_openai: Mock) -> None:
         """Test that invalid credentials are handled gracefully."""
         # Arrange
@@ -213,7 +213,7 @@ class TestLoginFlowIntegration:
 
         # Create browser with mocked runner that raises exception
         with patch(
-            "yc_matcher.infrastructure.async_loop_runner.AsyncLoopRunner"
+            "yc_matcher.infrastructure.browser.async_loop_runner.AsyncLoopRunner"
         ) as mock_runner_class:
             mock_runner = Mock()
             mock_runner_class.return_value = mock_runner
@@ -231,7 +231,7 @@ class TestLoginFlowIntegration:
 class TestLoginPersistence:
     """Test that login state persists across operations."""
 
-    @patch("yc_matcher.infrastructure.browser_playwright.sync_playwright")
+    @patch("yc_matcher.infrastructure.browser.playwright_sync.sync_playwright")
     def test_login_persists_across_page_navigations(self, mock_playwright: Mock) -> None:
         """Test that login persists when navigating between pages."""
         # Arrange
@@ -267,8 +267,8 @@ class TestLoginPersistence:
         assert after_nav_login is True  # Should still be logged in
 
     @patch.dict(os.environ, {"OPENAI_API_KEY": "test-key", "CUA_MODEL": "test-model"})
-    @patch("yc_matcher.infrastructure.openai_cua_browser.OpenAI")
-    @patch("yc_matcher.infrastructure.async_loop_runner.AsyncLoopRunner")
+    @patch("yc_matcher.infrastructure.browser.openai_cua.OpenAI")
+    @patch("yc_matcher.infrastructure.browser.async_loop_runner.AsyncLoopRunner")
     @patch("playwright.async_api.async_playwright")
     def test_cua_browser_reuses_single_browser_instance(
         self, mock_playwright: Mock, mock_runner_class: Mock, mock_openai: Mock

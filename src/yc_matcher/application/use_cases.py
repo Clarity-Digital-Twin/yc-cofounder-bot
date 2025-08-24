@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from ..domain.entities import Criteria, Profile
-from ..infrastructure.normalize import hash_profile_text
+from ..infrastructure.utils.normalize import hash_profile_text
 from .ports import (
     BrowserPort,
     DecisionPort,

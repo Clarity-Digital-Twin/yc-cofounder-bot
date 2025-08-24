@@ -9,7 +9,7 @@ import time
 from collections.abc import Callable
 from typing import TypeVar
 
-from ..application.ports import LoggerPort
+from yc_matcher.application.ports import LoggerPort
 
 T = TypeVar("T")
 

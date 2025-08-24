@@ -3,8 +3,8 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from ..application.ports import DecisionPort
-from ..domain.entities import Criteria, Profile
+from yc_matcher.application.ports import DecisionPort
+from yc_matcher.domain.entities import Criteria, Profile
 
 
 def _extract_name(profile_text: str) -> str:

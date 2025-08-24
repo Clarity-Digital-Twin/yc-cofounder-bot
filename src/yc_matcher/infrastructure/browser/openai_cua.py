@@ -18,7 +18,7 @@ from typing import Any
 from openai import OpenAI
 from playwright.async_api import Page
 
-from .. import config
+from yc_matcher import config
 
 
 class OpenAICUABrowser:

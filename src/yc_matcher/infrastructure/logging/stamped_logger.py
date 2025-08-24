@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from ..application.ports import LoggerPort
+from yc_matcher.application.ports import LoggerPort
 
 
 class LoggerWithStamps(LoggerPort):

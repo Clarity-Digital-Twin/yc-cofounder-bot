@@ -9,8 +9,8 @@ import os
 from pathlib import Path
 from typing import Any
 
-from .. import config
-from ..domain.entities import Criteria, Profile
+from yc_matcher import config
+from yc_matcher.domain.entities import Criteria, Profile
 
 
 class PreflightChecker:

@@ -23,7 +23,7 @@ del os.environ["PYTEST_CURRENT_TEST"]
 print("\n2. Normal mode (should be able to launch browser):")
 
 # Reset the global
-import yc_matcher.infrastructure.browser_playwright_async as browser_module
+import yc_matcher.infrastructure.browser.playwright_async as browser_module
 
 browser_module._shared_runner = None
 
