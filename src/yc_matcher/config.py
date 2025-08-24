@@ -69,12 +69,10 @@ def is_shadow_mode() -> bool:
 def is_openai_enabled() -> bool:
     """Whether OpenAI integration is enabled.
 
-    Requires BOTH the flag to be set AND an API key to be present.
+    Requires BOTH the flag to be '1' (strict) AND an API key to be present.
     """
-    return (
-        os.getenv("ENABLE_OPENAI", "0") in {"1", "true", "True"}
-        and bool(get_openai_api_key())
-    )
+    flag = os.getenv("ENABLE_OPENAI", "0") == "1"  # Strict: only '1' counts, not 'true'
+    return flag and bool(get_openai_api_key())
 
 
 def is_cua_enabled() -> bool:

@@ -264,7 +264,8 @@
       "Bash(tree:*)",
       "WebFetch(domain:cookbook.openai.com)",
       "mcp__context7__resolve-library-id",
-      "mcp__context7__get-library-docs"
+      "mcp__context7__get-library-docs",
+      "Bash(PYTHONPATH=src uv run python -c \"\nimport os\nfrom unittest.mock import patch\nfrom yc_matcher import config\n\n# Test with just API key\nwith patch.dict(os.environ, {''OPENAI_API_KEY'': ''sk-test''}):\n    result = config.is_openai_enabled()\n    print(f''With key only: {result}'')\n    print(f''API key from config: {config.get_openai_api_key()}'')\n    print(f''ENABLE_OPENAI from env: {os.getenv(\"\"ENABLE_OPENAI\"\")}'')\")"
     ],
     "deny": [],
     "ask": []
