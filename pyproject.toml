@@ -93,10 +93,6 @@ addopts = """
     --tb=short
     --strict-markers
     -m 'not integration'
-    --cov=src/yc_matcher
-    --cov-report=term-missing:skip-covered
-    --cov-report=html:.coverage_html
-    --cov-branch
     --color=yes
 """
 testpaths = ["tests/unit", "tests/integration", "tests/e2e"]
