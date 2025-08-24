@@ -1,6 +1,8 @@
 """Unit tests for time_utils module."""
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc  # Python 3.10 compatibility
 from unittest.mock import patch
 
 from yc_matcher.infrastructure.utils.time_utils import (
