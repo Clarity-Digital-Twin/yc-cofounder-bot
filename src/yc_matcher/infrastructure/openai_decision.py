@@ -9,6 +9,34 @@ from ..domain.entities import Criteria, Profile
 from .error_recovery import RetryWithBackoff
 
 
+def _validate_decision(d: dict[str, Any]) -> tuple[bool, str | None]:
+    """Validate decision response against schema.
+    
+    Returns:
+        (is_valid, error_reason)
+    """
+    try:
+        keys = ("decision", "rationale", "draft", "score", "confidence")
+        if not all(k in d for k in keys):
+            return False, "missing_keys"
+        if d["decision"] not in ("YES", "NO", "ERROR"):
+            return False, "bad_decision"
+        if not isinstance(d["rationale"], str):
+            return False, "bad_rationale"
+        if not isinstance(d["draft"], str):
+            return False, "bad_draft"
+        if not (isinstance(d["score"], (int, float)) and 0.0 <= d["score"] <= 1.0):
+            return False, "bad_score"
+        if not (isinstance(d["confidence"], (int, float)) and 0.0 <= d["confidence"] <= 1.0):
+            return False, "bad_confidence"
+        # If decision==NO it's OK for draft to be empty; if YES, draft must not be empty
+        if d["decision"] == "YES" and not d["draft"].strip():
+            return False, "empty_draft_for_yes"
+        return True, None
+    except Exception as e:
+        return False, f"validator_exception:{type(e).__name__}"
+
+
 class OpenAIDecisionAdapter(DecisionPort):
     """DecisionPort implementation backed by an OpenAI-like client.
 
@@ -118,7 +146,7 @@ class OpenAIDecisionAdapter(DecisionPort):
                     ],
                     "max_output_tokens": 800,  # Required for Responses API
                 }
-                
+
                 # Try with response_format first (per contract section 6)
                 try:
                     params["response_format"] = {
@@ -141,9 +169,9 @@ class OpenAIDecisionAdapter(DecisionPort):
                         },
                     }
                     params["temperature"] = 0.3  # Optional per contract section 7
-                    
+
                     r = self.client.responses.create(**params)
-                    
+
                 except Exception as e:
                     # Contract section 21: if 400 error, retry without optional params
                     error_str = str(e)
@@ -153,14 +181,16 @@ class OpenAIDecisionAdapter(DecisionPort):
                             "error": error_str,
                             "model": self.model,
                         })
-                    
+
                     # Remove ALL optional params on any error
                     params.pop("response_format", None)
                     params.pop("temperature", None)  # Always remove temperature on error
-                    
+
                     # Add prompt instruction for JSON
-                    params["input"][1]["content"] += "\n\nIMPORTANT: Return your response as valid JSON with these exact keys: decision, rationale, draft, score, confidence"
-                    
+                    input_list = params["input"]
+                    if isinstance(input_list, list) and len(input_list) > 1:
+                        input_list[1]["content"] += "\n\nIMPORTANT: Return your response as valid JSON with these exact keys: decision, rationale, draft, score, confidence"
+
                     try:
                         r = self.client.responses.create(**params)
                     except Exception as e2:
@@ -302,17 +332,30 @@ class OpenAIDecisionAdapter(DecisionPort):
                 )
             payload = json.loads(content)
 
-            # Ensure required fields
-            if "decision" not in payload:
-                payload["decision"] = "NO"
-            if "rationale" not in payload:
-                payload["rationale"] = "No rationale provided"
-            if "draft" not in payload:
-                payload["draft"] = ""
-            if "score" not in payload:
-                payload["score"] = 0.5
-            if "confidence" not in payload:
-                payload["confidence"] = 0.5
+            # Validate against schema
+            ok, err = _validate_decision(payload)
+            payload["decision_json_ok"] = ok
+
+            if not ok:
+                if self.logger:
+                    self.logger.emit({
+                        "event": "gpt5_parse_failure",
+                        "reason": err,
+                        "output_text_len": len(content or ""),
+                        "model": self.model
+                    })
+                # Return ERROR decision for invalid JSON
+                payload = {
+                    "decision": "ERROR",
+                    "rationale": f"Invalid model JSON: {err}",
+                    "draft": "",
+                    "score": 0.0,
+                    "confidence": 0.0,
+                    "decision_json_ok": False
+                }
+            else:
+                # Ensure all fields are present (validation passed)
+                payload["decision_json_ok"] = True
 
         except Exception as e:
             # Log detailed error for debugging
