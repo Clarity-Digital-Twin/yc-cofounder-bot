@@ -13,13 +13,13 @@ from datetime import datetime
 from pathlib import Path
 
 # Load .env file properly (handles special characters like $ in password)
-env_file = Path('.env')
+env_file = Path(".env")
 if env_file.exists():
     with open(env_file) as f:
         for line in f:
             line = line.strip()
-            if line and not line.startswith('#') and '=' in line:
-                key, value = line.split('=', 1)
+            if line and not line.startswith("#") and "=" in line:
+                key, value = line.split("=", 1)
                 # Don't override if already set (e.g., from command line)
                 if key not in os.environ:
                     os.environ[key] = value
@@ -34,13 +34,14 @@ os.environ["SHADOW_MODE"] = "0"  # Actually try to send!
 os.environ["ENABLE_CUA"] = "0"  # Use Playwright
 
 # Add src to path
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
+
 
 def main():
     """Run the full send pipeline with observability."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("SEND PIPELINE DEBUG TEST")
-    print("="*60)
+    print("=" * 60)
 
     # Setup observability
     from pathlib import Path
@@ -52,6 +53,7 @@ def main():
     from yc_matcher.infrastructure.send_pipeline_observer import SendPipelineObserver
     from yc_matcher.infrastructure.sqlite_quota import SQLiteDailyWeeklyQuota
     from yc_matcher.infrastructure.stop_flag import FileStopFlag
+
     log_path = Path(".runs/debug_pipeline.jsonl")
     log_path.parent.mkdir(parents=True, exist_ok=True)
     logger = JSONLLogger(log_path)
@@ -113,7 +115,7 @@ def main():
         print("❌ Could not click View Profile")
 
         # Get current URL for debugging
-        if hasattr(base_browser, '_runner') and base_browser._runner:
+        if hasattr(base_browser, "_runner") and base_browser._runner:
             try:
                 page = base_browser._ensure_page()
                 if page:
@@ -150,7 +152,7 @@ def main():
         auto_send=True,
         output_types=["message"],
         latency_ms=100,
-        decision_json_ok=True
+        decision_json_ok=True,
     )
     print("✅ Decision: YES (forced)")
     print("✅ Auto-send: True")
@@ -169,7 +171,7 @@ def main():
         seen_ok=True,
         mode="debug",
         auto_send=True,
-        remaining_quota=99
+        remaining_quota=99,
     )
 
     print(f"   Stop flag: {'SET ❌' if stop_is_set else 'clear ✅'}")
@@ -183,18 +185,13 @@ def main():
     test_message = f"""Hi! I noticed your technical background and startup experience.
 I'm building an AI platform and looking for a technical co-founder.
 Would love to connect and discuss potential collaboration!
-[DEBUG TEST {datetime.now().strftime('%H:%M:%S')}]"""
+[DEBUG TEST {datetime.now().strftime("%H:%M:%S")}]"""
 
     print("\n8. Testing send pipeline...")
     print(f"   Message: {test_message[:50]}...")
 
     # Using SendMessage use case (the real flow)
-    SendMessage(
-        browser=base_browser,
-        logger=logger,
-        stop=stop_flag,
-        quota=quota
-    )
+    SendMessage(browser=base_browser, logger=logger, stop=stop_flag, quota=quota)
 
     print("\n   === SEND PIPELINE STEPS ===")
 
@@ -250,8 +247,9 @@ Would love to connect and discuss potential collaboration!
     input()
 
     # Cleanup
-    if hasattr(base_browser, 'cleanup'):
+    if hasattr(base_browser, "cleanup"):
         base_browser.cleanup()
+
 
 def analyze_events(log_path, run_id):
     """Analyze the 10-event pipeline."""
@@ -282,7 +280,7 @@ def analyze_events(log_path, run_id):
         "click_send_result",
         "verify_sent_attempt",
         "verify_sent_result",
-        "sent"
+        "sent",
     ]
 
     print("\n10-EVENT PIPELINE STATUS:")
@@ -310,12 +308,13 @@ def analyze_events(log_path, run_id):
     for i, expected in enumerate(pipeline):
         matching = [e for e in events if e.get("event") == expected]
         if not matching or (matching and matching[0].get("ok") is False):
-            print(f"  Pipeline failed at step {i+1}: {expected}")
+            print(f"  Pipeline failed at step {i + 1}: {expected}")
             if i > 0:
-                print(f"  Last successful step: {pipeline[i-1]}")
+                print(f"  Last successful step: {pipeline[i - 1]}")
             break
     else:
         print("  All steps completed successfully!")
+
 
 if __name__ == "__main__":
     main()

@@ -12,19 +12,21 @@ from datetime import datetime
 from pathlib import Path
 
 # Add src to path
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
 
 # Configure environment
 os.environ["PACE_MIN_SECONDS"] = "0"
 os.environ["SHADOW_MODE"] = "0"  # Ensure we actually try to send
 
+
 def test_pure_playwright_send():
     """Test ONLY the send pipeline with forced YES decision - no NLP."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("PURE PLAYWRIGHT SEND TEST (No NLP)")
-    print("="*60)
+    print("=" * 60)
 
     import os
+
     # Set browser path
     os.environ["PLAYWRIGHT_BROWSERS_PATH"] = ".ms-playwright"
 
@@ -74,7 +76,7 @@ def test_pure_playwright_send():
         auto_send=True,
         output_types=["message"],
         latency_ms=100,
-        decision_json_ok=True
+        decision_json_ok=True,
     )
 
     # Check gates
@@ -97,7 +99,7 @@ def test_pure_playwright_send():
         seen_ok=seen_ok,
         mode="test",
         auto_send=True,
-        remaining_quota=quota.remaining() if hasattr(quota, 'remaining') else 99
+        remaining_quota=quota.remaining() if hasattr(quota, "remaining") else 99,
     )
 
     print(f"   Stop flag: {'❌ SET' if stop_is_set else '✅ clear'}")
@@ -145,11 +147,12 @@ def test_pure_playwright_send():
     input()
     browser.close()
 
+
 def test_with_real_decision():
     """Test with actual AI decision."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("FULL PIPELINE TEST (With AI Decision)")
-    print("="*60)
+    print("=" * 60)
 
     from yc_matcher.domain.entities import Criteria, Profile
     from yc_matcher.infrastructure.browser_observable import ObservableBrowser
@@ -169,10 +172,12 @@ def test_with_real_decision():
     # Choose browser
     if os.getenv("ENABLE_CUA") == "1":
         from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
+
         base_browser = OpenAICUABrowser()
         print("Using CUA Browser")
     else:
         from yc_matcher.infrastructure.browser_playwright_async import PlaywrightBrowserAsync
+
         base_browser = PlaywrightBrowserAsync()
         print("Using Playwright Browser")
 
@@ -203,11 +208,13 @@ def test_with_real_decision():
     print("\n4. Getting AI decision...")
 
     from openai import OpenAI
+
     client = OpenAI()
     decision_adapter = OpenAIDecisionAdapter(client, logger=logger)
 
     profile = Profile(raw_text=profile_text)
-    criteria = Criteria(text="""
+    criteria = Criteria(
+        text="""
     Looking for technical co-founders with:
     - Strong engineering background
     - Startup experience
@@ -217,11 +224,11 @@ def test_with_real_decision():
     Hi! I noticed your profile and your experience with [specific thing from profile].
     I'm working on [my startup] and looking for a technical co-founder.
     Would love to connect and discuss potential collaboration!
-    """)
+    """
+    )
 
     observer.decision_request(
-        model=os.getenv("OPENAI_DECISION_MODEL", "gpt-4"),
-        input_text=profile_text + criteria.text
+        model=os.getenv("OPENAI_DECISION_MODEL", "gpt-4"), input_text=profile_text + criteria.text
     )
 
     start_time = time.time()
@@ -238,7 +245,7 @@ def test_with_real_decision():
         auto_send=evaluation.get("auto_send", False),
         output_types=output_types,
         latency_ms=latency_ms,
-        decision_json_ok=evaluation.get("decision") in ["YES", "NO"]
+        decision_json_ok=evaluation.get("decision") in ["YES", "NO"],
     )
 
     print(f"   Decision: {evaluation.get('decision')}")
@@ -265,6 +272,7 @@ def test_with_real_decision():
     # ... (rest of send logic)
 
     browser.close()
+
 
 def analyze_pipeline_log():
     """Analyze the pipeline log to find issues."""
@@ -300,7 +308,7 @@ def analyze_pipeline_log():
         "fill_message_result",
         "click_send_result",
         "verify_sent_attempt",
-        "verify_sent_result"
+        "verify_sent_result",
     ]
 
     actual_order = [e["event"] for e in run_events if e["event"] in expected_order]
@@ -311,7 +319,7 @@ def analyze_pipeline_log():
     # Find where it stopped
     for i, expected in enumerate(expected_order):
         if i >= len(actual_order):
-            print(f"\n   ⚠️  Pipeline stopped at: {expected_order[i-1] if i > 0 else 'START'}")
+            print(f"\n   ⚠️  Pipeline stopped at: {expected_order[i - 1] if i > 0 else 'START'}")
             print(f"   Missing: {expected}")
             break
         elif actual_order[i] != expected:
@@ -326,6 +334,7 @@ def analyze_pipeline_log():
                 print(f"      Error: {event['error']}")
             if event.get("selector_used"):
                 print(f"      Selector: {event['selector_used']}")
+
 
 def main():
     print("Professional Send Pipeline Test")
@@ -343,6 +352,7 @@ def main():
         analyze_pipeline_log()
     else:
         test_pure_playwright_send()
+
 
 if __name__ == "__main__":
     main()

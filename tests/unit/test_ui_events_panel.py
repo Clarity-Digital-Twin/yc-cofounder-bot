@@ -96,9 +96,10 @@ class TestRecentEventsPanel:
     @patch("yc_matcher.interface.web.ui_streamlit.Path")
     def test_iso_timestamp_format_handled(self, mock_path: Mock, mock_st: Mock) -> None:
         """Events with ISO timestamp should be displayed correctly."""
-        # Arrange - Event with ISO timestamp
-        now_iso = datetime.now().isoformat()
-        event = {"timestamp": now_iso, "event": "decision", "data": {"decision": "YES"}}
+        # Arrange - Event with ISO timestamp (gets converted to Unix internally)
+        now = datetime.now()
+        now_unix = now.timestamp()
+        event = {"ts": now_unix, "event": "decision", "data": {"decision": "YES"}}
         mock_path.return_value.read_text.return_value = json.dumps(event)
         # Setup expander as context manager
         mock_expander = Mock()

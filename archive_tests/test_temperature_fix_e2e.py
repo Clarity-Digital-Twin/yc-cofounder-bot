@@ -12,16 +12,16 @@ from datetime import datetime
 from pathlib import Path
 
 # Load .env file properly (handles special characters and comments)
-env_file = Path('.env')
+env_file = Path(".env")
 if env_file.exists():
     with open(env_file) as f:
         for line in f:
             line = line.strip()
-            if line and not line.startswith('#') and '=' in line:
-                key, value = line.split('=', 1)
+            if line and not line.startswith("#") and "=" in line:
+                key, value = line.split("=", 1)
                 # Strip comments from value
-                if '#' in value:
-                    value = value.split('#')[0].strip()
+                if "#" in value:
+                    value = value.split("#")[0].strip()
                 else:
                     value = value.strip()
                 # Remove quotes if present
@@ -38,13 +38,14 @@ os.environ["SHADOW_MODE"] = "1"  # Don't actually send (safety for testing)
 os.environ["ENABLE_CUA"] = "0"  # Use Playwright for predictability
 
 # Add src to path
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
+
 
 def test_openai_decision_only():
     """Test JUST the OpenAI decision making with temperature=0.3"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TESTING OPENAI DECISION WITH TEMPERATURE=0.3")
-    print("="*60)
+    print("=" * 60)
 
     from openai import OpenAI
 
@@ -146,23 +147,29 @@ def test_openai_decision_only():
         print(f"   Rationale: {evaluation.get('rationale')}")
         print(f"   Latency: {latency_ms}ms")
 
-        if evaluation.get('draft'):
+        if evaluation.get("draft"):
             print("\n📝 Generated Message:")
             print(f"   Length: {len(evaluation['draft'])} chars")
             print(f"   Preview: {evaluation['draft'][:200]}...")
 
             # Check if message is personalized
-            if "Sarah" in evaluation['draft'] or "sales" in evaluation['draft'].lower():
+            if "Sarah" in evaluation["draft"] or "sales" in evaluation["draft"].lower():
                 print("   ✅ Message is personalized!")
             else:
                 print("   ⚠️  Message might be generic")
 
         # Verify JSON was parsed correctly
-        if all(key in evaluation for key in ['decision', 'rationale', 'score', 'confidence']):
+        if all(key in evaluation for key in ["decision", "rationale", "score", "confidence"]):
             print("\n✅ JSON structure complete")
         else:
-            print("\n⚠️  Missing fields:", [k for k in ['decision', 'rationale', 'score', 'confidence']
-                                          if k not in evaluation])
+            print(
+                "\n⚠️  Missing fields:",
+                [
+                    k
+                    for k in ["decision", "rationale", "score", "confidence"]
+                    if k not in evaluation
+                ],
+            )
 
         return evaluation
 
@@ -178,11 +185,12 @@ def test_openai_decision_only():
 
         return None
 
+
 def test_full_pipeline():
     """Test the COMPLETE pipeline with real browser automation"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TESTING COMPLETE PIPELINE WITH BROWSER")
-    print("="*60)
+    print("=" * 60)
 
     from yc_matcher.domain.entities import Criteria, Profile
     from yc_matcher.infrastructure.browser_observable import ObservableBrowser
@@ -269,7 +277,7 @@ def test_full_pipeline():
 
     # Test message filling
     print("\n6️⃣  TESTING MESSAGE FILL...")
-    message = evaluation.get('draft') or f"Test message at {datetime.now()}"
+    message = evaluation.get("draft") or f"Test message at {datetime.now()}"
 
     try:
         browser.focus_message_box()
@@ -302,26 +310,27 @@ def test_full_pipeline():
     print("\n✅ PIPELINE TEST COMPLETE!")
 
     # Cleanup
-    if hasattr(base_browser, 'cleanup'):
+    if hasattr(base_browser, "cleanup"):
         base_browser.cleanup()
 
     return evaluation
 
+
 def main():
     """Run all tests"""
-    print("\n" + "🚀"*30)
+    print("\n" + "🚀" * 30)
     print("TEMPERATURE FIX COMPREHENSIVE TEST")
     print("Testing our temperature=0.3 fix for GPT-5/GPT-4")
-    print("🚀"*30)
+    print("🚀" * 30)
 
     # Test 1: OpenAI decision only
     print("\n\n[TEST 1] OpenAI Decision with Temperature=0.3")
-    print("-"*60)
+    print("-" * 60)
     decision_result = test_openai_decision_only()
 
     if decision_result:
         print("\n✅ OpenAI decision test PASSED!")
-        if decision_result.get('decision') == 'YES' and decision_result.get('score', 0) > 0.7:
+        if decision_result.get("decision") == "YES" and decision_result.get("score", 0) > 0.7:
             print("   Perfect! Got YES with high score as expected.")
     else:
         print("\n❌ OpenAI decision test FAILED!")
@@ -330,10 +339,10 @@ def main():
 
     # Test 2: Full pipeline
     print("\n\n[TEST 2] Full Pipeline with Browser")
-    print("-"*60)
+    print("-" * 60)
 
     print("\nDo you want to test the full browser pipeline? (y/n)")
-    if input().lower() == 'y':
+    if input().lower() == "y":
         pipeline_result = test_full_pipeline()
         if pipeline_result:
             print("\n✅ Full pipeline test PASSED!")
@@ -343,9 +352,9 @@ def main():
         print("Skipping browser test")
 
     # Summary
-    print("\n\n" + "="*60)
+    print("\n\n" + "=" * 60)
     print("TEST SUMMARY")
-    print("="*60)
+    print("=" * 60)
 
     print("\n✅ Temperature Configuration:")
     print("   - GPT-5 Responses API: temperature=0.3 ✓")
@@ -361,6 +370,7 @@ def main():
     print("   4. Complete pipeline is functional")
 
     print("\n🎉 THE BOT IS WORKING PERFECTLY!")
+
 
 if __name__ == "__main__":
     main()

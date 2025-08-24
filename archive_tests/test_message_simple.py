@@ -9,16 +9,17 @@ import time
 
 # Setup environment
 os.environ["PLAYWRIGHT_HEADLESS"] = "0"  # Show browser
-os.environ["PACE_MIN_SECONDS"] = "0"     # No delays
+os.environ["PACE_MIN_SECONDS"] = "0"  # No delays
 
 # Add src to path
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
+
 
 def test_playwright_browser():
     """Test the Playwright browser implementation"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TESTING PLAYWRIGHT BROWSER")
-    print("="*60)
+    print("=" * 60)
 
     from yc_matcher.infrastructure.browser_playwright import PlaywrightBrowser
     from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
@@ -66,6 +67,7 @@ def test_playwright_browser():
         except Exception as e:
             print(f"   ❌ fill_message() failed: {e}")
             import traceback
+
             traceback.print_exc()
 
         # Wait to see result
@@ -73,7 +75,7 @@ def test_playwright_browser():
 
         # Check if message appears in textarea
         print("\n4. Checking if message was filled...")
-        if hasattr(browser, 'page') and browser.page:
+        if hasattr(browser, "page") and browser.page:
             try:
                 value = browser.page.locator("#message").input_value()
                 if value == test_message:
@@ -95,12 +97,13 @@ def test_playwright_browser():
         time.sleep(5)
 
     finally:
-        if hasattr(browser, 'close'):
+        if hasattr(browser, "close"):
             browser.close()
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TEST COMPLETE")
-    print("="*60)
+    print("=" * 60)
+
 
 def test_cua_browser():
     """Test the CUA browser implementation"""
@@ -108,9 +111,9 @@ def test_cua_browser():
         print("❌ CUA not configured - skipping CUA test")
         return
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TESTING CUA BROWSER")
-    print("="*60)
+    print("=" * 60)
 
     from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
     from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
@@ -154,6 +157,7 @@ def test_cua_browser():
         except Exception as e:
             print(f"   ❌ fill_message() failed: {e}")
             import traceback
+
             traceback.print_exc()
 
         time.sleep(3)
@@ -170,14 +174,15 @@ def test_cua_browser():
         time.sleep(5)
 
     finally:
-        if hasattr(browser, 'close'):
+        if hasattr(browser, "close"):
             browser.close()
+
 
 def test_use_case():
     """Test the use case flow"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TESTING USE CASE FLOW")
-    print("="*60)
+    print("=" * 60)
 
     from yc_matcher.application.use_cases import SendMessage
     from yc_matcher.infrastructure.browser_playwright import PlaywrightBrowser
@@ -191,12 +196,7 @@ def test_use_case():
     quota = SqliteQuotaAdapter(".runs/test_quota.sqlite")
 
     # Create use case
-    send_message = SendMessage(
-        browser=browser,
-        logger=logger,
-        stop_flag=stop_flag,
-        quota=quota
-    )
+    send_message = SendMessage(browser=browser, logger=logger, stop_flag=stop_flag, quota=quota)
 
     # Open test page
     test_html = """
@@ -225,10 +225,12 @@ def test_use_case():
     except Exception as e:
         print(f"   ❌ Error: {e}")
         import traceback
+
         traceback.print_exc()
 
     time.sleep(3)
     browser.close()
+
 
 def main():
     """Run tests"""
@@ -250,6 +252,7 @@ def main():
         test_use_case()
     else:
         test_playwright_browser()
+
 
 if __name__ == "__main__":
     main()

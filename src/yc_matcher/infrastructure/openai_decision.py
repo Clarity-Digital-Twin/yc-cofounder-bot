@@ -166,7 +166,13 @@ class OpenAIDecisionAdapter(DecisionPort):
                                     "score": {"type": "number", "minimum": 0, "maximum": 1},
                                     "confidence": {"type": "number", "minimum": 0, "maximum": 1},
                                 },
-                                "required": ["decision", "rationale", "draft", "score", "confidence"],
+                                "required": [
+                                    "decision",
+                                    "rationale",
+                                    "draft",
+                                    "score",
+                                    "confidence",
+                                ],
                                 "additionalProperties": False,
                             },
                         },
@@ -179,11 +185,13 @@ class OpenAIDecisionAdapter(DecisionPort):
                     # Contract section 21: if 400 error, retry without optional params
                     error_str = str(e)
                     if self.logger:
-                        self.logger.emit({
-                            "event": "response_format_fallback",
-                            "error": error_str,
-                            "model": self.model,
-                        })
+                        self.logger.emit(
+                            {
+                                "event": "response_format_fallback",
+                                "error": error_str,
+                                "model": self.model,
+                            }
+                        )
 
                     # Remove ALL optional params on any error
                     params.pop("response_format", None)
@@ -193,19 +201,23 @@ class OpenAIDecisionAdapter(DecisionPort):
                     # Add prompt instruction for JSON
                     input_list = params["input"]
                     if isinstance(input_list, list) and len(input_list) > 1:
-                        input_list[1]["content"] += "\n\nIMPORTANT: Return your response as valid JSON with these exact keys: decision, rationale, draft, score, confidence"
+                        input_list[1]["content"] += (
+                            "\n\nIMPORTANT: Return your response as valid JSON with these exact keys: decision, rationale, draft, score, confidence"
+                        )
 
                     try:
                         r = self.client.responses.create(**params)
                     except Exception as e2:
                         # If still failing, log what params we tried
                         if self.logger:
-                            self.logger.emit({
-                                "event": "gpt5_final_fallback",
-                                "error": str(e2),
-                                "params_used": list(params.keys()),
-                                "model": self.model,
-                            })
+                            self.logger.emit(
+                                {
+                                    "event": "gpt5_final_fallback",
+                                    "error": str(e2),
+                                    "params_used": list(params.keys()),
+                                    "model": self.model,
+                                }
+                            )
                         raise e2
                 # Extract content from Responses API format
                 # GPT-5 returns output array: [reasoning_item, message_item]
@@ -288,12 +300,15 @@ class OpenAIDecisionAdapter(DecisionPort):
                     reasoning_rescue_attempted = False
                     if hasattr(r, "output") and r.output:
                         for item in r.output:
-                            if getattr(item, "type", None) == "reasoning" and hasattr(item, "content"):
+                            if getattr(item, "type", None) == "reasoning" and hasattr(
+                                item, "content"
+                            ):
                                 reasoning_rescue_attempted = True
                                 reasoning_text = str(item.content)
 
                                 # Look for JSON in reasoning
                                 import re
+
                                 # Match JSON with our expected keys
                                 json_pattern = r'\{[^{}]*"decision"[^{}]*"rationale"[^{}]*\}'
                                 matches = re.finditer(json_pattern, reasoning_text, re.DOTALL)
@@ -307,20 +322,24 @@ class OpenAIDecisionAdapter(DecisionPort):
                                         if all(k in parsed for k in ["decision", "rationale"]):
                                             c = json.dumps(parsed)
                                             if self.logger:
-                                                self.logger.emit({
-                                                    "event": "gpt5_reasoning_rescue",
-                                                    "success": True,
-                                                    "json_keys": list(parsed.keys()),
-                                                    "reasoning_len": len(reasoning_text)
-                                                })
+                                                self.logger.emit(
+                                                    {
+                                                        "event": "gpt5_reasoning_rescue",
+                                                        "success": True,
+                                                        "json_keys": list(parsed.keys()),
+                                                        "reasoning_len": len(reasoning_text),
+                                                    }
+                                                )
                                             break
                                     except (json.JSONDecodeError, Exception) as e:
                                         if self.logger:
-                                            self.logger.emit({
-                                                "event": "gpt5_reasoning_rescue_attempt",
-                                                "success": False,
-                                                "error": str(e)[:100]
-                                            })
+                                            self.logger.emit(
+                                                {
+                                                    "event": "gpt5_reasoning_rescue_attempt",
+                                                    "success": False,
+                                                    "error": str(e)[:100],
+                                                }
+                                            )
                                         continue
 
                                 if c:  # Found valid JSON in reasoning
@@ -333,7 +352,9 @@ class OpenAIDecisionAdapter(DecisionPort):
                             "event": "gpt5_parse_failure",
                             "has_output": hasattr(r, "output"),
                             "has_output_text": hasattr(r, "output_text"),
-                            "output_items": len(r.output) if hasattr(r, "output") and r.output else 0,
+                            "output_items": len(r.output)
+                            if hasattr(r, "output") and r.output
+                            else 0,
                             "output_types": [getattr(item, "type", "unknown") for item in r.output]
                             if hasattr(r, "output") and r.output
                             else [],
@@ -387,12 +408,14 @@ class OpenAIDecisionAdapter(DecisionPort):
 
             if not ok:
                 if self.logger:
-                    self.logger.emit({
-                        "event": "gpt5_parse_failure",
-                        "reason": err,
-                        "output_text_len": len(content or ""),
-                        "model": self.model
-                    })
+                    self.logger.emit(
+                        {
+                            "event": "gpt5_parse_failure",
+                            "reason": err,
+                            "output_text_len": len(content or ""),
+                            "model": self.model,
+                        }
+                    )
                 # Return ERROR decision for invalid JSON
                 payload = {
                     "decision": "ERROR",
@@ -400,7 +423,7 @@ class OpenAIDecisionAdapter(DecisionPort):
                     "draft": "",
                     "score": 0.0,
                     "confidence": 0.0,
-                    "decision_json_ok": False
+                    "decision_json_ok": False,
                 }
             else:
                 # Ensure all fields are present (validation passed)

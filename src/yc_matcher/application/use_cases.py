@@ -44,13 +44,15 @@ class SendMessage:
         quota_ok = self.quota.check_and_increment(limit) if not stop_is_set else False
 
         # Emit comprehensive gate event
-        self.logger.emit({
-            "event": "send_gate",
-            "stop": stop_is_set,
-            "quota_ok": quota_ok,
-            "draft_len": len(draft),
-            "limit": limit
-        })
+        self.logger.emit(
+            {
+                "event": "send_gate",
+                "stop": stop_is_set,
+                "quota_ok": quota_ok,
+                "draft_len": len(draft),
+                "limit": limit,
+            }
+        )
 
         # Check stop flag at the very beginning
         if stop_is_set:

@@ -12,7 +12,7 @@ from datetime import datetime
 from pathlib import Path
 
 # Add src to path
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
 
 # Configure environment
 os.environ["PACE_MIN_SECONDS"] = "0"
@@ -20,11 +20,12 @@ os.environ["SHADOW_MODE"] = "0"
 os.environ["PLAYWRIGHT_BROWSERS_PATH"] = ".ms-playwright"
 os.environ["PLAYWRIGHT_HEADLESS"] = "0"  # Show browser for debugging
 
+
 def test_full_auto_flow():
     """Test the complete flow automatically."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("AUTOMATED SEND FLOW TEST")
-    print("="*60)
+    print("=" * 60)
 
     from yc_matcher.application.use_cases import SendMessage
     from yc_matcher.infrastructure.browser_observable import ObservableBrowser
@@ -103,7 +104,7 @@ def test_full_auto_flow():
         auto_send=True,
         output_types=["message"],
         latency_ms=100,
-        decision_json_ok=True
+        decision_json_ok=True,
     )
     print("   ✅ Decision: YES (forced for testing)")
     print("   ✅ Auto-send: True")
@@ -122,7 +123,7 @@ def test_full_auto_flow():
         seen_ok=True,  # Assume not seen
         mode="test",
         auto_send=True,
-        remaining_quota=99
+        remaining_quota=99,
     )
 
     print(f"   Stop flag: {'❌ SET' if stop_is_set else '✅ clear'}")
@@ -136,18 +137,13 @@ def test_full_auto_flow():
     test_message = f"""Hi! I noticed your profile and I'm really interested in your background.
 I have experience in similar technologies and would love to connect to discuss potential collaboration.
 Looking forward to hearing from you!
-TEST MESSAGE {datetime.now().strftime('%H:%M:%S')}"""
+TEST MESSAGE {datetime.now().strftime("%H:%M:%S")}"""
 
     print("\n6. Testing send pipeline...")
     print(f"   Message preview: {test_message[:50]}...")
 
     # Create SendMessage use case
-    SendMessage(
-        browser=base_browser,
-        logger=logger,
-        stop=stop_flag,
-        quota=quota
-    )
+    SendMessage(browser=base_browser, logger=logger, stop=stop_flag, quota=quota)
 
     try:
         # Focus
@@ -178,6 +174,7 @@ TEST MESSAGE {datetime.now().strftime('%H:%M:%S')}"""
     except Exception as e:
         print(f"\n   ❌ Error during send: {e}")
         import traceback
+
         traceback.print_exc()
 
     # 7. Analyze the pipeline
@@ -187,6 +184,7 @@ TEST MESSAGE {datetime.now().strftime('%H:%M:%S')}"""
     print("\n8. Browser will close in 5 seconds...")
     time.sleep(5)
     browser.close()
+
 
 def analyze_pipeline_log(log_path: str):
     """Analyze the pipeline log to find issues."""
@@ -232,7 +230,7 @@ def analyze_pipeline_log(log_path: str):
         "click_send_result": "❌",
         "verify_sent_attempt": "❌",
         "verify_sent_result": "❌",
-        "sent": "❌"
+        "sent": "❌",
     }
 
     for event in run_events:
@@ -243,7 +241,14 @@ def analyze_pipeline_log(log_path: str):
                 stages[event_type] = "❌ FAILED"
             elif event.get("ok") is True:
                 stages[event_type] = "✅"
-            elif event_type in ["profile_extracted", "decision_request", "decision_response", "send_gate", "verify_sent_attempt", "sent"]:
+            elif event_type in [
+                "profile_extracted",
+                "decision_request",
+                "decision_response",
+                "send_gate",
+                "verify_sent_attempt",
+                "sent",
+            ]:
                 stages[event_type] = "✅"
 
     print("\n   Pipeline Status:")
@@ -262,6 +267,7 @@ def analyze_pipeline_log(log_path: str):
             print(f"   - {fail.get('event')}: {fail.get('error', 'No error message')}")
             if fail.get("selector_used"):
                 print(f"     Selector: {fail.get('selector_used')}")
+
 
 if __name__ == "__main__":
     test_full_auto_flow()

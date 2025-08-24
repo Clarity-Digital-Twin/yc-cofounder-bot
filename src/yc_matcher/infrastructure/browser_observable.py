@@ -13,8 +13,8 @@ class ObservableBrowser:
     def __init__(self, browser: Any, observer: SendPipelineObserver):
         self.browser = browser
         self.observer = observer
-        self._last_selector = None
-        self._last_button = None
+        self._last_selector: str | None = None
+        self._last_button: str | None = None
 
     def open(self, url: str) -> bool:
         """Delegate to browser."""
@@ -27,14 +27,14 @@ class ObservableBrowser:
 
     def click_view_profile(self) -> bool:
         """Delegate to browser."""
-        return self.browser.click_view_profile()
+        return self.browser.click_view_profile()  # type: ignore[no-any-return]
 
     def read_profile_text(self) -> str:
         """Read and observe profile extraction."""
         text = self.browser.read_profile_text()
         if text:
             self.observer.profile_extracted(text)
-        return text
+        return text  # type: ignore[no-any-return]
 
     def focus_message_box(self) -> None:
         """Focus with observability."""
@@ -44,11 +44,11 @@ class ObservableBrowser:
             "textarea",
             "[contenteditable='true']",
             "div[contenteditable='true']",
-            "input[type='text'][placeholder*='message' i]"
+            "input[type='text'][placeholder*='message' i]",
         ]
 
         # Try with page directly if available
-        if hasattr(self.browser, 'page') and self.browser.page:
+        if hasattr(self.browser, "page") and self.browser.page:
             page = self.browser.page
             for selector in selectors:
                 try:
@@ -56,39 +56,33 @@ class ObservableBrowser:
                     if elem.count() > 0:
                         elem.click()
                         self._last_selector = selector
-                        self.observer.focus_message_box_result(
-                            ok=True,
-                            selector_used=selector
-                        )
+                        self.observer.focus_message_box_result(ok=True, selector_used=selector)
                         return
                 except Exception:
                     continue
 
             # All failed
-            self.observer.focus_message_box_result(
-                ok=False,
-                error="No selector matched"
-            )
+            self.observer.focus_message_box_result(ok=False, error="No selector matched")
         else:
             # Fallback to browser's implementation
             try:
                 self.browser.focus_message_box()
                 self.observer.focus_message_box_result(ok=True)
             except Exception as e:
-                self.observer.focus_message_box_result(
-                    ok=False,
-                    error=str(e)
-                )
+                self.observer.focus_message_box_result(ok=False, error=str(e))
 
     def fill_message(self, text: str) -> None:
         """Fill with observability."""
         try:
             # If we have page and last selector, try that first
-            if hasattr(self.browser, 'page') and self.browser.page and self._last_selector:
+            if hasattr(self.browser, "page") and self.browser.page and self._last_selector:
                 page = self.browser.page
                 elem = page.locator(self._last_selector).first
 
-                if "contenteditable" in self._last_selector or "role='textbox'" in self._last_selector:
+                if (
+                    "contenteditable" in self._last_selector
+                    or "role='textbox'" in self._last_selector
+                ):
                     # Clear and type for contenteditable
                     page.keyboard.press("Control+a")
                     page.keyboard.type(text)
@@ -96,36 +90,21 @@ class ObservableBrowser:
                     elem.fill(text)
 
                 self.observer.fill_message_result(
-                    ok=True,
-                    chars=len(text),
-                    selector_used=self._last_selector
+                    ok=True, chars=len(text), selector_used=self._last_selector
                 )
             else:
                 # Use browser's implementation
                 self.browser.fill_message(text)
-                self.observer.fill_message_result(
-                    ok=True,
-                    chars=len(text)
-                )
+                self.observer.fill_message_result(ok=True, chars=len(text))
         except Exception as e:
-            self.observer.fill_message_result(
-                ok=False,
-                chars=len(text),
-                error=str(e)
-            )
+            self.observer.fill_message_result(ok=False, chars=len(text), error=str(e))
             raise
 
     def send(self) -> None:
         """Send with observability."""
-        button_labels = [
-            "Invite to connect",
-            "Send invitation",
-            "Connect",
-            "Send",
-            "Submit"
-        ]
+        button_labels = ["Invite to connect", "Send invitation", "Connect", "Send", "Submit"]
 
-        if hasattr(self.browser, 'page') and self.browser.page:
+        if hasattr(self.browser, "page") and self.browser.page:
             page = self.browser.page
             for label in button_labels:
                 try:
@@ -134,10 +113,7 @@ class ObservableBrowser:
                     if btn.count() > 0:
                         btn.first.click()
                         self._last_button = label
-                        self.observer.click_send_result(
-                            ok=True,
-                            button_variant=label
-                        )
+                        self.observer.click_send_result(ok=True, button_variant=label)
                         return
 
                     # Try partial match
@@ -146,28 +122,21 @@ class ObservableBrowser:
                         btn.first.click()
                         self._last_button = label
                         self.observer.click_send_result(
-                            ok=True,
-                            button_variant=f"{label} (partial)"
+                            ok=True, button_variant=f"{label} (partial)"
                         )
                         return
                 except Exception:
                     continue
 
             # No button found
-            self.observer.click_send_result(
-                ok=False,
-                error="No send button found"
-            )
+            self.observer.click_send_result(ok=False, error="No send button found")
         else:
             # Fallback
             try:
                 self.browser.send()
                 self.observer.click_send_result(ok=True)
             except Exception as e:
-                self.observer.click_send_result(
-                    ok=False,
-                    error=str(e)
-                )
+                self.observer.click_send_result(ok=False, error=str(e))
                 raise
 
     def verify_sent(self) -> bool:
@@ -177,12 +146,12 @@ class ObservableBrowser:
             "text=/invitation sent/i",
             ".toast-success",
             "[role='alert']",
-            "textarea:empty"
+            "textarea:empty",
         ]
 
         self.observer.verify_sent_attempt(checks)
 
-        if hasattr(self.browser, 'page') and self.browser.page:
+        if hasattr(self.browser, "page") and self.browser.page:
             page = self.browser.page
             counts = {}
 
@@ -205,25 +174,20 @@ class ObservableBrowser:
 
                     if count > 0:
                         self.observer.verify_sent_result(
-                            ok=True,
-                            matched_selector=check,
-                            counts=counts
+                            ok=True, matched_selector=check, counts=counts
                         )
                         return True
                 except Exception:
                     counts[check] = 0
 
             # Nothing matched
-            self.observer.verify_sent_result(
-                ok=False,
-                counts=counts
-            )
+            self.observer.verify_sent_result(ok=False, counts=counts)
             return False
         else:
             # Fallback
             result = self.browser.verify_sent()
             self.observer.verify_sent_result(ok=result)
-            return result
+            return result  # type: ignore[no-any-return]
 
     def skip(self) -> None:
         """Delegate to browser."""
@@ -231,5 +195,5 @@ class ObservableBrowser:
 
     def close(self) -> None:
         """Delegate to browser."""
-        if hasattr(self.browser, 'close'):
+        if hasattr(self.browser, "close"):
             self.browser.close()

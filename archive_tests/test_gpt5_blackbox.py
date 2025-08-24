@@ -10,25 +10,26 @@ import sys
 from pathlib import Path
 
 # Load .env file properly
-env_file = Path('.env')
+env_file = Path(".env")
 if env_file.exists():
     with open(env_file) as f:
         for line in f:
             line = line.strip()
-            if line and not line.startswith('#') and '=' in line:
-                key, value = line.split('=', 1)
-                if '#' in value:
-                    value = value.split('#')[0].strip()
+            if line and not line.startswith("#") and "=" in line:
+                key, value = line.split("=", 1)
+                if "#" in value:
+                    value = value.split("#")[0].strip()
                 if key not in os.environ:
                     os.environ[key] = value
 
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
+
 
 def test_gpt5_decision():
     """Test the GPT-5 decision making with REAL profile."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("GPT-5 BLACK BOX TEST")
-    print("="*60)
+    print("=" * 60)
 
     from openai import OpenAI
 
@@ -150,6 +151,7 @@ def test_gpt5_decision():
 
     # Create adapter
     from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
+
     logger = JSONLLogger(Path(".runs/gpt5_test.jsonl"))
     adapter = OpenAIDecisionAdapter(client, logger=logger)
 
@@ -160,11 +162,13 @@ def test_gpt5_decision():
     print("-" * 40)
 
     import time
+
     start = time.time()
 
     try:
         # For debugging, let's see the raw response
         import logging
+
         logging.basicConfig(level=logging.DEBUG)
 
         result = adapter.evaluate(profile, criteria)
@@ -183,23 +187,25 @@ def test_gpt5_decision():
         print(f"\n⭐ SCORE: {result.get('score')}")
         print(f"\n🎯 CONFIDENCE: {result.get('confidence', 'N/A')}")
 
-        if result.get('decision') == 'YES':
+        if result.get("decision") == "YES":
             print("\n💬 PERSONALIZED MESSAGE:")
             print("-" * 40)
-            print(result.get('draft', 'No message generated'))
+            print(result.get("draft", "No message generated"))
         else:
             print("\n❌ No message (decision was NO)")
 
         # Save full response
         output_file = Path("gpt5_response.json")
-        with open(output_file, 'w') as f:
+        with open(output_file, "w") as f:
             json.dump(result, f, indent=2)
         print(f"\n✅ Full response saved to: {output_file}")
 
     except Exception as e:
         print(f"\n❌ Error calling GPT-5: {e}")
         import traceback
+
         traceback.print_exc()
+
 
 if __name__ == "__main__":
     test_gpt5_decision()

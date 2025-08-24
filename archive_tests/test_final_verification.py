@@ -14,27 +14,28 @@ import sys
 from pathlib import Path
 
 # Load .env
-env_file = Path('.env')
+env_file = Path(".env")
 if env_file.exists():
     with open(env_file) as f:
         for line in f:
             line = line.strip()
-            if line and not line.startswith('#') and '=' in line:
-                key, value = line.split('=', 1)
-                if '#' in value:
-                    value = value.split('#')[0].strip()
+            if line and not line.startswith("#") and "=" in line:
+                key, value = line.split("=", 1)
+                if "#" in value:
+                    value = value.split("#")[0].strip()
                 value = value.strip().strip('"')
                 if key not in os.environ:
                     os.environ[key] = value
 
 os.environ["PACE_MIN_SECONDS"] = "0"
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
+
 
 def test_gpt5_with_validation():
     """Test GPT-5 with JSON validation"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TEST 1: GPT-5 WITH VALIDATION")
-    print("="*60)
+    print("=" * 60)
 
     from openai import OpenAI
 
@@ -50,18 +51,22 @@ def test_gpt5_with_validation():
     adapter = OpenAIDecisionAdapter(client, logger=logger, model="gpt-5")
 
     # Good match profile
-    profile = Profile(raw_text="""
+    profile = Profile(
+        raw_text="""
     Name: Alex Thompson
     Location: San Francisco, CA
     Business Development, 8 years at Google Cloud
     MBA from Wharton, raised $3M seed funding
     Looking for technical cofounder in AI space
-    """)
+    """
+    )
 
-    criteria = Criteria(text="""
+    criteria = Criteria(
+        text="""
     Looking for business cofounder in SF with fundraising experience.
     Building AI startup in enterprise space.
-    """)
+    """
+    )
 
     print("\nTesting GPT-5 decision...")
     result = adapter.evaluate(profile, criteria)
@@ -85,13 +90,14 @@ def test_gpt5_with_validation():
     print(f"   {'✅' if has_fallback else '⚠️'} Fallback handled correctly")
     print(f"   {'✅' if result.get('decision_json_ok') else '❌'} JSON validated")
 
-    return uses_gpt5 and result.get('decision') in ['YES', 'NO', 'ERROR']
+    return uses_gpt5 and result.get("decision") in ["YES", "NO", "ERROR"]
+
 
 def test_model_fallback():
     """Test gpt-4o fallback"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TEST 2: MODEL FALLBACK TO GPT-4o")
-    print("="*60)
+    print("=" * 60)
 
     from yc_matcher import config
 
@@ -113,11 +119,12 @@ def test_model_fallback():
         print(f"❌ Wrong fallback: {fallback}")
         return False
 
+
 def test_message_fill():
     """Test message fill functionality"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TEST 3: MESSAGE FILL FLOW")
-    print("="*60)
+    print("=" * 60)
 
     # Check selectors in code
     with open("src/yc_matcher/infrastructure/browser_playwright_async.py") as f:
@@ -140,11 +147,12 @@ def test_message_fill():
 
     return all_good
 
+
 def test_json_schema():
     """Test JSON schema exists and validator works"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TEST 4: JSON SCHEMA VALIDATION")
-    print("="*60)
+    print("=" * 60)
 
     # Check schema file exists
     schema_path = Path("schemas/decision.schema.json")
@@ -163,7 +171,7 @@ def test_json_schema():
         "rationale": "Good match",
         "draft": "Hi there!",
         "score": 0.8,
-        "confidence": 0.9
+        "confidence": 0.9,
     }
     ok, err = _validate_decision(valid)
     print(f"✅ Valid JSON: {ok}")
@@ -174,19 +182,20 @@ def test_json_schema():
         "rationale": "Good match",
         "draft": "",
         "score": 0.8,
-        "confidence": 0.9
+        "confidence": 0.9,
     }
     ok, err = _validate_decision(invalid)
     print(f"✅ Invalid detected: {not ok}, reason: {err}")
 
     return True
 
+
 def main():
     """Run all verification tests"""
-    print("\n" + "🚀"*30)
+    print("\n" + "🚀" * 30)
     print("FINAL VERIFICATION TEST")
     print("All fixes applied and working")
-    print("🚀"*30)
+    print("🚀" * 30)
 
     results = []
 
@@ -207,9 +216,9 @@ def main():
     results.append(("JSON schema validation", test_json_schema()))
 
     # Summary
-    print("\n\n" + "="*60)
+    print("\n\n" + "=" * 60)
     print("VERIFICATION SUMMARY")
-    print("="*60)
+    print("=" * 60)
 
     for test_name, passed in results:
         status = "✅ PASS" if passed else "❌ FAIL"
@@ -227,6 +236,7 @@ def main():
         print("\n✅ READY FOR PRODUCTION!")
     else:
         print("\n⚠️ Some tests failed - review output above")
+
 
 if __name__ == "__main__":
     main()

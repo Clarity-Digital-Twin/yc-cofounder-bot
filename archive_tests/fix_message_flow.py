@@ -7,7 +7,8 @@ Professional approach: inspect the actual DOM and update selectors.
 import sys
 
 # Add src to path
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
+
 
 def analyze_yc_page_structure():
     """
@@ -18,9 +19,9 @@ def analyze_yc_page_structure():
     The image you shared shows "Invite to connect" button.
     """
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("FIXING MESSAGE FLOW - PROFESSIONAL APPROACH")
-    print("="*60)
+    print("=" * 60)
 
     print("\n1. Common YC Page Patterns:")
     print("   - Message box: <textarea> or <div contenteditable='true'>")
@@ -34,7 +35,7 @@ def analyze_yc_page_structure():
     print("      - Add contenteditable div support")
     print("      - Look for 'Invite to connect' button")
 
-    playwright_fix = '''
+    playwright_fix = """
     def fill_message(self, text: str) -> None:
         page = self._ensure_page()
 
@@ -88,7 +89,7 @@ def analyze_yc_page_structure():
                     return
             except:
                 continue
-    '''
+    """
 
     print(playwright_fix)
 
@@ -124,12 +125,13 @@ def analyze_yc_page_structure():
     print("   c. Add retry logic with different strategies")
     print("   d. Implement fallback: if can't find button, press Tab then Enter")
 
+
 def apply_fixes():
     """Apply the fixes to the actual files"""
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("APPLYING FIXES")
-    print("="*60)
+    print("=" * 60)
 
     from pathlib import Path
 
@@ -163,13 +165,14 @@ def apply_fixes():
     print("   - Take screenshots at each step")
     print("   - Use page.evaluate() to check element properties")
 
+
 def main():
     analyze_yc_page_structure()
     apply_fixes()
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("NEXT STEPS")
-    print("="*60)
+    print("=" * 60)
 
     print("\n1. Run the test with visible browser:")
     print("   PLAYWRIGHT_HEADLESS=0 python test_actual_flow.py")
@@ -183,6 +186,7 @@ def main():
     print("   - Right-click message box -> Inspect")
     print("   - Note the actual HTML structure")
     print("   - Update selectors accordingly")
+
 
 if __name__ == "__main__":
     main()

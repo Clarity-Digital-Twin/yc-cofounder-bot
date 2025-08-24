@@ -12,16 +12,16 @@ import time
 from pathlib import Path
 
 # Load .env file properly
-env_file = Path('.env')
+env_file = Path(".env")
 if env_file.exists():
     with open(env_file) as f:
         for line in f:
             line = line.strip()
-            if line and not line.startswith('#') and '=' in line:
-                key, value = line.split('=', 1)
+            if line and not line.startswith("#") and "=" in line:
+                key, value = line.split("=", 1)
                 # Strip comments and quotes
-                if '#' in value:
-                    value = value.split('#')[0].strip()
+                if "#" in value:
+                    value = value.split("#")[0].strip()
                 else:
                     value = value.strip()
                 if value.startswith('"') and value.endswith('"'):
@@ -36,13 +36,14 @@ os.environ["PLAYWRIGHT_HEADLESS"] = "1"  # Headless for testing
 os.environ["SHADOW_MODE"] = "1"  # Don't actually send
 
 # Add src to path
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
+
 
 def test_decision_call_contract():
     """Test Decision Call per Contract Sections 4-14"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TESTING DECISION CALL CONTRACT (Sections 4-14)")
-    print("="*60)
+    print("=" * 60)
 
     from openai import OpenAI
 
@@ -155,11 +156,11 @@ def test_decision_call_contract():
         print(f"   Confidence: {evaluation.get('confidence')}")
         print(f"   Rationale: {evaluation.get('rationale')[:100]}...")
 
-        if evaluation.get('draft'):
+        if evaluation.get("draft"):
             print("\n📝 Generated Message:")
             print(f"   Length: {len(evaluation['draft'])} chars")
             # Contract section 43: Check personalization
-            if "Sarah" in evaluation['draft'] or "sales" in evaluation['draft'].lower():
+            if "Sarah" in evaluation["draft"] or "sales" in evaluation["draft"].lower():
                 print("   ✓ Message is personalized (contains specific details)")
             else:
                 print("   ⚠️  Message might be generic")
@@ -193,12 +194,12 @@ def test_decision_call_contract():
 
         return None
 
+
 def test_selector_contract():
     """Test Selector Contract per Sections 30-31"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TESTING SELECTOR CONTRACT (Sections 30-31)")
-    print("="*60)
-
+    print("=" * 60)
 
     print("\n📋 Contract Requirements:")
     print("   Section 30 - Message box selectors in order:")
@@ -214,34 +215,43 @@ def test_selector_contract():
         content = f.read()
 
     # Check message box selectors
-    if 'excited about potentially working' in content:
+    if "excited about potentially working" in content:
         print("\n✅ Message box primary selector correct")
     else:
         print("\n❌ Missing primary message box selector")
 
-    if 'type a short message' in content:
+    if "type a short message" in content:
         print("✅ Message box secondary selector correct")
     else:
         print("⚠️  Missing secondary message box selector")
 
     # Check send button selectors
-    if 'Invite to connect' in content:
+    if "Invite to connect" in content:
         print("\n✅ Send button primary selector correct")
     else:
         print("❌ Missing primary send button selector")
 
     print("\n✓ Selectors match contract requirements")
 
+
 def test_environment_contract():
     """Test Environment Variables per Section 32-37"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TESTING ENVIRONMENT CONTRACT (Section 32-37)")
-    print("="*60)
+    print("=" * 60)
 
     required = ["OPENAI_API_KEY"]
-    optional = ["OPENAI_DECISION_MODEL", "CUA_MODEL", "ENABLE_CUA",
-                "PACE_MIN_SECONDS", "DAILY_QUOTA", "WEEKLY_QUOTA", "SHADOW_MODE",
-                "PLAYWRIGHT_HEADLESS", "PLAYWRIGHT_BROWSERS_PATH"]
+    optional = [
+        "OPENAI_DECISION_MODEL",
+        "CUA_MODEL",
+        "ENABLE_CUA",
+        "PACE_MIN_SECONDS",
+        "DAILY_QUOTA",
+        "WEEKLY_QUOTA",
+        "SHADOW_MODE",
+        "PLAYWRIGHT_HEADLESS",
+        "PLAYWRIGHT_BROWSERS_PATH",
+    ]
 
     print("\n📋 Required Environment Variables:")
     for var in required:
@@ -259,15 +269,18 @@ def test_environment_contract():
         else:
             print(f"   - {var}: Not set")
 
+
 def test_acceptance_criteria():
     """Test Minimal Acceptance Criteria per Section 46-49"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TESTING ACCEPTANCE CRITERIA (Section 46-49)")
-    print("="*60)
+    print("=" * 60)
 
     print("\n📋 Section 46: Decision shape test")
     result = test_decision_call_contract()
-    if result and all(k in result for k in ["decision", "rationale", "draft", "score", "confidence"]):
+    if result and all(
+        k in result for k in ["decision", "rationale", "draft", "score", "confidence"]
+    ):
         print("   ✅ PASS: Returns JSON with all fields")
     else:
         print("   ❌ FAIL: Missing required fields")
@@ -279,12 +292,13 @@ def test_acceptance_criteria():
     print("\n📋 Section 49: Selector test")
     test_selector_contract()
 
+
 def main():
     """Run all contract tests"""
-    print("\n" + "🚀"*30)
+    print("\n" + "🚀" * 30)
     print("API CONTRACT COMPLIANCE TEST")
     print("Testing against API_CONTRACT_RESPONSES.md")
-    print("🚀"*30)
+    print("🚀" * 30)
 
     # Test environment setup
     test_environment_contract()
@@ -296,9 +310,9 @@ def main():
     test_selector_contract()
 
     # Summary
-    print("\n\n" + "="*60)
+    print("\n\n" + "=" * 60)
     print("CONTRACT COMPLIANCE SUMMARY")
-    print("="*60)
+    print("=" * 60)
 
     print("\n✅ COMPLIANT SECTIONS:")
     print("   - Section 4-7: Decision call shape")
@@ -314,6 +328,7 @@ def main():
     print("   4. Selectors match YC's current UI")
 
     print("\n🎉 IMPLEMENTATION MATCHES CONTRACT!")
+
 
 if __name__ == "__main__":
     main()

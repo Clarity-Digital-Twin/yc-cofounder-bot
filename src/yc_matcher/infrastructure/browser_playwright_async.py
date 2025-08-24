@@ -122,7 +122,7 @@ class PlaywrightBrowserAsync:
                 'input[type="text"]:visible',
                 'input[name="email"]',
                 'input[placeholder*="email" i]',
-                'input[placeholder*="username" i]'
+                'input[placeholder*="username" i]',
             ]
 
             email_filled = False

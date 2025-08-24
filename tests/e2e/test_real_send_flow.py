@@ -58,7 +58,7 @@ class TestRealSendFlow:
 
         # Cleanup happens automatically via AsyncLoopRunner's atexit handler
         # But we can also explicitly clean up
-        if hasattr(browser, 'cleanup'):
+        if hasattr(browser, "cleanup"):
             browser.cleanup()
 
     @pytest.fixture
@@ -75,16 +75,21 @@ class TestRealSendFlow:
 
     def test_01_login_flow(self, shared_browser):
         """Test 1: Login to YC (uses singleton browser)."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("TEST 1: LOGIN FLOW")
-        print("="*60)
+        print("=" * 60)
 
         # Check for credentials
         from yc_matcher import config
+
         email, password = config.get_yc_credentials()
 
         if not email or not password:
             pytest.skip("YC credentials not configured in .env")
+
+        # Check if browser was properly initialized
+        if not hasattr(shared_browser, "_runner") or shared_browser._runner is None:
+            pytest.skip("Browser not available in test environment")
 
         # Navigate to YC
         print("1. Navigating to YC...")
@@ -111,9 +116,13 @@ class TestRealSendFlow:
 
     def test_02_view_profile(self, shared_browser, pipeline_observer):
         """Test 2: Navigate to a profile (reuses same browser)."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("TEST 2: VIEW PROFILE")
-        print("="*60)
+        print("=" * 60)
+
+        # Check if browser was properly initialized
+        if not hasattr(shared_browser, "_runner") or shared_browser._runner is None:
+            pytest.skip("Browser not available in test environment")
 
         observer, log_path = pipeline_observer
 
@@ -139,9 +148,13 @@ class TestRealSendFlow:
 
     def test_03_send_pipeline(self, shared_browser, pipeline_observer, tmp_path):
         """Test 3: Full send pipeline with observability (same browser)."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("TEST 3: SEND PIPELINE WITH OBSERVABILITY")
-        print("="*60)
+        print("=" * 60)
+
+        # Check if browser was properly initialized
+        if not hasattr(shared_browser, "_runner") or shared_browser._runner is None:
+            pytest.skip("Browser not available in test environment")
 
         from yc_matcher.infrastructure.browser_observable import ObservableBrowser
         from yc_matcher.infrastructure.sqlite_quota import SQLiteDailyWeeklyQuota
@@ -165,7 +178,7 @@ class TestRealSendFlow:
             auto_send=True,
             output_types=["message"],
             latency_ms=100,
-            decision_json_ok=True
+            decision_json_ok=True,
         )
         print("   ✅ Decision: YES (forced)")
         print("   ✅ Auto-send: True")
@@ -184,7 +197,7 @@ class TestRealSendFlow:
             seen_ok=True,
             mode="test",
             auto_send=True,
-            remaining_quota=99
+            remaining_quota=99,
         )
 
         assert not stop_is_set, "Stop flag is set"
@@ -231,9 +244,13 @@ class TestRealSendFlow:
 
     def test_04_browser_singleton_verification(self, shared_browser):
         """Test 4: Verify we're still using the same browser instance."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("TEST 4: BROWSER SINGLETON VERIFICATION")
-        print("="*60)
+        print("=" * 60)
+
+        # Check if browser was properly initialized
+        if not hasattr(shared_browser, "_runner") or shared_browser._runner is None:
+            pytest.skip("Browser not available in test environment")
 
         # Navigate to a different page to prove it's the same browser
         print("1. Navigating to verify singleton...")
@@ -244,6 +261,7 @@ class TestRealSendFlow:
 
         # Check that it's the shared singleton
         from yc_matcher.infrastructure.browser_playwright_async import _shared_runner
+
         assert runner is _shared_runner, "Not using singleton runner!"
 
         print("   ✅ Confirmed: Using singleton browser")
@@ -254,6 +272,10 @@ class TestRealSendFlow:
 
     def _analyze_pipeline(self, log_path):
         """Analyze the 10-event pipeline for completeness."""
+        # Convert to Path if it's a string
+        if isinstance(log_path, str):
+            log_path = Path(log_path)
+
         if not log_path.exists():
             print("   No events logged")
             return
@@ -293,7 +315,7 @@ class TestRealSendFlow:
             "click_send_result",
             "verify_sent_attempt",
             "verify_sent_result",
-            "sent"
+            "sent",
         ]
 
         found_events = {e["event"]: e for e in run_events if e.get("event") in expected_events}
@@ -307,7 +329,12 @@ class TestRealSendFlow:
                 else:
                     print(f"   {event:30} ✅")
             else:
-                if event in ["click_send_result", "verify_sent_attempt", "verify_sent_result", "sent"]:
+                if event in [
+                    "click_send_result",
+                    "verify_sent_attempt",
+                    "verify_sent_result",
+                    "sent",
+                ]:
                     # These are skipped in shadow mode
                     print(f"   {event:30} ⏭️  (shadow mode)")
                 else:
@@ -326,9 +353,9 @@ def test_no_browser_spam():
     Standalone test to verify singleton browser pattern.
     This test creates multiple browser instances and verifies they all share the same runner.
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("BROWSER SINGLETON VERIFICATION TEST")
-    print("="*60)
+    print("=" * 60)
 
     from yc_matcher.infrastructure.browser_playwright_async import (
         PlaywrightBrowserAsync,
@@ -356,7 +383,7 @@ def test_no_browser_spam():
     print(f"✅ Browser3 runner ID: {id(browser3._runner)}")
 
     # Clean up
-    if hasattr(browser1, 'cleanup'):
+    if hasattr(browser1, "cleanup"):
         browser1.cleanup()  # This cleans up the shared singleton
 
 

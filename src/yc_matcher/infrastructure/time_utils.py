@@ -52,8 +52,8 @@ def parse_timestamp(timestamp_str: str) -> datetime:
         ValueError: If timestamp format is invalid
     """
     # Handle both 'Z' suffix and '+00:00' for UTC
-    if timestamp_str.endswith('Z'):
-        timestamp_str = timestamp_str[:-1] + '+00:00'
+    if timestamp_str.endswith("Z"):
+        timestamp_str = timestamp_str[:-1] + "+00:00"
 
     # Parse ISO format
     dt = datetime.fromisoformat(timestamp_str)
@@ -126,6 +126,7 @@ def local_to_utc(local_dt: datetime) -> datetime:
         # Assume it's local time, convert to UTC
         # This is a simplification - in production you'd use pytz or zoneinfo
         import time
+
         offset = time.timezone if not time.daylight else time.altzone
         utc_dt = local_dt + timedelta(seconds=offset)
         return utc_dt.replace(tzinfo=UTC)

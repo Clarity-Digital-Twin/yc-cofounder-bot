@@ -10,17 +10,18 @@ import sys
 from pathlib import Path
 
 # Add src to path
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
 
 # Setup environment
 os.environ["PACE_MIN_SECONDS"] = "0"
 os.environ["ENABLE_CUA"] = "1"  # or "0" to test Playwright
 
+
 def test_send_message_flow():
     """Test the SendMessage use case directly"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TESTING SEND MESSAGE FLOW")
-    print("="*60)
+    print("=" * 60)
 
     from yc_matcher.application.use_cases import SendMessage
     from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
@@ -31,10 +32,12 @@ def test_send_message_flow():
     if os.getenv("ENABLE_CUA") == "1":
         print("Using CUA Browser...")
         from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
+
         browser = OpenAICUABrowser()
     else:
         print("Using Playwright Browser...")
         from yc_matcher.infrastructure.browser_playwright_async import PlaywrightBrowserAsync
+
         browser = PlaywrightBrowserAsync()
 
     # Setup components
@@ -46,12 +49,7 @@ def test_send_message_flow():
     logger.emit({"event": "test_start", "browser": browser.__class__.__name__})
 
     # Create SendMessage use case
-    send_message = SendMessage(
-        browser=browser,
-        logger=logger,
-        stop_flag=stop_flag,
-        quota=quota
-    )
+    send_message = SendMessage(browser=browser, logger=logger, stop_flag=stop_flag, quota=quota)
 
     print("\n1. Opening YC Cofounder page...")
     try:
@@ -90,6 +88,7 @@ Looking forward to hearing from you!"""
         print(f"   ❌ Error during send: {e}")
         logger.emit({"event": "send_error", "error": str(e)})
         import traceback
+
         traceback.print_exc()
 
     print("\n4. Analyzing logs...")
@@ -98,8 +97,9 @@ Looking forward to hearing from you!"""
     print("\n5. Press Enter to close browser...")
     input()
 
-    if hasattr(browser, 'close'):
+    if hasattr(browser, "close"):
         browser.close()
+
 
 def print_event_log():
     """Print the event log for analysis"""
@@ -126,18 +126,21 @@ def print_event_log():
                 except Exception:
                     print(f"      {line.strip()}")
 
+
 def test_browser_methods_directly():
     """Test browser methods one by one"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TESTING BROWSER METHODS DIRECTLY")
-    print("="*60)
+    print("=" * 60)
 
     if os.getenv("ENABLE_CUA") == "1":
         from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
+
         browser = OpenAICUABrowser()
         print("Using CUA Browser")
     else:
         from yc_matcher.infrastructure.browser_playwright_async import PlaywrightBrowserAsync
+
         browser = PlaywrightBrowserAsync()
         print("Using Playwright Browser")
 
@@ -185,6 +188,7 @@ def test_browser_methods_directly():
     input()
     browser.close()
 
+
 def main():
     print("Which test to run?")
     print("1. Test full SendMessage flow")
@@ -196,6 +200,7 @@ def main():
         test_browser_methods_directly()
     else:
         test_send_message_flow()
+
 
 if __name__ == "__main__":
     main()

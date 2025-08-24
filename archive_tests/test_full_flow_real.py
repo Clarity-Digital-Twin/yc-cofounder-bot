@@ -13,16 +13,16 @@ from datetime import datetime
 from pathlib import Path
 
 # Load .env file properly (handles special characters)
-env_file = Path('.env')
+env_file = Path(".env")
 if env_file.exists():
     with open(env_file) as f:
         for line in f:
             line = line.strip()
-            if line and not line.startswith('#') and '=' in line:
-                key, value = line.split('=', 1)
+            if line and not line.startswith("#") and "=" in line:
+                key, value = line.split("=", 1)
                 # Strip comments from value
-                if '#' in value:
-                    value = value.split('#')[0].strip()
+                if "#" in value:
+                    value = value.split("#")[0].strip()
                 else:
                     value = value.strip()
                 if key not in os.environ:
@@ -36,13 +36,14 @@ os.environ["SHADOW_MODE"] = "0"  # Actually send!
 os.environ["ENABLE_CUA"] = "0"  # Use Playwright
 
 # Add src to path
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
+
 
 def main():
     """THE COMPLETE FLOW - EXACTLY HOW THE APP WORKS!"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("COMPLETE END-TO-END TEST WITH REAL OPENAI")
-    print("="*60)
+    print("=" * 60)
 
     from yc_matcher.domain.entities import Criteria, Profile
     from yc_matcher.infrastructure.browser_observable import ObservableBrowser
@@ -63,9 +64,9 @@ def main():
     # ========================================
     # STEP 1: LOGIN
     # ========================================
-    print("\n" + "="*40)
+    print("\n" + "=" * 40)
     print("STEP 1: LOGIN TO YC")
-    print("="*40)
+    print("=" * 40)
 
     success = browser.open("https://www.startupschool.org/cofounder-matching")
     if not success:
@@ -89,9 +90,9 @@ def main():
     # ========================================
     # STEP 2: NAVIGATE TO PROFILES
     # ========================================
-    print("\n" + "="*40)
+    print("\n" + "=" * 40)
     print("STEP 2: NAVIGATE TO PROFILES")
-    print("="*40)
+    print("=" * 40)
 
     # Navigate to cofounder matching
     browser.open("https://www.startupschool.org/cofounder-matching")
@@ -113,9 +114,9 @@ def main():
     # ========================================
     # STEP 3: EXTRACT PROFILE TEXT
     # ========================================
-    print("\n" + "="*40)
+    print("\n" + "=" * 40)
     print("STEP 3: EXTRACT PROFILE TEXT")
-    print("="*40)
+    print("=" * 40)
 
     profile_text = browser.read_profile_text()
 
@@ -129,9 +130,9 @@ def main():
     # ========================================
     # STEP 4: SEND TO OPENAI FOR EVALUATION
     # ========================================
-    print("\n" + "="*40)
+    print("\n" + "=" * 40)
     print("STEP 4: OPENAI EVALUATION")
-    print("="*40)
+    print("=" * 40)
 
     # YOUR PROFILE & CRITERIA (what you're looking for)
     YOUR_PROFILE = """
@@ -178,12 +179,13 @@ def main():
 
     # Create entities
     profile = Profile(raw_text=profile_text)
-    criteria = Criteria(text=f"{YOUR_PROFILE}\n\n{MATCH_CRITERIA}\n\nMessage Template:\n{MESSAGE_TEMPLATE}")
+    criteria = Criteria(
+        text=f"{YOUR_PROFILE}\n\n{MATCH_CRITERIA}\n\nMessage Template:\n{MESSAGE_TEMPLATE}"
+    )
 
     # Get AI evaluation
     observer.decision_request(
-        model=os.getenv("OPENAI_DECISION_MODEL", "gpt-4"),
-        input_text=profile_text + criteria.text
+        model=os.getenv("OPENAI_DECISION_MODEL", "gpt-4"), input_text=profile_text + criteria.text
     )
 
     start_time = time.time()
@@ -195,7 +197,7 @@ def main():
         auto_send=True,  # We want to auto-send if YES
         output_types=["message"],
         latency_ms=latency_ms,
-        decision_json_ok=evaluation.get("decision") in ["YES", "NO"]
+        decision_json_ok=evaluation.get("decision") in ["YES", "NO"],
     )
 
     print("\n📊 OPENAI EVALUATION RESULT:")
@@ -207,13 +209,17 @@ def main():
     if evaluation.get("decision") != "YES":
         print("\n⚠️  Profile not a match (NO), but continuing test anyway...")
         # Generate a test message even if NO
-        message_draft = f"Hi! Testing the message pipeline. [TEST at {datetime.now().strftime('%H:%M:%S')}]"
+        message_draft = (
+            f"Hi! Testing the message pipeline. [TEST at {datetime.now().strftime('%H:%M:%S')}]"
+        )
     else:
         # Get the personalized message from OpenAI
         message_draft = evaluation.get("draft", "")
         if not message_draft:
             print("❌ No message draft from OpenAI, using test message")
-            message_draft = f"Hi! Testing the message pipeline. [TEST at {datetime.now().strftime('%H:%M:%S')}]"
+            message_draft = (
+                f"Hi! Testing the message pipeline. [TEST at {datetime.now().strftime('%H:%M:%S')}]"
+            )
 
     print("\n✅ Message draft generated:")
     print(f"   {message_draft[:100]}...")
@@ -221,9 +227,9 @@ def main():
     # ========================================
     # STEP 5: FILL MESSAGE BOX
     # ========================================
-    print("\n" + "="*40)
+    print("\n" + "=" * 40)
     print("STEP 5: FILL MESSAGE BOX")
-    print("="*40)
+    print("=" * 40)
 
     print("Looking for message input box...")
 
@@ -248,9 +254,9 @@ def main():
     # ========================================
     # STEP 6: CLICK SEND BUTTON
     # ========================================
-    print("\n" + "="*40)
+    print("\n" + "=" * 40)
     print("STEP 6: CLICK SEND")
-    print("="*40)
+    print("=" * 40)
 
     print("Looking for 'Invite to connect' or 'Send' button...")
 
@@ -271,9 +277,9 @@ def main():
     # ========================================
     # STEP 7: VERIFY SENT
     # ========================================
-    print("\n" + "="*40)
+    print("\n" + "=" * 40)
     print("STEP 7: VERIFY MESSAGE SENT")
-    print("="*40)
+    print("=" * 40)
 
     sent_ok = browser.verify_sent()
 
@@ -287,9 +293,9 @@ def main():
     # ========================================
     # ANALYSIS
     # ========================================
-    print("\n" + "="*40)
+    print("\n" + "=" * 40)
     print("PIPELINE ANALYSIS")
-    print("="*40)
+    print("=" * 40)
 
     analyze_pipeline(log_path, observer.run_id)
 
@@ -299,8 +305,9 @@ def main():
     input()
 
     # Cleanup
-    if hasattr(base_browser, 'cleanup'):
+    if hasattr(base_browser, "cleanup"):
         base_browser.cleanup()
+
 
 def analyze_pipeline(log_path, run_id):
     """Analyze the complete pipeline."""
@@ -328,7 +335,7 @@ def analyze_pipeline(log_path, run_id):
         "click_send_result",
         "verify_sent_attempt",
         "verify_sent_result",
-        "sent"
+        "sent",
     ]
 
     print("\nCOMPLETE PIPELINE STATUS:")
@@ -344,6 +351,7 @@ def analyze_pipeline(log_path, run_id):
                 print(f"  {stage:30} ✅")
         else:
             print(f"  {stage:30} ⚠️  NOT REACHED")
+
 
 if __name__ == "__main__":
     main()

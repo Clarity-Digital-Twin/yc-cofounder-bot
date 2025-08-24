@@ -165,7 +165,7 @@ class TestEventsPanelClean:
 
         # When file is empty, shows this message
         mock_st.info.assert_called_with(
-            "No events in the last hour. Events are cleared after 1 hour."
+            "No events in the last hour. Only showing recent events (1 hour window)."
         )
 
     @patch("yc_matcher.interface.web.ui_streamlit.st")

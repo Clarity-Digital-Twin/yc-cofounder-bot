@@ -11,12 +11,11 @@ import sys
 
 # Setup logging to see everything
 logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
 # Add src to path
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
 
 from yc_matcher.infrastructure.browser_playwright import PlaywrightBrowser  # noqa: E402
 from yc_matcher.infrastructure.jsonl_logger import JSONLLogger  # noqa: E402
@@ -32,9 +31,9 @@ class MessageFlowDebugger:
 
     async def test_cua_browser_flow(self):
         """Test CUA browser implementation"""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("TESTING CUA BROWSER FLOW")
-        print("="*60)
+        print("=" * 60)
 
         if not os.getenv("OPENAI_API_KEY") or not os.getenv("CUA_MODEL"):
             print("❌ CUA not configured - skipping")
@@ -86,9 +85,9 @@ class MessageFlowDebugger:
 
     async def test_playwright_flow(self):
         """Test Playwright-only browser implementation"""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("TESTING PLAYWRIGHT FLOW")
-        print("="*60)
+        print("=" * 60)
 
         try:
             browser = PlaywrightBrowser()
@@ -120,7 +119,7 @@ class MessageFlowDebugger:
             print("\n3. Checking if message is in DOM...")
             try:
                 # Get page content
-                if hasattr(browser, 'page') and browser.page:
+                if hasattr(browser, "page") and browser.page:
                     content = browser.page.content()
                     if test_message in content:
                         print("   Message found in DOM: ✅")
@@ -138,9 +137,9 @@ class MessageFlowDebugger:
 
     async def test_use_case_flow(self):
         """Test the use case orchestration"""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("TESTING USE CASE FLOW")
-        print("="*60)
+        print("=" * 60)
 
         from yc_matcher.application.use_cases import ProcessCandidateUseCase
         from yc_matcher.infrastructure.sqlite_quota import SqliteQuotaAdapter
@@ -160,7 +159,7 @@ class MessageFlowDebugger:
                 logger=logger,
                 stop_flag=stop_flag,
                 seen_repo=seen_repo,
-                quota=quota
+                quota=quota,
             )
 
             # Test the send_message method
@@ -186,9 +185,9 @@ class MessageFlowDebugger:
 
     def print_summary(self):
         """Print systematic analysis summary"""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("SYSTEMATIC ANALYSIS SUMMARY")
-        print("="*60)
+        print("=" * 60)
 
         print("\n📊 Test Results:")
         for key, value in self.results.items():
@@ -198,11 +197,15 @@ class MessageFlowDebugger:
         print("\n🔍 Root Cause Analysis:")
 
         # Analyze patterns
-        if "cua_fill_message" in self.results and "ERROR" in str(self.results.get("cua_fill_message", "")):
+        if "cua_fill_message" in self.results and "ERROR" in str(
+            self.results.get("cua_fill_message", "")
+        ):
             print("   ⚠️  CUA fill_message implementation has issues")
             print("      → Check _fill_message_async() in openai_cua_browser.py")
 
-        if "playwright_fill_message" in self.results and "ERROR" in str(self.results.get("playwright_fill_message", "")):
+        if "playwright_fill_message" in self.results and "ERROR" in str(
+            self.results.get("playwright_fill_message", "")
+        ):
             print("   ⚠️  Playwright fill_message implementation has issues")
             print("      → Check selector logic in browser_playwright.py")
 
@@ -215,6 +218,7 @@ class MessageFlowDebugger:
         print("   2. Add explicit waits for elements before filling")
         print("   3. Log actual CUA actions being executed")
         print("   4. Compare with working version git history")
+
 
 async def main():
     """Run systematic debugging"""
@@ -233,6 +237,7 @@ async def main():
 
     # Write detailed logs
     print("\n📄 Detailed logs written to: .runs/debug_events.jsonl")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

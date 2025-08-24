@@ -10,18 +10,19 @@ import sys
 from pathlib import Path
 
 # Add src to path
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
 
 # Set test environment
 os.environ["PLAYWRIGHT_HEADLESS"] = "0"  # Show browser
-os.environ["PACE_MIN_SECONDS"] = "0"     # No delays
+os.environ["PACE_MIN_SECONDS"] = "0"  # No delays
+
 
 async def test_message_flow():
     """Test the complete message flow with visual browser"""
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("E2E MESSAGE FLOW TEST")
-    print("="*60)
+    print("=" * 60)
 
     # 1. Test with Playwright adapter (visible browser)
     print("\n🔧 Testing with Playwright Browser Adapter...")
@@ -58,6 +59,7 @@ async def test_message_flow():
         except Exception as e:
             print(f"   ❌ fill_message() failed: {e}")
             import traceback
+
             traceback.print_exc()
 
         # Wait to see if message appears
@@ -68,7 +70,7 @@ async def test_message_flow():
         print("\n5. Checking DOM for message...")
         try:
             # Direct check using Playwright
-            if hasattr(browser, '_page') and browser._page:
+            if hasattr(browser, "_page") and browser._page:
                 textarea_value = await browser._page.evaluate("""
                     () => {
                         const textarea = document.querySelector('textarea');
@@ -96,12 +98,12 @@ async def test_message_flow():
 
     finally:
         # Cleanup
-        if hasattr(browser, 'close'):
+        if hasattr(browser, "close"):
             browser.close()
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("ANALYSIS")
-    print("="*60)
+    print("=" * 60)
 
     # Read the event log
     print("\n📊 Events logged:")
@@ -119,12 +121,13 @@ async def test_message_flow():
     print("   4. Frame/iframe - element might be in iframe")
     print("   5. Shadow DOM - element might be in shadow root")
 
+
 async def test_real_yc_page():
     """Test with the actual YC page (requires login)"""
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TESTING WITH REAL YC PAGE")
-    print("="*60)
+    print("=" * 60)
 
     from yc_matcher.infrastructure.browser_playwright_async import BrowserAdapterPlaywrightAsync
 
@@ -157,8 +160,9 @@ async def test_real_yc_page():
 
     finally:
         await asyncio.sleep(5)
-        if hasattr(browser, 'close'):
+        if hasattr(browser, "close"):
             browser.close()
+
 
 async def main():
     """Run tests"""
@@ -173,6 +177,7 @@ async def main():
         await test_real_yc_page()
     else:
         await test_message_flow()
+
 
 if __name__ == "__main__":
     asyncio.run(main())
