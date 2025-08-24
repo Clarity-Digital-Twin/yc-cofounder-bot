@@ -68,7 +68,7 @@ def is_shadow_mode() -> bool:
 
 def is_openai_enabled() -> bool:
     """Whether OpenAI integration is enabled.
-    
+
     Requires BOTH the flag to be set AND an API key to be present.
     """
     return (

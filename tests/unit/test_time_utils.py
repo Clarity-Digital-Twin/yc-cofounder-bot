@@ -1,9 +1,9 @@
 """Unit tests for time_utils module."""
 
 from datetime import datetime, timezone
+from unittest.mock import patch
 
 UTC = timezone.utc  # Python 3.10 compatibility
-from unittest.mock import patch
 
 from yc_matcher.infrastructure.utils.time_utils import (
     format_for_display,

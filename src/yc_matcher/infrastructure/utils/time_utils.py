@@ -59,7 +59,7 @@ def parse_timestamp(timestamp_str: str | int | float | datetime) -> datetime | N
             return timestamp_str
 
         # Handle Unix timestamps
-        if isinstance(timestamp_str, (int, float)):
+        if isinstance(timestamp_str, int | float):
             return datetime.fromtimestamp(timestamp_str, tz=UTC)
 
         # Handle strings
