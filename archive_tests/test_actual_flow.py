@@ -123,7 +123,7 @@ def print_event_log():
                         print(f"   ➡️  {event_type}: {event}")
                     else:
                         print(f"      {event_type}: {event}")
-                except:
+                except Exception:
                     print(f"      {line.strip()}")
 
 def test_browser_methods_directly():

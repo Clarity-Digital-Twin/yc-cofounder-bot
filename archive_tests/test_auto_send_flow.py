@@ -201,7 +201,7 @@ def analyze_pipeline_log(log_path: str):
             if line.strip():
                 try:
                     events.append(json.loads(line))
-                except:
+                except Exception:
                     pass
 
     if not events:

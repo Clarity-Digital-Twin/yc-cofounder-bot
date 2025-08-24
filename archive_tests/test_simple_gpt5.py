@@ -17,7 +17,7 @@ if env_file.exists():
 
 sys.path.insert(0, 'src')
 
-from openai import OpenAI
+from openai import OpenAI  # noqa: E402
 
 client = OpenAI()
 model = os.getenv("OPENAI_DECISION_MODEL", "gpt-5")

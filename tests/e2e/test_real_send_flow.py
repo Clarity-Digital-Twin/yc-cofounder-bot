@@ -264,7 +264,7 @@ class TestRealSendFlow:
                 if line.strip():
                     try:
                         events.append(json.loads(line))
-                    except:
+                    except json.JSONDecodeError:
                         pass
 
         # Get latest run

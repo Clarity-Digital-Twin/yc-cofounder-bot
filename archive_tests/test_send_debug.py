@@ -118,7 +118,7 @@ def main():
                 page = base_browser._ensure_page()
                 if page:
                     print(f"   Current URL: {page.url}")
-            except:
+            except Exception:
                 pass
 
         print("   Please manually:")
@@ -268,7 +268,7 @@ def analyze_events(log_path, run_id):
                     event = json.loads(line)
                     if event.get("run_id") == run_id:
                         events.append(event)
-                except:
+                except Exception:
                     pass
 
     # Expected pipeline events

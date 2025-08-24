@@ -279,7 +279,7 @@ def analyze_pipeline_log():
             if line.strip():
                 try:
                     events.append(json.loads(line))
-                except:
+                except Exception:
                     pass
 
     # Find the latest run

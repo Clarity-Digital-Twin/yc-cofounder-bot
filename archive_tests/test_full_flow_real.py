@@ -315,7 +315,7 @@ def analyze_pipeline(log_path, run_id):
                     event = json.loads(line)
                     if event.get("run_id") == run_id:
                         events.append(event)
-                except:
+                except Exception:
                     pass
 
     # The complete pipeline
