@@ -18,9 +18,9 @@ logging.basicConfig(
 # Add src to path
 sys.path.insert(0, 'src')
 
-from yc_matcher.infrastructure.browser_playwright import PlaywrightBrowser
-from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
-from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
+from yc_matcher.infrastructure.browser_playwright import PlaywrightBrowser  # noqa: E402
+from yc_matcher.infrastructure.jsonl_logger import JSONLLogger  # noqa: E402
+from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser  # noqa: E402
 
 
 class MessageFlowDebugger:
