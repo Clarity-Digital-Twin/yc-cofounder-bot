@@ -46,11 +46,15 @@ def resolve_best_decision_model(client: Any) -> str:
         print(f"✅ Found GPT-5 variant: {selected}")
         return str(selected)
 
-    # 3. Fallback to GPT-4 (per contract section 3)
+    # 3. Fallback to GPT-4o (current GPT-4 class model)
     gpt4_variants = [m for m in ids if m.lower().startswith("gpt-4")]
     if gpt4_variants:
-        # Prefer standard gpt-4 over variants
-        if "gpt-4" in gpt4_variants:
+        # Prefer gpt-4o > gpt-4o-mini > gpt-4
+        if "gpt-4o" in gpt4_variants:
+            selected = "gpt-4o"
+        elif "gpt-4o-mini" in gpt4_variants:
+            selected = "gpt-4o-mini"
+        elif "gpt-4" in gpt4_variants:
             selected = "gpt-4"
         else:
             selected = sorted(gpt4_variants)[0]
