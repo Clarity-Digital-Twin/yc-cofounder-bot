@@ -4,7 +4,7 @@ Implements the 10-event trace pattern to diagnose send failures.
 """
 
 import hashlib
-from datetime import datetime
+from .time_utils import utc_isoformat
 from typing import Any
 from uuid import uuid4
 
@@ -28,7 +28,7 @@ class SendPipelineObserver:
             "event": event,
             "run_id": self.run_id,
             "profile_seq": self.profile_seq,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": utc_isoformat(),
             **data
         })
 
