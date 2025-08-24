@@ -57,7 +57,7 @@ class TestRecentEventsPanel:
         # Assert - Should show empty state message (but actually renders inside expander)
         # When file is empty, it shows "No events in the last hour"
         mock_st.info.assert_called_with(
-            "No events in the last hour. Events are cleared after 1 hour."
+            "No events in the last hour. Only showing recent events (1 hour window)."
         )
 
     @patch("yc_matcher.interface.web.ui_streamlit.st")
