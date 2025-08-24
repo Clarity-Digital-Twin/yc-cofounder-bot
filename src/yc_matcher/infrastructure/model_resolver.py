@@ -13,10 +13,10 @@ from typing import Any
 def resolve_best_decision_model(client: Any) -> str:
     """Discover best GPT-5 model via Models API.
 
-    Fallback chain:
-    1. GPT-5 thinking variants (gpt-5-thinking, etc.)
-    2. Any GPT-5 model
-    3. GPT-4 variants (gpt-4o, gpt-4.1, etc.)
+    Fallback chain per API_CONTRACT_RESPONSES.md section 1-3:
+    1. GPT-5 standard model
+    2. GPT-5 variants (mini, nano)
+    3. GPT-4 as fallback (Chat Completions only)
     4. Raise error if no suitable model
 
     Args:
@@ -34,7 +34,7 @@ def resolve_best_decision_model(client: Any) -> str:
     except Exception as e:
         raise RuntimeError(f"Failed to list models: {e}") from e
 
-    # 1. Try standard GPT-5 first (NOT gpt-5-thinking which doesn't exist!)
+    # 1. Try standard GPT-5 first (per contract section 1)
     if "gpt-5" in ids:
         print("✅ Found GPT-5 model!")
         return "gpt-5"
@@ -46,11 +46,14 @@ def resolve_best_decision_model(client: Any) -> str:
         print(f"✅ Found GPT-5 variant: {selected}")
         return str(selected)
 
-    # 3. Fallback to GPT-4 variants (despite user preference for GPT-5)
+    # 3. Fallback to GPT-4 (per contract section 3)
     gpt4_variants = [m for m in ids if m.lower().startswith("gpt-4")]
     if gpt4_variants:
-        # Sort to get newest (gpt-4o, gpt-4.1, etc)
-        selected = sorted(gpt4_variants, reverse=True)[0]
+        # Prefer standard gpt-4 over variants
+        if "gpt-4" in gpt4_variants:
+            selected = "gpt-4"
+        else:
+            selected = sorted(gpt4_variants)[0]
         print(f"⚠️ No GPT-5 available, using GPT-4 fallback: {selected}")
         return str(selected)
 

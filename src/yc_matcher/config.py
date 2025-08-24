@@ -40,9 +40,9 @@ def get_decision_model() -> str:
     Precedence:
     1. DECISION_MODEL_RESOLVED (from runtime discovery)
     2. OPENAI_DECISION_MODEL (from .env)
-    3. Default to gpt-4o
+    3. Default to gpt-4 (per API_CONTRACT_RESPONSES.md section 3)
     """
-    return os.getenv("DECISION_MODEL_RESOLVED") or os.getenv("OPENAI_DECISION_MODEL") or "gpt-4o"
+    return os.getenv("DECISION_MODEL_RESOLVED") or os.getenv("OPENAI_DECISION_MODEL") or "gpt-4"
 
 
 def get_cua_model() -> str | None:
