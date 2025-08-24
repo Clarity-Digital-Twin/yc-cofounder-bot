@@ -141,14 +141,23 @@ class OpenAIDecisionAdapter(DecisionPort):
             # Define API call functions for retry wrapper
             def call_gpt5() -> tuple[Any, str]:
                 # Try with all optional params first, fall back if they error
+                # Use config values for GPT-5 parameters
+                max_tokens = config.get_gpt5_max_tokens() if self.model.startswith("gpt-5") else 800
+                temperature = config.get_gpt5_temperature() if self.model.startswith("gpt-5") else 0.3
+                top_p = config.get_gpt5_top_p() if self.model.startswith("gpt-5") else 0.9
+                
                 params = {
                     "model": self.model,
                     "input": [
                         {"role": "system", "content": sys_prompt},
                         {"role": "user", "content": user_text},
                     ],
-                    "max_output_tokens": 800,  # Required for Responses API
-                    "verbosity": "low",  # Discourage reasoning-only responses
+                    "max_output_tokens": max_tokens,  # Configurable via GPT5_MAX_TOKENS
+                    "temperature": temperature,  # Configurable via GPT5_TEMPERATURE
+                    "top_p": top_p,  # Configurable via GPT5_TOP_P
+                    "truncation": "auto",  # Handle long contexts gracefully
+                    "store": True,  # Save response for retrieval
+                    "service_tier": config.get_service_tier(),  # Configurable via SERVICE_TIER
                 }
 
                 # Try with response_format first (per contract section 6)
@@ -178,7 +187,6 @@ class OpenAIDecisionAdapter(DecisionPort):
                             },
                         },
                     }
-                    params["temperature"] = 0.3  # Optional per contract section 7
 
                     r = self.client.responses.create(**params)
 
@@ -194,10 +202,10 @@ class OpenAIDecisionAdapter(DecisionPort):
                             }
                         )
 
-                    # Remove ALL optional params on any error
-                    params.pop("response_format", None)
-                    params.pop("temperature", None)  # Always remove temperature on error
-                    params.pop("verbosity", None)  # Remove verbosity too
+                    # Remove only unsupported params on error
+                    params.pop("response_format", None)  # May not be in SDK yet
+                    params.pop("verbosity", None)  # Not in params anymore
+                    # Keep temperature, top_p, truncation, store - all supported per Context7
 
                     # Add prompt instruction for JSON
                     input_list = params["input"]

@@ -159,3 +159,28 @@ def get_log_level() -> str:
 def get_playwright_browsers_path() -> str | None:
     """Get the path where Playwright browsers are installed."""
     return os.getenv("PLAYWRIGHT_BROWSERS_PATH")
+
+
+# ============================================================================
+# GPT-5 SPECIFIC CONFIGURATION (Context7-verified parameters)
+# ============================================================================
+
+
+def get_gpt5_max_tokens() -> int:
+    """Get max output tokens for GPT-5 (up to 128,000 per Context7 docs)."""
+    return int(os.getenv("GPT5_MAX_TOKENS", "4000"))
+
+
+def get_gpt5_temperature() -> float:
+    """Get temperature for GPT-5 (0-2 range per Context7 docs)."""
+    return float(os.getenv("GPT5_TEMPERATURE", "0.3"))
+
+
+def get_gpt5_top_p() -> float:
+    """Get top_p for GPT-5 nucleus sampling (0-1 range)."""
+    return float(os.getenv("GPT5_TOP_P", "0.9"))
+
+
+def get_service_tier() -> str:
+    """Get service tier for API requests (auto, default, flex, priority)."""
+    return os.getenv("SERVICE_TIER", "auto")
