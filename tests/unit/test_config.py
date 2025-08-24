@@ -73,7 +73,7 @@ class TestConfigModule:
         for val in truthy_values:
             with patch.dict(os.environ, {"SHADOW_MODE": val}):
                 assert config.is_shadow_mode() is True, f"Failed for value: {val}"
-                
+
         for val in falsy_values:
             with patch.dict(os.environ, {"SHADOW_MODE": val}):
                 assert config.is_shadow_mode() is False, f"Failed for value: {val}"
@@ -83,7 +83,7 @@ class TestConfigModule:
         with patch.dict(os.environ, {"DAILY_QUOTA": "invalid"}):
             with pytest.raises(ValueError):
                 config.get_daily_quota()
-            
+
         with patch.dict(os.environ, {"CUA_MAX_TURNS": "abc"}):
             with pytest.raises(ValueError):
                 config.get_cua_max_turns()
@@ -114,10 +114,10 @@ class TestConfigModule:
         """Test that OpenAI is only enabled when API key is present."""
         with patch.dict(os.environ, {}, clear=True):
             assert config.is_openai_enabled() is False  # No API key, no flag
-            
+
         with patch.dict(os.environ, {"OPENAI_API_KEY": "sk-test"}):
             assert config.is_openai_enabled() is False  # Has API key but no flag
-            
+
         with patch.dict(os.environ, {"ENABLE_OPENAI": "1", "OPENAI_API_KEY": "sk-test"}):
             assert config.is_openai_enabled() is True  # Has both AND flag
 
@@ -127,7 +127,7 @@ class TestConfigModule:
             credentials = config.get_yc_credentials()
             assert credentials[0] == ""  # Empty string returned as-is
             assert credentials[1] == ""
-            
+
         with patch.dict(os.environ, {"CUA_MODEL": "", "OPENAI_DECISION_MODEL": ""}):
             assert config.get_cua_model() == ""  # Empty string returned as-is
             assert config.get_decision_model() == "gpt-4o"  # Default per config.py (empty string triggers default)
@@ -140,7 +140,7 @@ class TestConfigModule:
             assert config.get_gpt5_temperature() == 0.3
             assert config.get_gpt5_top_p() == 0.9
             assert config.get_service_tier() == "auto"
-        
+
         # Test custom values
         with patch.dict(os.environ, {
             "GPT5_MAX_TOKENS": "8000",

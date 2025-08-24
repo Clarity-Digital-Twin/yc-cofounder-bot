@@ -1,9 +1,7 @@
 """Unit tests for time_utils module."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import patch
-
-import pytest
 
 from yc_matcher.infrastructure.utils.time_utils import (
     format_for_display,
@@ -21,7 +19,7 @@ class TestTimeUtils:
         # Unix timestamp for 2024-01-15 10:30:00 UTC
         timestamp = 1705318200
         result = parse_timestamp(timestamp)
-        
+
         assert isinstance(result, datetime)
         assert result.year == 2024
         assert result.month == 1
@@ -31,7 +29,7 @@ class TestTimeUtils:
         """Test parsing ISO format string."""
         timestamp = "2024-01-15T10:30:00Z"
         result = parse_timestamp(timestamp)
-        
+
         assert isinstance(result, datetime)
         assert result.year == 2024
         assert result.month == 1
@@ -41,9 +39,9 @@ class TestTimeUtils:
 
     def test_parse_timestamp_with_datetime(self) -> None:
         """Test passing datetime object directly."""
-        dt = datetime(2024, 1, 15, 10, 30, 0, tzinfo=timezone.utc)
+        dt = datetime(2024, 1, 15, 10, 30, 0, tzinfo=UTC)
         result = parse_timestamp(dt)
-        
+
         assert result == dt
 
     def test_parse_timestamp_invalid_input(self) -> None:
@@ -51,7 +49,7 @@ class TestTimeUtils:
         # Invalid string
         result = parse_timestamp("not-a-date")
         assert result is None
-        
+
         # Invalid type
         result = parse_timestamp({"key": "value"})
         assert result is None
@@ -61,21 +59,21 @@ class TestTimeUtils:
         # Unix timestamp for 2024-01-15 10:30:00 UTC
         timestamp = 1705318200
         result = unix_to_datetime(timestamp)
-        
+
         assert isinstance(result, datetime)
-        assert result.tzinfo == timezone.utc
+        assert result.tzinfo == UTC
         assert result.year == 2024
         assert result.month == 1
         assert result.day == 15
 
     def test_format_for_display(self) -> None:
         """Test formatting datetime for display."""
-        dt = datetime(2024, 1, 15, 10, 30, 45, tzinfo=timezone.utc)
-        
+        dt = datetime(2024, 1, 15, 10, 30, 45, tzinfo=UTC)
+
         # Test default format
         result = format_for_display(dt)
         assert "10:30:45" in result
-        
+
         # Test custom format
         result = format_for_display(dt, fmt="%Y-%m-%d")
         assert result == "2024-01-15"
@@ -88,20 +86,20 @@ class TestTimeUtils:
     def test_is_within_hours(self) -> None:
         """Test checking if datetime is within hours."""
         # Mock current time as 2024-01-15 12:00:00 UTC
-        mock_now = datetime(2024, 1, 15, 12, 0, 0, tzinfo=timezone.utc)
-        
+        mock_now = datetime(2024, 1, 15, 12, 0, 0, tzinfo=UTC)
+
         with patch("yc_matcher.infrastructure.utils.time_utils.datetime") as mock_datetime:
             mock_datetime.now.return_value = mock_now
             mock_datetime.fromisoformat = datetime.fromisoformat
-            
+
             # 30 minutes ago - should be within 1 hour
-            recent_dt = datetime(2024, 1, 15, 11, 30, 0, tzinfo=timezone.utc)
+            recent_dt = datetime(2024, 1, 15, 11, 30, 0, tzinfo=UTC)
             assert is_within_hours(recent_dt, hours=1) is True
-            
+
             # 2 hours ago - should not be within 1 hour
-            old_dt = datetime(2024, 1, 15, 10, 0, 0, tzinfo=timezone.utc)
+            old_dt = datetime(2024, 1, 15, 10, 0, 0, tzinfo=UTC)
             assert is_within_hours(old_dt, hours=1) is False
-            
+
             # 2 hours ago - should be within 3 hours
             assert is_within_hours(old_dt, hours=3) is True
 
@@ -113,7 +111,7 @@ class TestTimeUtils:
         """Test is_within_hours with naive datetime."""
         # Naive datetime (no timezone)
         naive_dt = datetime(2024, 1, 15, 10, 30, 0)
-        
+
         # Should handle gracefully
         result = is_within_hours(naive_dt)
         assert isinstance(result, bool)

@@ -145,7 +145,7 @@ class OpenAIDecisionAdapter(DecisionPort):
                 max_tokens = config.get_gpt5_max_tokens() if self.model.startswith("gpt-5") else 800
                 temperature = config.get_gpt5_temperature() if self.model.startswith("gpt-5") else 0.3
                 top_p = config.get_gpt5_top_p() if self.model.startswith("gpt-5") else 0.9
-                
+
                 # Build params according to Context7 documentation
                 params = {
                     "model": self.model,
@@ -160,7 +160,7 @@ class OpenAIDecisionAdapter(DecisionPort):
                     "store": True,  # Save response for retrieval
                     "service_tier": config.get_service_tier(),  # Configurable via SERVICE_TIER
                 }
-                
+
                 # Add verbosity in text object per Context7 docs
                 if self.model.startswith("gpt-5"):
                     params["text"] = {

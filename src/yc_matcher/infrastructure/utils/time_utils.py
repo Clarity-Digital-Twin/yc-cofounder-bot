@@ -9,10 +9,10 @@ Professional teams always:
 This module ensures all timestamps in the codebase are handled consistently.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 # Python 3.10 compatibility - UTC was added in 3.11
-UTC = timezone.utc
+UTC = UTC
 
 
 def utc_now() -> datetime:
@@ -57,11 +57,11 @@ def parse_timestamp(timestamp_str: str | int | float | datetime) -> datetime | N
             if timestamp_str.tzinfo is None:
                 return timestamp_str.replace(tzinfo=UTC)
             return timestamp_str
-        
+
         # Handle Unix timestamps
         if isinstance(timestamp_str, (int, float)):
             return datetime.fromtimestamp(timestamp_str, tz=UTC)
-        
+
         # Handle strings
         if isinstance(timestamp_str, str):
             if timestamp_str.endswith("Z"):
@@ -75,7 +75,7 @@ def parse_timestamp(timestamp_str: str | int | float | datetime) -> datetime | N
                 dt = dt.replace(tzinfo=UTC)
 
             return dt
-        
+
         # Invalid type - return None
         return None
     except (ValueError, TypeError, AttributeError):
@@ -95,7 +95,7 @@ def is_within_hours(timestamp: datetime | None, hours: float = 1.0) -> bool:
     """
     if timestamp is None:
         return False
-    
+
     # Ensure timestamp is timezone-aware
     if timestamp.tzinfo is None:
         timestamp = timestamp.replace(tzinfo=UTC)
@@ -116,7 +116,7 @@ def format_for_display(timestamp: datetime | None, fmt: str = "%Y-%m-%d %H:%M:%S
     """
     if timestamp is None:
         return "N/A"
-    
+
     # Could convert to local time here if needed
     # For now, we'll display UTC with indicator
     if timestamp.tzinfo is None:
