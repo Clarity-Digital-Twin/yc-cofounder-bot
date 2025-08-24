@@ -1,8 +1,8 @@
 import json
 from pathlib import Path
 
-from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
-from yc_matcher.infrastructure.logger_stamped import LoggerWithStamps
+from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger
+from yc_matcher.infrastructure.logging.stamped_logger import LoggerWithStamps
 
 
 def test_logger_stamps_versions_and_preset(tmp_path: Path):

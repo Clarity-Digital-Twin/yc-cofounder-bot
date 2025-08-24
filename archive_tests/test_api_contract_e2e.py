@@ -48,8 +48,8 @@ def test_decision_call_contract():
     from openai import OpenAI
 
     from yc_matcher.domain.entities import Criteria, Profile
-    from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
-    from yc_matcher.infrastructure.openai_decision import OpenAIDecisionAdapter
+    from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger
+    from yc_matcher.infrastructure.ai.openai_decision import OpenAIDecisionAdapter
 
     # Setup
     log_path = Path(".runs/contract_test.jsonl")

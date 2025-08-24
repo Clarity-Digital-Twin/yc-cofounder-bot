@@ -24,19 +24,19 @@ def test_send_message_flow():
     print("=" * 60)
 
     from yc_matcher.application.use_cases import SendMessage
-    from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
-    from yc_matcher.infrastructure.sqlite_quota import SqliteQuotaAdapter
-    from yc_matcher.infrastructure.stop_flag import StopFlagAdapter
+    from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger
+    from yc_matcher.infrastructure.persistence.sqlite_quota import SqliteQuotaAdapter
+    from yc_matcher.infrastructure.control.stop_flag import StopFlagAdapter
 
     # Choose browser based on ENABLE_CUA
     if os.getenv("ENABLE_CUA") == "1":
         print("Using CUA Browser...")
-        from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
+        from yc_matcher.infrastructure.browser.openai_cua import OpenAICUABrowser
 
         browser = OpenAICUABrowser()
     else:
         print("Using Playwright Browser...")
-        from yc_matcher.infrastructure.browser_playwright_async import PlaywrightBrowserAsync
+        from yc_matcher.infrastructure.browser.playwright_async import PlaywrightBrowserAsync
 
         browser = PlaywrightBrowserAsync()
 
@@ -134,12 +134,12 @@ def test_browser_methods_directly():
     print("=" * 60)
 
     if os.getenv("ENABLE_CUA") == "1":
-        from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
+        from yc_matcher.infrastructure.browser.openai_cua import OpenAICUABrowser
 
         browser = OpenAICUABrowser()
         print("Using CUA Browser")
     else:
-        from yc_matcher.infrastructure.browser_playwright_async import PlaywrightBrowserAsync
+        from yc_matcher.infrastructure.browser.playwright_async import PlaywrightBrowserAsync
 
         browser = PlaywrightBrowserAsync()
         print("Using Playwright Browser")

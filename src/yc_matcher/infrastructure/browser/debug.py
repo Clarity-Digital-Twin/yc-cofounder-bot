@@ -8,7 +8,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from .time_utils import utc_isoformat, utc_now
+from ..utils.time_utils import utc_isoformat, utc_now
 
 
 class BrowserDebugger:

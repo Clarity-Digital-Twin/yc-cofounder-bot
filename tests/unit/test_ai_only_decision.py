@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from yc_matcher.domain.entities import Criteria, Profile
-from yc_matcher.infrastructure.openai_decision import OpenAIDecisionAdapter
+from yc_matcher.infrastructure.ai.openai_decision import OpenAIDecisionAdapter
 
 
 class TestAIOnlyDecision:

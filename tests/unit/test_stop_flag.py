@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from yc_matcher.infrastructure.stop_flag import FileStopFlag
+from yc_matcher.infrastructure.control.stop_flag import FileStopFlag
 
 
 def test_file_stop_flag_roundtrip(tmp_path: Path):

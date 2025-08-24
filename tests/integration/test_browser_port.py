@@ -5,7 +5,7 @@ pytest.importorskip("playwright.sync_api", reason="Playwright not installed")
 
 @pytest.mark.integration
 def test_adapter_exposes_expected_methods():
-    from yc_matcher.infrastructure.browser_playwright import PlaywrightBrowser
+    from yc_matcher.infrastructure.browser.playwright_sync import PlaywrightBrowser
 
     b = PlaywrightBrowser()
     for name in (
@@ -43,7 +43,7 @@ HTML = """
 
 @pytest.mark.integration
 def test_smoke_local_html(tmp_path, monkeypatch):
-    from yc_matcher.infrastructure.browser_playwright import PlaywrightBrowser
+    from yc_matcher.infrastructure.browser.playwright_sync import PlaywrightBrowser
 
     monkeypatch.setenv("PLAYWRIGHT_HEADLESS", "1")
     html_path = tmp_path / "page.html"

@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
+from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger
 
 
 def test_jsonl_logger_writes_event(tmp_path: Path):

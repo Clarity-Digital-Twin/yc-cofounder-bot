@@ -12,11 +12,11 @@ from yc_matcher.application.autonomous_flow import AutonomousFlow
 from yc_matcher.application.use_cases import ProcessCandidate
 from yc_matcher.config import load_settings
 from yc_matcher.domain.entities import Criteria, Profile
-from yc_matcher.infrastructure.sqlite_quota import SQLiteDailyWeeklyQuota
-from yc_matcher.infrastructure.sqlite_repo import SQLiteSeenRepo
-from yc_matcher.infrastructure.stop_flag import FileStopFlag
-from yc_matcher.infrastructure.storage import read_count
-from yc_matcher.infrastructure.template_loader import load_default_template
+from yc_matcher.infrastructure.persistence.sqlite_quota import SQLiteDailyWeeklyQuota
+from yc_matcher.infrastructure.persistence.sqlite_repo import SQLiteSeenRepo
+from yc_matcher.infrastructure.control.stop_flag import FileStopFlag
+from yc_matcher.infrastructure.persistence.storage import read_count
+from yc_matcher.infrastructure.utils.template_loader import load_default_template
 from yc_matcher.interface.di import build_services
 
 # Load environment variables from .env file

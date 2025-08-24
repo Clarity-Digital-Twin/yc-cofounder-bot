@@ -50,8 +50,8 @@ def test_openai_decision_only():
     from openai import OpenAI
 
     from yc_matcher.domain.entities import Criteria, Profile
-    from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
-    from yc_matcher.infrastructure.openai_decision import OpenAIDecisionAdapter
+    from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger
+    from yc_matcher.infrastructure.ai.openai_decision import OpenAIDecisionAdapter
 
     # Setup logger
     log_path = Path(".runs/temperature_test.jsonl")
@@ -193,10 +193,10 @@ def test_full_pipeline():
     print("=" * 60)
 
     from yc_matcher.domain.entities import Criteria, Profile
-    from yc_matcher.infrastructure.browser_observable import ObservableBrowser
-    from yc_matcher.infrastructure.browser_playwright_async import PlaywrightBrowserAsync
-    from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
-    from yc_matcher.infrastructure.send_pipeline_observer import SendPipelineObserver
+    from yc_matcher.infrastructure.browser.observable import ObservableBrowser
+    from yc_matcher.infrastructure.browser.playwright_async import PlaywrightBrowserAsync
+    from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger
+    from yc_matcher.infrastructure.logging.pipeline_observer import SendPipelineObserver
 
     # Setup
     log_path = Path(".runs/full_pipeline_test.jsonl")
@@ -254,7 +254,7 @@ def test_full_pipeline():
     print("\n5️⃣  GETTING OPENAI EVALUATION...")
     from openai import OpenAI
 
-    from yc_matcher.infrastructure.openai_decision import OpenAIDecisionAdapter
+    from yc_matcher.infrastructure.ai.openai_decision import OpenAIDecisionAdapter
 
     client = OpenAI()
     decision_adapter = OpenAIDecisionAdapter(client, logger=logger)

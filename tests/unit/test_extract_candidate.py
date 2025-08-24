@@ -5,7 +5,7 @@ Following TDD: Test that browser detects and handles being on profile page.
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from yc_matcher.infrastructure.browser_playwright_async import PlaywrightBrowserAsync
+from yc_matcher.infrastructure.browser.playwright_async import PlaywrightBrowserAsync
 
 
 class TestExtractCandidate:

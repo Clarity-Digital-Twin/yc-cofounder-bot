@@ -32,7 +32,7 @@ def test_model_resolution():
     os.environ.pop("CUA_MODEL_RESOLVED", None)
 
     # Import and run resolver
-    from yc_matcher.infrastructure.model_resolver import resolve_and_set_models
+    from yc_matcher.infrastructure.ai.model_resolver import resolve_and_set_models
 
     print("\n1️⃣ Running model discovery...")
     try:
@@ -64,7 +64,7 @@ def test_model_resolution():
     print("\n3️⃣ Testing Decision Adapter...")
     from openai import OpenAI
 
-    from yc_matcher.infrastructure.openai_decision import OpenAIDecisionAdapter
+    from yc_matcher.infrastructure.ai.openai_decision import OpenAIDecisionAdapter
 
     client = OpenAI()
     adapter = OpenAIDecisionAdapter(client=client)
@@ -81,7 +81,7 @@ def test_model_resolution():
     if cua_resolved:
         print("\n4️⃣ Testing CUA Adapter...")
         try:
-            from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
+            from yc_matcher.infrastructure.browser.openai_cua import OpenAICUABrowser
 
             cua = OpenAICUABrowser()
 

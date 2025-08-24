@@ -12,8 +12,8 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from yc_matcher.infrastructure.browser_playwright import PlaywrightBrowser
-from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
+from yc_matcher.infrastructure.browser.playwright_sync import PlaywrightBrowser
+from yc_matcher.infrastructure.browser.openai_cua import OpenAICUABrowser
 
 
 class TestLoginFlowIntegration:

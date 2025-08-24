@@ -34,7 +34,7 @@ def test_gpt5_decision():
     from openai import OpenAI
 
     from yc_matcher.domain.entities import Criteria, Profile
-    from yc_matcher.infrastructure.openai_decision import OpenAIDecisionAdapter
+    from yc_matcher.infrastructure.ai.openai_decision import OpenAIDecisionAdapter
 
     # ========================================
     # YOUR PROFILE (who you are)
@@ -150,7 +150,7 @@ def test_gpt5_decision():
     print(f"\nUsing model: {model}")
 
     # Create adapter
-    from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
+    from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger
 
     logger = JSONLLogger(Path(".runs/gpt5_test.jsonl"))
     adapter = OpenAIDecisionAdapter(client, logger=logger)

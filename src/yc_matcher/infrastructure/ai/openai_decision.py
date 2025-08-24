@@ -6,7 +6,7 @@ from typing import Any
 from .. import config
 from ..application.ports import DecisionPort, LoggerPort
 from ..domain.entities import Criteria, Profile
-from .error_recovery import RetryWithBackoff
+from ..control.error_recovery import RetryWithBackoff
 
 
 def _validate_decision(d: dict[str, Any]) -> tuple[bool, str | None]:

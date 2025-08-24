@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from yc_matcher.infrastructure.sqlite_repo import SQLiteSeenRepo
+from yc_matcher.infrastructure.persistence.sqlite_repo import SQLiteSeenRepo
 
 
 def test_sqlite_seen_repo_roundtrip(tmp_path: Path):

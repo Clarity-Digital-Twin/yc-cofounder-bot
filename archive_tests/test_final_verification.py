@@ -40,8 +40,8 @@ def test_gpt5_with_validation():
     from openai import OpenAI
 
     from yc_matcher.domain.entities import Criteria, Profile
-    from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
-    from yc_matcher.infrastructure.openai_decision import OpenAIDecisionAdapter
+    from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger
+    from yc_matcher.infrastructure.ai.openai_decision import OpenAIDecisionAdapter
 
     log_path = Path(".runs/final_test.jsonl")
     log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -163,7 +163,7 @@ def test_json_schema():
         return False
 
     # Test validator
-    from yc_matcher.infrastructure.openai_decision import _validate_decision
+    from yc_matcher.infrastructure.ai.openai_decision import _validate_decision
 
     # Test valid
     valid = {

@@ -26,8 +26,8 @@ async def test_message_flow():
 
     # 1. Test with Playwright adapter (visible browser)
     print("\n🔧 Testing with Playwright Browser Adapter...")
-    from yc_matcher.infrastructure.browser_playwright_async import BrowserAdapterPlaywrightAsync
-    from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
+    from yc_matcher.infrastructure.browser.playwright_async import BrowserAdapterPlaywrightAsync
+    from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger
 
     browser = BrowserAdapterPlaywrightAsync()
     logger = JSONLLogger(".runs/e2e_test.jsonl")
@@ -129,7 +129,7 @@ async def test_real_yc_page():
     print("TESTING WITH REAL YC PAGE")
     print("=" * 60)
 
-    from yc_matcher.infrastructure.browser_playwright_async import BrowserAdapterPlaywrightAsync
+    from yc_matcher.infrastructure.browser.playwright_async import BrowserAdapterPlaywrightAsync
 
     browser = BrowserAdapterPlaywrightAsync()
 

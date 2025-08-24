@@ -37,9 +37,9 @@ class TestEndToEndFlow:
     def test_full_flow_with_shadow_mode(self) -> None:
         """Test complete flow: UI input → evaluation → (no send in shadow)."""
         from yc_matcher.application.autonomous_flow import AutonomousFlow
-        from yc_matcher.infrastructure.sqlite_quota import SQLiteDailyWeeklyQuota
-        from yc_matcher.infrastructure.sqlite_repo import SQLiteSeenRepo
-        from yc_matcher.infrastructure.stop_flag import FileStopFlag
+        from yc_matcher.infrastructure.persistence.sqlite_quota import SQLiteDailyWeeklyQuota
+        from yc_matcher.infrastructure.persistence.sqlite_repo import SQLiteSeenRepo
+        from yc_matcher.infrastructure.control.stop_flag import FileStopFlag
         from yc_matcher.interface.di import build_services
 
         # Build services with test inputs
@@ -103,7 +103,7 @@ class TestEndToEndFlow:
         """Test that stop flag immediately stops processing."""
         from yc_matcher.application.use_cases import ProcessCandidate
         from yc_matcher.domain.entities import Criteria
-        from yc_matcher.infrastructure.stop_flag import FileStopFlag
+        from yc_matcher.infrastructure.control.stop_flag import FileStopFlag
 
         # Create stop flag
         stop_flag_path = tmp_path / "stop.flag"
@@ -139,7 +139,7 @@ class TestEndToEndFlow:
 
     def test_quota_enforcement(self, tmp_path: Path) -> None:
         """Test that quotas are enforced."""
-        from yc_matcher.infrastructure.sqlite_quota import SQLiteDailyWeeklyQuota
+        from yc_matcher.infrastructure.persistence.sqlite_quota import SQLiteDailyWeeklyQuota
 
         quota = SQLiteDailyWeeklyQuota(tmp_path / "quota.sqlite")
 
@@ -150,7 +150,7 @@ class TestEndToEndFlow:
 
     def test_seen_deduplication(self, tmp_path: Path) -> None:
         """Test that profiles are never messaged twice."""
-        from yc_matcher.infrastructure.sqlite_repo import SQLiteSeenRepo
+        from yc_matcher.infrastructure.persistence.sqlite_repo import SQLiteSeenRepo
 
         seen = SQLiteSeenRepo(tmp_path / "seen.sqlite")
 
@@ -169,7 +169,7 @@ class TestEndToEndFlow:
         """Test that events are logged in correct order."""
         import json
 
-        from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
+        from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger
 
         log_path = tmp_path / "events.jsonl"
         logger = JSONLLogger(log_path)

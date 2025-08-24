@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .storage import read_count, write_count
+from ..persistence.storage import read_count, write_count
 
 
 class FileQuota:

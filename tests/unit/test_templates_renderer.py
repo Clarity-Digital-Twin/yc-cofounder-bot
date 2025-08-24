@@ -1,4 +1,4 @@
-from yc_matcher.infrastructure.templates import MAX_CHARS, TemplateRenderer
+from yc_matcher.infrastructure.utils.templates import MAX_CHARS, TemplateRenderer
 
 
 def test_template_renderer_slots_and_bans_and_clamps():

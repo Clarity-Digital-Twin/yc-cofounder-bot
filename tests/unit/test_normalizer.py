@@ -1,4 +1,4 @@
-from yc_matcher.infrastructure.normalize import hash_profile_text, normalize_profile_text
+from yc_matcher.infrastructure.utils.normalize import hash_profile_text, normalize_profile_text
 
 
 def test_normalizer_collapses_space_case_and_punct():

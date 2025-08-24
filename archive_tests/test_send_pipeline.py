@@ -30,10 +30,10 @@ def test_pure_playwright_send():
     # Set browser path
     os.environ["PLAYWRIGHT_BROWSERS_PATH"] = ".ms-playwright"
 
-    from yc_matcher.infrastructure.browser_observable import ObservableBrowser
-    from yc_matcher.infrastructure.browser_playwright_async import PlaywrightBrowserAsync
-    from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
-    from yc_matcher.infrastructure.send_pipeline_observer import SendPipelineObserver
+    from yc_matcher.infrastructure.browser.observable import ObservableBrowser
+    from yc_matcher.infrastructure.browser.playwright_async import PlaywrightBrowserAsync
+    from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger
+    from yc_matcher.infrastructure.logging.pipeline_observer import SendPipelineObserver
 
     # Setup
     logger = JSONLLogger(".runs/pipeline_test.jsonl")
@@ -81,9 +81,9 @@ def test_pure_playwright_send():
 
     # Check gates
     print("\n5. Checking send gates...")
-    from yc_matcher.infrastructure.sqlite_quota import SqliteQuotaAdapter
-    from yc_matcher.infrastructure.sqlite_repo import SqliteRepoAdapter
-    from yc_matcher.infrastructure.stop_flag import StopFlagAdapter
+    from yc_matcher.infrastructure.persistence.sqlite_quota import SqliteQuotaAdapter
+    from yc_matcher.infrastructure.persistence.sqlite_repo import SqliteRepoAdapter
+    from yc_matcher.infrastructure.control.stop_flag import StopFlagAdapter
 
     stop_flag = StopFlagAdapter()
     quota = SqliteQuotaAdapter(".runs/test_quota.sqlite")
@@ -155,10 +155,10 @@ def test_with_real_decision():
     print("=" * 60)
 
     from yc_matcher.domain.entities import Criteria, Profile
-    from yc_matcher.infrastructure.browser_observable import ObservableBrowser
-    from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
-    from yc_matcher.infrastructure.openai_decision import OpenAIDecisionAdapter
-    from yc_matcher.infrastructure.send_pipeline_observer import SendPipelineObserver
+    from yc_matcher.infrastructure.browser.observable import ObservableBrowser
+    from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger
+    from yc_matcher.infrastructure.ai.openai_decision import OpenAIDecisionAdapter
+    from yc_matcher.infrastructure.logging.pipeline_observer import SendPipelineObserver
 
     # Check if OpenAI is configured
     if not os.getenv("OPENAI_API_KEY"):
@@ -171,12 +171,12 @@ def test_with_real_decision():
 
     # Choose browser
     if os.getenv("ENABLE_CUA") == "1":
-        from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
+        from yc_matcher.infrastructure.browser.openai_cua import OpenAICUABrowser
 
         base_browser = OpenAICUABrowser()
         print("Using CUA Browser")
     else:
-        from yc_matcher.infrastructure.browser_playwright_async import PlaywrightBrowserAsync
+        from yc_matcher.infrastructure.browser.playwright_async import PlaywrightBrowserAsync
 
         base_browser = PlaywrightBrowserAsync()
         print("Using Playwright Browser")

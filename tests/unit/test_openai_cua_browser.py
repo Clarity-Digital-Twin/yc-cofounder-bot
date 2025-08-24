@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 # Test the interface we WANT, not what exists
-from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
+from yc_matcher.infrastructure.browser.openai_cua import OpenAICUABrowser
 
 
 class TestOpenAICUABrowserResponsesAPI:

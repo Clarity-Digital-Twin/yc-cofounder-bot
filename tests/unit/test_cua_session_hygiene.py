@@ -3,7 +3,7 @@
 import os
 from unittest.mock import Mock, patch
 
-from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
+from yc_matcher.infrastructure.browser.openai_cua import OpenAICUABrowser
 
 
 class TestCUASessionHygiene:

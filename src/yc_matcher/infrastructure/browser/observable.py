@@ -4,7 +4,7 @@ Observable browser wrapper that adds pipeline tracing to any browser implementat
 
 from typing import Any
 
-from .send_pipeline_observer import SendPipelineObserver
+from ..logging.pipeline_observer import SendPipelineObserver
 
 
 class ObservableBrowser:

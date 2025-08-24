@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from yc_matcher.infrastructure.sqlite_progress import SQLiteProgressRepo
+from yc_matcher.infrastructure.persistence.sqlite_progress import SQLiteProgressRepo
 
 
 def test_progress_repo_roundtrip(tmp_path: Path):

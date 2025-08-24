@@ -46,10 +46,10 @@ def main():
     print("=" * 60)
 
     from yc_matcher.domain.entities import Criteria, Profile
-    from yc_matcher.infrastructure.browser_observable import ObservableBrowser
-    from yc_matcher.infrastructure.browser_playwright_async import PlaywrightBrowserAsync
-    from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
-    from yc_matcher.infrastructure.send_pipeline_observer import SendPipelineObserver
+    from yc_matcher.infrastructure.browser.observable import ObservableBrowser
+    from yc_matcher.infrastructure.browser.playwright_async import PlaywrightBrowserAsync
+    from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger
+    from yc_matcher.infrastructure.logging.pipeline_observer import SendPipelineObserver
 
     # Setup
     log_path = Path(".runs/full_flow_test.jsonl")
@@ -172,7 +172,7 @@ def main():
     # Use the REAL OpenAI decision adapter
     from openai import OpenAI
 
-    from yc_matcher.infrastructure.openai_decision import OpenAIDecisionAdapter
+    from yc_matcher.infrastructure.ai.openai_decision import OpenAIDecisionAdapter
 
     client = OpenAI()  # Uses OPENAI_API_KEY from env
     decision_adapter = OpenAIDecisionAdapter(client, logger=logger)

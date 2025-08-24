@@ -70,7 +70,7 @@ def test_single_browser_instance() -> None:
         mock_openai.return_value = mock_client
 
         # Import AFTER all patches are in place
-        from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
+        from yc_matcher.infrastructure.browser.openai_cua import OpenAICUABrowser
 
         # Create browser instance
         browser = OpenAICUABrowser()

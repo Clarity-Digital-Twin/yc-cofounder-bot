@@ -9,7 +9,7 @@ print("Testing browser launch safety...")
 print("\n1. Test mode (should NOT launch browser):")
 os.environ["PYTEST_CURRENT_TEST"] = "test_mode"
 
-from yc_matcher.infrastructure.browser_playwright_async import PlaywrightBrowserAsync
+from yc_matcher.infrastructure.browser.playwright_async import PlaywrightBrowserAsync
 
 browser = PlaywrightBrowserAsync()
 print(f"   Browser runner: {browser._runner}")

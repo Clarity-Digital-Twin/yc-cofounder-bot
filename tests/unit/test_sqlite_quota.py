@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 from pathlib import Path
 
-from yc_matcher.infrastructure.sqlite_quota import SQLiteDailyWeeklyQuota, _iso_week
+from yc_matcher.infrastructure.persistence.sqlite_quota import SQLiteDailyWeeklyQuota, _iso_week
 
 
 def test_iso_week_format():

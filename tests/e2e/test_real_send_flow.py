@@ -48,7 +48,7 @@ class TestRealSendFlow:
         Class-scoped fixture for browser singleton.
         This ensures ONE browser for ALL tests in this class.
         """
-        from yc_matcher.infrastructure.browser_playwright_async import PlaywrightBrowserAsync
+        from yc_matcher.infrastructure.browser.playwright_async import PlaywrightBrowserAsync
 
         # Create the browser (singleton via AsyncLoopRunner)
         browser = PlaywrightBrowserAsync()
@@ -64,8 +64,8 @@ class TestRealSendFlow:
     @pytest.fixture
     def pipeline_observer(self, tmp_path):
         """Create pipeline observer for tracking events."""
-        from yc_matcher.infrastructure.jsonl_logger import JSONLLogger
-        from yc_matcher.infrastructure.send_pipeline_observer import SendPipelineObserver
+        from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger
+        from yc_matcher.infrastructure.logging.pipeline_observer import SendPipelineObserver
 
         log_path = tmp_path / "pipeline_events.jsonl"
         logger = JSONLLogger(str(log_path))
@@ -156,9 +156,9 @@ class TestRealSendFlow:
         if not hasattr(shared_browser, "_runner") or shared_browser._runner is None:
             pytest.skip("Browser not available in test environment")
 
-        from yc_matcher.infrastructure.browser_observable import ObservableBrowser
-        from yc_matcher.infrastructure.sqlite_quota import SQLiteDailyWeeklyQuota
-        from yc_matcher.infrastructure.stop_flag import FileStopFlag
+        from yc_matcher.infrastructure.browser.observable import ObservableBrowser
+        from yc_matcher.infrastructure.persistence.sqlite_quota import SQLiteDailyWeeklyQuota
+        from yc_matcher.infrastructure.control.stop_flag import FileStopFlag
 
         observer, log_path = pipeline_observer
 
@@ -260,7 +260,7 @@ class TestRealSendFlow:
         assert runner is not None, "Runner not initialized"
 
         # Check that it's the shared singleton
-        from yc_matcher.infrastructure.browser_playwright_async import _shared_runner
+        from yc_matcher.infrastructure.browser.playwright_async import _shared_runner
 
         assert runner is _shared_runner, "Not using singleton runner!"
 
@@ -357,7 +357,7 @@ def test_no_browser_spam():
     print("BROWSER SINGLETON VERIFICATION TEST")
     print("=" * 60)
 
-    from yc_matcher.infrastructure.browser_playwright_async import (
+    from yc_matcher.infrastructure.browser.playwright_async import (
         PlaywrightBrowserAsync,
         _get_shared_runner,
     )

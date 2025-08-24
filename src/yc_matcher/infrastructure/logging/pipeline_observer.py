@@ -7,7 +7,7 @@ import hashlib
 from typing import Any
 from uuid import uuid4
 
-from .time_utils import utc_isoformat
+from ..utils.time_utils import utc_isoformat
 
 
 class SendPipelineObserver:

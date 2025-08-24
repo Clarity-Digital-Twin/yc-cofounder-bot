@@ -12,7 +12,7 @@ os.environ["ENABLE_PLAYWRIGHT"] = "1"
 os.environ["ENABLE_CUA"] = "0"
 os.environ["PLAYWRIGHT_HEADLESS"] = "0"
 
-from yc_matcher.infrastructure.browser_playwright_async import PlaywrightBrowserAsync
+from yc_matcher.infrastructure.browser.playwright_async import PlaywrightBrowserAsync
 
 print("Testing Browser Singleton Pattern")
 print("=" * 50)

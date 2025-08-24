@@ -62,7 +62,7 @@ class TestBrowserPortSync:
     def test_openai_cua_browser_exposes_sync_methods(self) -> None:
         """Test that OpenAICUABrowser exposes synchronous methods despite async internals."""
         try:
-            from yc_matcher.infrastructure.openai_cua_browser import OpenAICUABrowser
+            from yc_matcher.infrastructure.browser.openai_cua import OpenAICUABrowser
         except ImportError:
             # Skip if not available
             return
