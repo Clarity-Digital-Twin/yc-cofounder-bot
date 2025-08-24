@@ -244,6 +244,7 @@ class OpenAICUABrowser:
             truncation="auto",
             previous_response_id=self._prev_response_id,
             temperature=self.temperature,
+            max_output_tokens=self.max_tokens,
         )
         self._prev_response_id = response.id
 
@@ -341,6 +342,7 @@ class OpenAICUABrowser:
                     }
                 ],
                 truncation="auto",
+                max_output_tokens=self.max_tokens,
             )
             self._prev_response_id = response.id
 
@@ -720,6 +722,7 @@ Complete the login process."""
                     }
                 ],
                 truncation="auto",
+                max_output_tokens=self.max_tokens,
             )
 
             # Execute CUA's suggested actions
@@ -774,6 +777,7 @@ Complete the login process."""
                         }
                     ],
                     truncation="auto",
+                    max_output_tokens=self.max_tokens,
                 )
 
                 # Check if we're logged in now

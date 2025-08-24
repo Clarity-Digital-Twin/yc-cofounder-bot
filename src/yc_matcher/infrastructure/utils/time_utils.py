@@ -39,11 +39,11 @@ def utc_isoformat() -> str:
     return utc_now().isoformat()
 
 
-def parse_timestamp(timestamp_str: str) -> datetime:
-    """Parse ISO timestamp string to timezone-aware datetime.
+def parse_timestamp(timestamp_str: str | int | float | datetime) -> datetime:
+    """Parse timestamp to timezone-aware datetime.
 
     Args:
-        timestamp_str: ISO format timestamp string
+        timestamp_str: ISO format string, Unix timestamp, or datetime object
 
     Returns:
         datetime: Timezone-aware datetime object
@@ -51,7 +51,17 @@ def parse_timestamp(timestamp_str: str) -> datetime:
     Raises:
         ValueError: If timestamp format is invalid
     """
-    # Handle both 'Z' suffix and '+00:00' for UTC
+    # Handle datetime objects
+    if isinstance(timestamp_str, datetime):
+        if timestamp_str.tzinfo is None:
+            return timestamp_str.replace(tzinfo=UTC)
+        return timestamp_str
+    
+    # Handle Unix timestamps
+    if isinstance(timestamp_str, (int, float)):
+        return datetime.fromtimestamp(timestamp_str, tz=UTC)
+    
+    # Handle strings
     if timestamp_str.endswith("Z"):
         timestamp_str = timestamp_str[:-1] + "+00:00"
 
@@ -65,7 +75,7 @@ def parse_timestamp(timestamp_str: str) -> datetime:
     return dt
 
 
-def is_within_hours(timestamp: datetime, hours: float = 1.0) -> bool:
+def is_within_hours(timestamp: datetime | None, hours: float = 1.0) -> bool:
     """Check if timestamp is within the last N hours.
 
     Args:
@@ -75,6 +85,9 @@ def is_within_hours(timestamp: datetime, hours: float = 1.0) -> bool:
     Returns:
         bool: True if timestamp is within the time window
     """
+    if timestamp is None:
+        return False
+    
     # Ensure timestamp is timezone-aware
     if timestamp.tzinfo is None:
         timestamp = timestamp.replace(tzinfo=UTC)
@@ -83,22 +96,25 @@ def is_within_hours(timestamp: datetime, hours: float = 1.0) -> bool:
     return timestamp > cutoff
 
 
-def format_for_display(timestamp: datetime, format: str = "%Y-%m-%d %H:%M:%S") -> str:
+def format_for_display(timestamp: datetime | None, fmt: str = "%Y-%m-%d %H:%M:%S") -> str:
     """Format timestamp for UI display.
 
     Args:
         timestamp: Datetime to format
-        format: strftime format string
+        fmt: strftime format string
 
     Returns:
         str: Formatted timestamp string
     """
+    if timestamp is None:
+        return "N/A"
+    
     # Could convert to local time here if needed
     # For now, we'll display UTC with indicator
     if timestamp.tzinfo is None:
         timestamp = timestamp.replace(tzinfo=UTC)
 
-    return timestamp.strftime(format) + " UTC"
+    return timestamp.strftime(fmt) + " UTC"
 
 
 def unix_to_datetime(unix_ts: float) -> datetime:

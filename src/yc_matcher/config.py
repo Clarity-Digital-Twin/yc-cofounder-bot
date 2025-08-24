@@ -58,12 +58,12 @@ def get_cua_model() -> str | None:
 
 def get_auto_send_default() -> bool:
     """Whether to auto-send messages on match (default: False for safety)."""
-    return os.getenv("AUTO_SEND", "0") == "1"
+    return os.getenv("AUTO_SEND", "0") in {"1", "true", "True"}
 
 
 def is_shadow_mode() -> bool:
     """Whether we're in shadow mode (evaluate only, never send)."""
-    return os.getenv("SHADOW_MODE", "0") == "1"
+    return os.getenv("SHADOW_MODE", "0") in {"1", "true", "True"}
 
 
 def is_openai_enabled() -> bool:
@@ -113,12 +113,12 @@ def is_calendar_quota_enabled() -> bool:
 
 def get_playwright_fallback_enabled() -> bool:
     """Whether to fallback to Playwright when CUA fails."""
-    return os.getenv("ENABLE_PLAYWRIGHT_FALLBACK", "1") == "1"
+    return os.getenv("ENABLE_PLAYWRIGHT_FALLBACK", "1") in {"1", "true", "True"}
 
 
 def is_headless() -> bool:
     """Whether to run browser in headless mode."""
-    return os.getenv("PLAYWRIGHT_HEADLESS", "0") == "1"
+    return os.getenv("PLAYWRIGHT_HEADLESS", "0") in {"1", "true", "True"}
 
 
 def use_three_input_ui() -> bool:
