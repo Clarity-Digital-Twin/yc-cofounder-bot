@@ -9,10 +9,10 @@ Professional teams always:
 This module ensures all timestamps in the codebase are handled consistently.
 """
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 # Python 3.10 compatibility - UTC was added in 3.11
-UTC = UTC
+UTC = timezone.utc
 
 
 def utc_now() -> datetime:
