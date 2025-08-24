@@ -8,15 +8,15 @@ from typing import cast
 from .. import config
 from ..application.ports import BrowserPort, DecisionPort
 from ..application.use_cases import EvaluateProfile, SendMessage
-from ..infrastructure.jsonl_logger import JSONLLogger
-from ..infrastructure.local_decision import LocalDecisionAdapter
-from ..infrastructure.logger_stamped import LoggerWithStamps
-from ..infrastructure.model_resolver import resolve_and_set_models
-from ..infrastructure.quota import FileQuota
-from ..infrastructure.sqlite_quota import SQLiteDailyWeeklyQuota
-from ..infrastructure.stop_flag import FileStopFlag
-from ..infrastructure.template_loader import load_default_template
-from ..infrastructure.templates import TemplateRenderer
+from ..infrastructure.logging.jsonl_logger import JSONLLogger
+from ..infrastructure.ai.local_decision import LocalDecisionAdapter
+from ..infrastructure.logging.stamped_logger import LoggerWithStamps
+from ..infrastructure.ai.model_resolver import resolve_and_set_models
+from ..infrastructure.control.quota import FileQuota
+from ..infrastructure.persistence.sqlite_quota import SQLiteDailyWeeklyQuota
+from ..infrastructure.control.stop_flag import FileStopFlag
+from ..infrastructure.utils.template_loader import load_default_template
+from ..infrastructure.utils.templates import TemplateRenderer
 
 
 def build_services(
