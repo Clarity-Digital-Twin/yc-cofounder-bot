@@ -11,7 +11,11 @@ class FileStopFlag(StopController):
         self.path.parent.mkdir(parents=True, exist_ok=True)
 
     def is_stopped(self) -> bool:
-        return self.path.exists()
+        try:
+            return self.path.exists()
+        except OSError:
+            # WSL/xdist can throw OSError on stat, treat as not stopped
+            return False
 
     def set(self) -> None:
         self.path.write_text("stop", encoding="utf-8")
