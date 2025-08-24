@@ -141,3 +141,7 @@ When running the app:
 - CUA alone can't get full DOM text (screenshot limitation)
 - Playwright alone breaks when UI changes
 - Together they provide robust, adaptive automation with complete data extraction
+# DEPRECATED (December 2025)
+This file is archived and may contain outdated OpenAI API guidance.
+For the single source of truth, see `OPENAI_API_REFERENCE.md` and `CONTEXT7_TRUTH.md`.
+Do not rely on this file for current parameters.

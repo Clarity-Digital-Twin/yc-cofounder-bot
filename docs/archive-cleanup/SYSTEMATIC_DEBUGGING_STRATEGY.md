@@ -187,3 +187,7 @@ tail -f .runs/events.jsonl | jq '.'
 ---
 
 **Result**: Professional, systematic debugging instead of reactive firefighting. All errors are visible, recoverable, and testable BEFORE running the app.
+# DEPRECATED (December 2025)
+This file is archived and may contain outdated OpenAI API guidance.
+For the single source of truth, see `OPENAI_API_REFERENCE.md` and `CONTEXT7_TRUTH.md`.
+Do not rely on this file for current parameters.

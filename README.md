@@ -2,7 +2,7 @@
 
 Autonomous browser automation for YC Startup School co-founder matching using OpenAI GPT-5 (with GPT-4 fallback) and Playwright browser automation.
 
-⚠️ **GPT-5 Note**: Uses model ID `gpt-5` (NOT `gpt-5-thinking`). Requires Responses API. See GPT5_FACTS.md.
+⚠️ **OpenAI API Documentation**: See [OPENAI_API_REFERENCE.md](./OPENAI_API_REFERENCE.md) for the single source of truth on all OpenAI API usage (GPT-5, GPT-4, Computer Use).
 
 ## 🎯 What It Does
 

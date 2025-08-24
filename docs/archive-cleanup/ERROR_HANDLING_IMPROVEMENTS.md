@@ -149,3 +149,7 @@ jq 'select(.event == "evaluation_error")' .runs/events.jsonl
 ---
 
 **Result**: The app now provides full visibility into errors, making debugging straightforward instead of a guessing game.
+# DEPRECATED (December 2025)
+This file is archived and may contain outdated OpenAI API guidance.
+For the single source of truth, see `OPENAI_API_REFERENCE.md` and `CONTEXT7_TRUTH.md`.
+Do not rely on this file for current parameters.

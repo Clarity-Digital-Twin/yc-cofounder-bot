@@ -16,7 +16,7 @@ Based on expert analysis, the temperature issue was NOT that "GPT-5 requires tem
 # Lines 150-152 and 172-174 - FIXED
 responses.create(
     model="gpt-5",
-    max_output_tokens=800,
+    max_output_tokens=4000,
     temperature=0.3,  # Added - stable for structured outputs
 )
 ```
@@ -34,7 +34,7 @@ chat.completions.create(
 ### GPT-5 Responses API Call
 ✅ Using `responses.create` (not chat.completions)
 ✅ Using `json_schema` response format with strict=True
-✅ Using `max_output_tokens=800` (not max_tokens)
+✅ Using `max_output_tokens=4000` (not max_tokens; up to 128,000 supported)
 ✅ Using `temperature=0.3` for stability
 ✅ Parsing with `output_text` helper first
 

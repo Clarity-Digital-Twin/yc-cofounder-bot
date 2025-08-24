@@ -21,7 +21,7 @@
      * `{"role":"system","content": system_instructions}`
      * `{"role":"user","content": user_payload_text}`
        (This is the Responses equivalent of chat messages.) ([OpenAI Platform][1])
-   * `max_output_tokens`: **required** to control length. Use **≥ 600–800** to allow rationale + draft. ([OpenAI Platform][1])
+   * `max_output_tokens`: **required** to control length. Use **4000** default (up to 128,000 supported per Context7). ([OpenAI Platform][1])
 6. **Structured output (preferred)**
 
    * `response_format: {"type":"json_schema","json_schema":{...,"strict":true}}`
@@ -156,7 +156,7 @@
 
 ## 11) Default knobs (ship these)
 
-38. Decision call: `max_output_tokens=800`, `temperature=0.3` **if accepted**, else omit; `response_format=json_schema` **if accepted**, else prompt-enforce JSON; two-attempt retry on 5xx; strict JSON parse with errors logged. ([OpenAI Platform][1])
+38. Decision call: `max_output_tokens=4000`, `temperature=0.3` **if accepted**, else omit; `text={"verbosity":"low"}` and `reasoning={"effort":"minimal"}` for GPT-5; `response_format=json_schema` **if accepted**, else prompt-enforce JSON; two-attempt retry on 5xx; strict JSON parse with errors logged. ([OpenAI Platform][1])
 39. CUA loop: `max_turns=10–40`, STOP checked **before** making a turn; return immediately if set. ([OpenAI Platform][3])
 40. Parser: prefer `output_text`; manual iteration fallback; always log `output_types` + `output_text_len`. ([OpenAI Platform][5])
 

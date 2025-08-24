@@ -66,15 +66,15 @@ The OpenAI SDK's `output_text` helper is supposed to aggregate all text, but:
 params = {
     "model": "gpt-5",
     "input": [...],
-    "max_output_tokens": 800,
-    "verbosity": "low",  # <-- Discourages verbose reasoning-only responses
+    "max_output_tokens": 4000,
+    "text": {"verbosity": "low"},  # <-- Nested; discourages verbose reasoning-only responses
 }
 
 try:
     r = client.responses.create(**params)
 except Exception as e:
     # Remove optional params on 400 error
-    params.pop("verbosity", None)
+    params.pop("text", None)
     params.pop("response_format", None)
     params.pop("temperature", None)
     r = client.responses.create(**params)
@@ -177,7 +177,7 @@ def test_gpt5_reasoning_only_rescue():
 ## Implementation Priority
 
 1. **IMMEDIATE**: Add reasoning rescue parser (fixes current failures)
-2. **NEXT**: Add verbosity="low" to reduce reasoning-only responses  
+2. **NEXT**: Add `text.verbosity="low"` to reduce reasoning-only responses  
 3. **THEN**: Update tests to use realistic mocks
 4. **FINALLY**: Add telemetry to track patterns
 

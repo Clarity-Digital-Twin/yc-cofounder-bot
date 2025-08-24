@@ -43,7 +43,7 @@ resp = client.responses.create(
     model="computer-use-model",
     tools=[{"type": "computer_use_preview", ...}],
     input=[...],
-    max_output_tokens=800  # NOT max_tokens!
+    max_output_tokens=4000  # Per Context7: up to 128,000 supported
 )
 
 # 2. Execute actions with Playwright

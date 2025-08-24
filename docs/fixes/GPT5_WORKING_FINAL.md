@@ -14,7 +14,7 @@ try:
     r = client.responses.create(
         model="gpt-5",
         input=[...],
-        max_output_tokens=800,
+        max_output_tokens=4000,
         response_format={...},  # Optional - removed on error
         temperature=0.3         # Optional - removed on error
     )
@@ -23,7 +23,7 @@ except:
     r = client.responses.create(
         model="gpt-5",
         input=[...],
-        max_output_tokens=800  # This is REQUIRED
+        max_output_tokens=4000  # This is REQUIRED (up to 128,000 supported)
     )
 ```
 
@@ -62,11 +62,11 @@ like a great complement. Would love to connect and compare what we're building."
 
 ## Key Learnings
 
-1. **GPT-5 Responses API Quirks**:
-   - Does NOT support `response_format` parameter (despite docs)
-   - Does NOT support `temperature` parameter (uses default)
-   - REQUIRES `max_output_tokens` (not `max_tokens`)
-   - Returns output array with reasoning + message items
+1. **GPT-5 Responses API Notes** (Context7-verified):
+   - `response_format` with `json_schema` may be unsupported in some SDK versions; try then fallback if error
+   - `temperature` IS supported (0–2). We use 0.3 by default
+   - Requires `max_output_tokens` (not `max_tokens`)
+   - Returns output array with reasoning + message items; prefer `output_text`
 
 2. **Fallback Strategy**:
    - Always try with all params first

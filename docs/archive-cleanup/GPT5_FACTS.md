@@ -137,3 +137,7 @@ OPENAI_DECISION_MODEL=gpt-5-thinking  # Doesn't exist!
 2. **NOT**: `max_tokens` or `max_completion_tokens`
 3. **NO**: `response_format`, `reasoning_effort`, `verbosity`
 4. **SDK**: Requires openai>=1.101.0
+# DEPRECATED (December 2025)
+This file is archived and may contain outdated OpenAI API guidance.
+For the single source of truth, see `OPENAI_API_REFERENCE.md` and `CONTEXT7_TRUTH.md`.
+Do not rely on this file for current parameters.
