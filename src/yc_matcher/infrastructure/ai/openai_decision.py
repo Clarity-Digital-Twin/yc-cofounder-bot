@@ -136,7 +136,7 @@ class OpenAIDecisionAdapter(DecisionPort):
 
         decision_start = time.time()
 
-        # Use the correct OpenAI chat completions API
+        # Use Responses API for GPT-5, Chat Completions for GPT-4
         try:
             # Define API call functions for retry wrapper
             def call_gpt5() -> tuple[Any, str]:

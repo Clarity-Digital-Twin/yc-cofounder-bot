@@ -9,7 +9,10 @@ Professional teams always:
 This module ensures all timestamps in the codebase are handled consistently.
 """
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
+# Python 3.10 compatibility - UTC was added in 3.11
+UTC = timezone.utc
 
 
 def utc_now() -> datetime:
@@ -39,40 +42,45 @@ def utc_isoformat() -> str:
     return utc_now().isoformat()
 
 
-def parse_timestamp(timestamp_str: str | int | float | datetime) -> datetime:
+def parse_timestamp(timestamp_str: str | int | float | datetime) -> datetime | None:
     """Parse timestamp to timezone-aware datetime.
 
     Args:
         timestamp_str: ISO format string, Unix timestamp, or datetime object
 
     Returns:
-        datetime: Timezone-aware datetime object
-
-    Raises:
-        ValueError: If timestamp format is invalid
+        datetime: Timezone-aware datetime object or None if invalid
     """
-    # Handle datetime objects
-    if isinstance(timestamp_str, datetime):
-        if timestamp_str.tzinfo is None:
-            return timestamp_str.replace(tzinfo=UTC)
-        return timestamp_str
-    
-    # Handle Unix timestamps
-    if isinstance(timestamp_str, (int, float)):
-        return datetime.fromtimestamp(timestamp_str, tz=UTC)
-    
-    # Handle strings
-    if timestamp_str.endswith("Z"):
-        timestamp_str = timestamp_str[:-1] + "+00:00"
+    try:
+        # Handle datetime objects
+        if isinstance(timestamp_str, datetime):
+            if timestamp_str.tzinfo is None:
+                return timestamp_str.replace(tzinfo=UTC)
+            return timestamp_str
+        
+        # Handle Unix timestamps
+        if isinstance(timestamp_str, (int, float)):
+            return datetime.fromtimestamp(timestamp_str, tz=UTC)
+        
+        # Handle strings
+        if isinstance(timestamp_str, str):
+            if timestamp_str.endswith("Z"):
+                timestamp_str = timestamp_str[:-1] + "+00:00"
 
-    # Parse ISO format
-    dt = datetime.fromisoformat(timestamp_str)
+            # Parse ISO format
+            dt = datetime.fromisoformat(timestamp_str)
 
-    # If no timezone, assume UTC
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=UTC)
+            # If no timezone, assume UTC
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=UTC)
 
-    return dt
+            return dt
+        
+        # Invalid type - return None
+        return None
+    except (ValueError, TypeError, AttributeError):
+        # Invalid format - return None
+        return None
 
 
 def is_within_hours(timestamp: datetime | None, hours: float = 1.0) -> bool:
@@ -114,7 +122,11 @@ def format_for_display(timestamp: datetime | None, fmt: str = "%Y-%m-%d %H:%M:%S
     if timestamp.tzinfo is None:
         timestamp = timestamp.replace(tzinfo=UTC)
 
-    return timestamp.strftime(fmt) + " UTC"
+    formatted = timestamp.strftime(fmt)
+    # Only add UTC suffix if format includes time components
+    if any(x in fmt for x in ["%H", "%I", "%M", "%S", "%p"]):
+        formatted += " UTC"
+    return formatted
 
 
 def unix_to_datetime(unix_ts: float) -> datetime:
