@@ -107,7 +107,9 @@ class OpenAIDecisionAdapter(DecisionPort):
             "- score: float between 0.0 and 1.0 indicating match strength\n"
             "- confidence: float between 0.0 and 1.0 indicating your confidence\n\n"
             "Be specific and reference actual details from their profile in the draft message.\n"
-            "Your entire response must be valid JSON - no other text before or after the JSON object."
+            "Your entire response must be valid JSON - no other text before or after the JSON object.\n\n"
+            "CRITICAL: Output the JSON in a message, NOT in a reasoning trace.\n"
+            "Do NOT use a reasoning block. Output the JSON directly as your response."
         )
 
         user_text = f"MY CRITERIA:\n{criteria_text}\n\nCANDIDATE PROFILE:\n{profile.raw_text}\n\n"
@@ -145,6 +147,7 @@ class OpenAIDecisionAdapter(DecisionPort):
                         {"role": "user", "content": user_text},
                     ],
                     "max_output_tokens": 800,  # Required for Responses API
+                    "verbosity": "low",  # Discourage reasoning-only responses
                 }
 
                 # Try with response_format first (per contract section 6)
@@ -185,6 +188,7 @@ class OpenAIDecisionAdapter(DecisionPort):
                     # Remove ALL optional params on any error
                     params.pop("response_format", None)
                     params.pop("temperature", None)  # Always remove temperature on error
+                    params.pop("verbosity", None)  # Remove verbosity too
 
                     # Add prompt instruction for JSON
                     input_list = params["input"]
@@ -280,24 +284,69 @@ class OpenAIDecisionAdapter(DecisionPort):
                         )
 
                 if not c:
-                    # Log detailed error for debugging
-                    error_detail = {
-                        "event": "gpt5_parse_failure",
-                        "has_output": hasattr(r, "output"),
-                        "has_output_text": hasattr(r, "output_text"),
-                        "output_items": len(r.output) if hasattr(r, "output") and r.output else 0,
-                        "output_types": [getattr(item, "type", "unknown") for item in r.output]
-                        if hasattr(r, "output") and r.output
-                        else [],
-                    }
-                    if self.logger:
-                        self.logger.emit(error_detail)
+                    # Try to rescue JSON from reasoning items
+                    reasoning_rescue_attempted = False
+                    if hasattr(r, "output") and r.output:
+                        for item in r.output:
+                            if getattr(item, "type", None) == "reasoning" and hasattr(item, "content"):
+                                reasoning_rescue_attempted = True
+                                reasoning_text = str(item.content)
+                                
+                                # Look for JSON in reasoning
+                                import re
+                                # Match JSON with our expected keys
+                                json_pattern = r'\{[^{}]*"decision"[^{}]*"rationale"[^{}]*\}'
+                                matches = re.finditer(json_pattern, reasoning_text, re.DOTALL)
+                                
+                                for match in matches:
+                                    try:
+                                        potential_json = match.group()
+                                        # Try to parse it
+                                        parsed = json.loads(potential_json)
+                                        # Validate it has required keys
+                                        if all(k in parsed for k in ["decision", "rationale"]):
+                                            c = json.dumps(parsed)
+                                            if self.logger:
+                                                self.logger.emit({
+                                                    "event": "gpt5_reasoning_rescue",
+                                                    "success": True,
+                                                    "json_keys": list(parsed.keys()),
+                                                    "reasoning_len": len(reasoning_text)
+                                                })
+                                            break
+                                    except (json.JSONDecodeError, Exception) as e:
+                                        if self.logger:
+                                            self.logger.emit({
+                                                "event": "gpt5_reasoning_rescue_attempt",
+                                                "success": False,
+                                                "error": str(e)[:100]
+                                            })
+                                        continue
+                                
+                                if c:  # Found valid JSON in reasoning
+                                    break
+                    
+                    # If still no content, log and raise
+                    if not c:
+                        # Log detailed error for debugging
+                        error_detail = {
+                            "event": "gpt5_parse_failure",
+                            "has_output": hasattr(r, "output"),
+                            "has_output_text": hasattr(r, "output_text"),
+                            "output_items": len(r.output) if hasattr(r, "output") and r.output else 0,
+                            "output_types": [getattr(item, "type", "unknown") for item in r.output]
+                            if hasattr(r, "output") and r.output
+                            else [],
+                            "reasoning_rescue_attempted": reasoning_rescue_attempted,
+                        }
+                        if self.logger:
+                            self.logger.emit(error_detail)
 
-                    raise ValueError(
-                        f"Could not extract text from GPT-5 response. "
-                        f"Output items: {error_detail['output_items']}, "
-                        f"Types: {error_detail['output_types']}"
-                    )
+                        raise ValueError(
+                            f"Could not extract text from GPT-5 response. "
+                            f"Output items: {error_detail['output_items']}, "
+                            f"Types: {error_detail['output_types']}"
+                        )
 
                 return r, c
 
