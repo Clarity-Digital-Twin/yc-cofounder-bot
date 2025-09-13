@@ -1,0 +1,18 @@
+[1m============================= test session starts ==============================[0m
+platform linux -- Python 3.12.11, pytest-8.4.1, pluggy-1.6.0
+rootdir: /mnt/c/Users/JJ/Desktop/Clarity-Digital-Twin/yc-cofounder-bot
+configfile: pyproject.toml
+plugins: cov-6.2.1
+collected 148 items
+
+tests/unit/test_ai_only_decision.py [32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m                              [  4%][0m
+tests/unit/test_autonomous_flow_modes.py [32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m                          [  8%][0m
+tests/unit/test_autonomous_happy_path.py [32m.[0m[32m.[0m[32m                              [ 10%][0m
+tests/unit/test_browser_port_sync.py [32m.[0m[32m.[0m[32m                                  [ 11%][0m
+tests/unit/test_config.py [32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[31mF[0m[32m.[0m[32m.[0m[31m                                      [ 17%][0m
+tests/unit/test_cua_async_safety.py [31mF[0m[33ms[0m[31mF[0m[31mF[0m[31m                                 [ 20%][0m
+tests/unit/test_cua_session_hygiene.py [32m.[0m[32m.[0m[32m.[0m[32m.[0m[31m                              [ 22%][0m
+tests/unit/test_cua_toggle_fix.py [32m.[0m[32m.[0m[32m.[0m[32m.[0m[31m                                   [ 25%][0m
+tests/unit/test_di_ai_only.py [32m.[0m[32m.[0m[32m.[0m[31m                                        [ 27%][0m
+tests/unit/test_duplicate_detection.py [32m.[0m[32m.[0m[32m.[0m[31m                               [ 29%][0m
+tests/unit/test_event_ordering.py [32m.[0m[32m.[0m
