@@ -516,9 +516,12 @@ class TestOpenAICUABrowserResponsesAPI:
                     # Check that log_event was called with safety_check_not_acknowledged
                     browser.logger.log_event.assert_called_once()
                     call_args = browser.logger.log_event.call_args
-                    assert call_args[0][0]["event"] == "stopped"
-                    assert call_args[0][0]["reason"] == "safety_check_not_acknowledged"
-                    assert "safety_check" in call_args[0][0]
+                    # First arg is event name (string), second arg is event dict
+                    assert call_args[0][0] == "stopped"  # First arg is the event name
+                    event_dict = call_args[0][1]  # Second arg is the event dict
+                    assert event_dict["event"] == "stopped"
+                    assert event_dict["reason"] == "safety_check_not_acknowledged"
+                    assert "safety_check" in event_dict
 
     def test_verify_sent_strict_checking(
         self, mock_openai_client: Mock, mock_playwright: tuple, mock_env: None

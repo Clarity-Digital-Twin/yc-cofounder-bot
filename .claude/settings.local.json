@@ -4,7 +4,8 @@
       "Bash(cat:*)",
       "Bash(uv run pre-commit run:*)",
       "Bash(git commit:*)",
-      "Bash(pre-commit:*)"
+      "Bash(pre-commit:*)",
+      "Bash(git fsck:*)"
     ],
     "deny": [],
     "ask": []
