@@ -4,6 +4,7 @@ import os
 from unittest.mock import patch
 
 import pytest
+
 from yc_matcher import config
 
 

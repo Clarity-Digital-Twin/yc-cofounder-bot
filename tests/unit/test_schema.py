@@ -1,5 +1,6 @@
 import pytest
 from pydantic import ValidationError
+
 from yc_matcher.application.schema import DecisionDTO, Extracted
 
 

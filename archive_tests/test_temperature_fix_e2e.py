@@ -48,6 +48,7 @@ def test_openai_decision_only():
     print("=" * 60)
 
     from openai import OpenAI
+
     from yc_matcher.domain.entities import Criteria, Profile
     from yc_matcher.infrastructure.ai.openai_decision import OpenAIDecisionAdapter
     from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger
@@ -252,6 +253,7 @@ def test_full_pipeline():
     # Get OpenAI evaluation
     print("\n5️⃣  GETTING OPENAI EVALUATION...")
     from openai import OpenAI
+
     from yc_matcher.infrastructure.ai.openai_decision import OpenAIDecisionAdapter
 
     client = OpenAI()

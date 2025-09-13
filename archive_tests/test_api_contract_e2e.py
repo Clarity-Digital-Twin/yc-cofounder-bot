@@ -46,6 +46,7 @@ def test_decision_call_contract():
     print("=" * 60)
 
     from openai import OpenAI
+
     from yc_matcher.domain.entities import Criteria, Profile
     from yc_matcher.infrastructure.ai.openai_decision import OpenAIDecisionAdapter
     from yc_matcher.infrastructure.logging.jsonl_logger import JSONLLogger

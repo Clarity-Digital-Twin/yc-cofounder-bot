@@ -88,9 +88,9 @@ def test_single_browser_instance() -> None:
 
             # CRITICAL ASSERTION: With mocked AsyncLoopRunner, no actual browser launch
             # The test verifies that multiple calls don't create multiple browser instances
-            assert (
-                launch_count == 0
-            ), f"Expected 0 browser launches with mocked runner, got {launch_count}"
+            assert launch_count == 0, (
+                f"Expected 0 browser launches with mocked runner, got {launch_count}"
+            )
             print("✅ SUCCESS: No browser instances created with mocked runner!")
         finally:
             # ALWAYS clean up

@@ -11,6 +11,7 @@ import os
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+
 from yc_matcher.infrastructure.browser.openai_cua import OpenAICUABrowser
 from yc_matcher.infrastructure.browser.playwright_sync import PlaywrightBrowser
 

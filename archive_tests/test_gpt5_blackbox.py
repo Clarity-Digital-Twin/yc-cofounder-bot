@@ -32,6 +32,7 @@ def test_gpt5_decision():
     print("=" * 60)
 
     from openai import OpenAI
+
     from yc_matcher.domain.entities import Criteria, Profile
     from yc_matcher.infrastructure.ai.openai_decision import OpenAIDecisionAdapter
 

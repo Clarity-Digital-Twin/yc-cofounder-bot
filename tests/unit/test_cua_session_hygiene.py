@@ -30,9 +30,9 @@ class TestCUASessionHygiene:
             browser.open("https://example.com/profile1")
 
             # Assert - prev_response_id should be reset (None or empty)
-            assert (
-                browser._prev_response_id != "old-response-id"
-            ), "prev_response_id must reset when opening new profile"
+            assert browser._prev_response_id != "old-response-id", (
+                "prev_response_id must reset when opening new profile"
+            )
 
     def test_turn_counter_resets_per_profile(self) -> None:
         """Test that turn counter resets between profiles."""
@@ -95,6 +95,6 @@ class TestCUASessionHygiene:
 
             # Assert - cache should be empty after successful send
             assert sent_ok, "verify_sent should return True"
-            assert (
-                browser._profile_text_cache == ""
-            ), "Profile cache must be cleared after successful send"
+            assert browser._profile_text_cache == "", (
+                "Profile cache must be cleared after successful send"
+            )
