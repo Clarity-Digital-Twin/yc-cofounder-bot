@@ -59,7 +59,7 @@ This consolidates all fixes and decisions required to deliver a tight MVP suitab
 - Add tests for:
   - STOP re-check path and event schema in SendMessage.
   - Async singleton Playwright adapter smoke.
-  - Model resolver smoke (mocked models). 
+  - Model resolver smoke (mocked models).
   - CUA non-blocking calls (already partially there) and cache clearing (already present).
 - Adjust tests expecting async BrowserPort if we retain sync-only port; or expose an async test adapter.
 
@@ -72,4 +72,3 @@ This consolidates all fixes and decisions required to deliver a tight MVP suitab
 - Implement P0/P1 above, run `make verify` in both headed and headless.
 - Record demo per HACKER_NEWS_READINESS.md.
 - Ship.
-

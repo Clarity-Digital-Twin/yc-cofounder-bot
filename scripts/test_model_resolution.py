@@ -63,7 +63,6 @@ def test_model_resolution():
     # Test decision adapter uses resolved model
     print("\n3️⃣ Testing Decision Adapter...")
     from openai import OpenAI
-
     from yc_matcher.infrastructure.ai.openai_decision import OpenAIDecisionAdapter
 
     client = OpenAI()

@@ -97,10 +97,10 @@ def call_gpt5_with_fallback(client, params):
             params.pop("verbosity", None)
             params.pop("reasoning_effort", None)
             params.pop("temperature", None)
-            
+
             # Add JSON instruction to prompt
             params["input"][-1]["content"] += "\n\nReturn JSON with keys: ..."
-            
+
             # Retry with minimal params
             return client.responses.create(**params)
 ```
@@ -154,17 +154,17 @@ def create_gpt5_response(client, prompt, system_prompt=None, **kwargs):
         "store": True,  # Save for retrieval
         "service_tier": os.getenv("SERVICE_TIER", "auto"),
     }
-    
+
     # Add system prompt if provided
     if system_prompt:
         params["instructions"] = system_prompt
-    
+
     # Build input
     params["input"].append({"role": "user", "content": prompt})
-    
+
     # Merge additional kwargs
     params.update(kwargs)
-    
+
     try:
         response = client.responses.create(**params)
         return response.output_text

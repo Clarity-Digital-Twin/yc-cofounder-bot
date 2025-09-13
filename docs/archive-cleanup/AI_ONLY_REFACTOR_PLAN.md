@@ -30,7 +30,7 @@ Simplify from 3 decision modes (advisor/rubric/hybrid) to a single AI-first mode
 ### What We Want (Simple AI Pipeline)
 1. **Single Decision Flow**:
    ```python
-   OpenAIDecisionAdapter.evaluate(profile, criteria) 
+   OpenAIDecisionAdapter.evaluate(profile, criteria)
    → {decision: "YES/NO", rationale: "...", draft: "...", score: 0.85}
    ```
 
@@ -61,7 +61,7 @@ tests/unit/test_ai_only_decision.py
 def build_services(...):
     # BEFORE: 130 lines of mode logic
     # AFTER: Direct AI adapter creation
-    
+
     # 1. Remove RubricOnlyAdapter class (comment out lines 24-49)
     # 2. Remove create_decision_adapter factory (comment out lines 52-129)
     # 3. Direct instantiation:
@@ -70,7 +70,7 @@ def build_services(...):
         logger=logger,
         model=os.getenv("DECISION_MODEL_RESOLVED") or "gpt-4o"
     )
-    
+
     # Keep all safety features
     eval_use = EvaluateProfile(decision=decision, message=renderer)
     send_use = SendMessage(quota=quota, browser=browser, logger=logger, stop=stop)
@@ -155,7 +155,7 @@ SHADOW_MODE=0                # 0=live, 1=test only
 
 ### Core Flow Unchanged
 ```
-Open YC → Loop profiles → Extract text → AI evaluate → 
+Open YC → Loop profiles → Extract text → AI evaluate →
 (if YES & auto_send & !shadow) → Send → Verify → Next
 ```
 
@@ -180,7 +180,7 @@ All old code is commented, not deleted. If issues:
 
 ### Lines Removed (Commented)
 - RubricOnlyAdapter: 26 lines
-- create_decision_adapter: 78 lines  
+- create_decision_adapter: 78 lines
 - GatedDecision: ~50 lines
 - WeightedScoringService: ~40 lines
 - Mode tests: ~400 lines

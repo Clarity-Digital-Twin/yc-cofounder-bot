@@ -3,7 +3,6 @@
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-
 from yc_matcher.interface.web.ui_streamlit import render_paste_mode, render_three_input_mode
 
 

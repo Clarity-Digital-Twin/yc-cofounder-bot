@@ -1,7 +1,7 @@
 # 12 — Prompts & Rubric
 
-**Status:** Draft v0.3 (2025-08-20)  
-**Owner:** ML/Decision Team  
+**Status:** Draft v0.3 (2025-08-20)
+**Owner:** ML/Decision Team
 **Related:** [01-product-brief.md] · [02-scope-and-requirements.md] · [03-architecture.md] · [10-ui-reference.md]
 
 ## Goals
@@ -17,7 +17,7 @@
 ## Core Inputs (3 User-Provided)
 
 - **Your Profile** (markdown/free text) → `my_profile`
-- **Match Criteria** (must-have/should-have/disqualifiers) → `criteria`  
+- **Match Criteria** (must-have/should-have/disqualifiers) → `criteria`
 - **Message Template** (with placeholders) → `template`
 
 ---
@@ -80,13 +80,13 @@ RUBRIC_WEIGHTS = {
 def score_skills(user_skills, candidate_skills):
     if not user_skills or not candidate_skills:
         return 0.0
-    
+
     user_set = set(normalize_skills(user_skills))
     candidate_set = set(normalize_skills(candidate_skills))
-    
+
     intersection = user_set & candidate_set
     union = user_set | candidate_set
-    
+
     return len(intersection) / len(union) if union else 0.0
 ```
 
@@ -243,9 +243,9 @@ candidate_profile:
 
 ### Example Template
 ```
-Hi {first_name} — loved your work on {their_highlight}. 
+Hi {first_name} — loved your work on {their_highlight}.
 I'm exploring a cofounder fit around {my_context}.
-Looks like strong overlap with {why_match}. 
+Looks like strong overlap with {why_match}.
 If you're open, quick chat this week? {cta}
 ```
 
@@ -269,14 +269,14 @@ Append to `events.jsonl`:
 {"event": "profile_read", "url": "...", "excerpt_len": 384}
 
 // Decision
-{"event": "decision", "mode": "hybrid", "scores": {...}, "decision": "YES", 
+{"event": "decision", "mode": "hybrid", "scores": {...}, "decision": "YES",
  "rationale": "Strong ML match", "model": "<from-env>"}
 
 // Sent
 {"event": "sent", "ok": true, "mode": "auto", "verified": true, "chars": 312}
 
 // Model Usage
-{"event": "model_usage", "provider": "openai", "model": "<from-env>", 
+{"event": "model_usage", "provider": "openai", "model": "<from-env>",
  "tokens_in": 1200, "tokens_out": 150, "cost_est": 0.042}
 
 // Quota

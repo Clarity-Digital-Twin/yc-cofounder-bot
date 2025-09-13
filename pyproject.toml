@@ -45,7 +45,7 @@ dev-dependencies = [
 
 [tool.ruff]
 line-length = 100
-target-version = "py311"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = [
@@ -63,6 +63,7 @@ ignore = [
 "tests/unit/test_browser_safety.py" = ["E402"]  # sets env before importing module under test
 "scripts/*.py" = ["E402"]  # scripts may need runtime setup before imports
 "src/yc_matcher/infrastructure/utils/time_utils.py" = ["UP017"]  # Python 3.10 compat - can't use datetime.UTC
+"src/yc_matcher/infrastructure/logging/jsonl_logger.py" = ["UP017"]  # Python 3.10 compat - can't use datetime.UTC
 "tests/unit/test_time_utils.py" = ["UP017", "E402"]  # Python 3.10 compat and import order for UTC
 
 [tool.ruff.format]
@@ -70,7 +71,7 @@ quote-style = "double"
 indent-style = "space"
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.10"
 strict = true
 warn_unused_configs = true
 warn_redundant_casts = true

@@ -11,22 +11,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Install UV
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-      
+
       - name: Install dependencies
         run: |
           uv venv
           uv sync
-      
+
       - name: Run ruff
         run: uv run ruff check .
 
@@ -34,22 +34,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Install UV
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-      
+
       - name: Install dependencies
         run: |
           uv venv
           uv sync
-      
+
       - name: Run mypy
         run: |
           uv run mypy src/ || echo "Mypy check failed (non-blocking for now)"
@@ -59,22 +59,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Install UV
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-      
+
       - name: Install dependencies
         run: |
           uv venv
           uv sync
-      
+
       - name: Run unit tests
         env:
           PACE_MIN_SECONDS: "0"
@@ -87,26 +87,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Install UV
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-      
+
       - name: Install dependencies
         run: |
           uv venv
           uv sync
-      
+
       - name: Install Playwright browsers
         run: |
           PLAYWRIGHT_BROWSERS_PATH=.ms-playwright uv run python -m playwright install chromium --with-deps
-      
+
       - name: Run integration tests
         env:
           PACE_MIN_SECONDS: "0"
@@ -122,26 +122,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Install UV
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-      
+
       - name: Install dependencies
         run: |
           uv venv
           uv sync
-      
+
       - name: Install Playwright browsers
         run: |
           PLAYWRIGHT_BROWSERS_PATH=.ms-playwright uv run python -m playwright install chromium --with-deps
-      
+
       - name: Run all tests with coverage
         env:
           PACE_MIN_SECONDS: "0"
@@ -152,7 +152,7 @@ jobs:
           uv run pytest tests/ --cov=yc_matcher --cov-report=term-missing --cov-fail-under=60 -q
         continue-on-error: true
         timeout-minutes: 15
-      
+
       - name: Security check
         run: |
           # Check for exposed secrets

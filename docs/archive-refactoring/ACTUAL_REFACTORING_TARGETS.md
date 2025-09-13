@@ -113,7 +113,7 @@ Just need to:
 3. Add test `test_ui_streamlit.py`
 
 ### Phase 3: Create Autonomous Flow (1 new file)
-1. Create `autonomous_flow.py` 
+1. Create `autonomous_flow.py`
 2. Wire into existing DI
 3. Add integration tests
 

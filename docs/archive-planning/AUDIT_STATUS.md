@@ -5,7 +5,7 @@
 ### ✅ CORRECT Points from External Auditor:
 
 1. **Package/Import structure** - VERIFIED CORRECT:
-   - Package: `openai-agents` 
+   - Package: `openai-agents`
    - Import: `from agents import Agent, ComputerTool, Session`
    - NOT `from openai_agents import ...`
 

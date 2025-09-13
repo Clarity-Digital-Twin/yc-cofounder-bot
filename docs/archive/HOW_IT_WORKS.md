@@ -63,7 +63,7 @@ graph TD
 
 **Cause**: `PLAYWRIGHT_HEADLESS=1` makes browser invisible
 
-**Solution**: 
+**Solution**:
 ```bash
 # Set in .env or when running:
 PLAYWRIGHT_HEADLESS=0  # Makes browser visible

@@ -1,7 +1,7 @@
 # OpenAI API Reference - Single Source of Truth
 
 > 📌 **This is the ONLY reference you need for OpenAI API usage in this codebase.**
-> 
+>
 > All information verified via Context7 MCP - December 2025
 
 ---
@@ -69,7 +69,7 @@ response = client.responses.create(
 if response.output and hasattr(response.output[0], 'computer_call'):
     # Execute with Playwright
     await page.click(response.output[0].computer_call.coordinates)
-    
+
     # Send screenshot back
     screenshot = await page.screenshot()
     client.responses.create(

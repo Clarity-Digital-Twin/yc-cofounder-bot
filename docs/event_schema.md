@@ -182,7 +182,7 @@ Time taken for decision.
 
 The guaranteed order for a successful send:
 1. `profile_extracted`
-2. `decision` 
+2. `decision`
 3. `sent`
 
 For errors:

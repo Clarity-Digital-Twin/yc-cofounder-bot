@@ -17,7 +17,7 @@
 - `test_fallback_to_playwright_when_cua_fails` - Awaiting sync `open()`
 - `test_verify_sent_strict_checking` - Awaiting sync `verify_sent()`
 
-**Fix Strategy:** 
+**Fix Strategy:**
 - Tests should call sync methods without await
 - OR create async test adapter wrapper
 

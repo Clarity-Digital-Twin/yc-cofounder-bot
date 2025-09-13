@@ -36,7 +36,7 @@ The actual JSON is in: `response.output[1].content[0].text`
 ### 3. Error Visibility Improvements
 
 **Before**: Errors returned as fake "NO" decisions → invisible skipping
-**After**: 
+**After**:
 - Return "ERROR" decision type
 - Show error count in UI metrics
 - Display error details in red

@@ -8,7 +8,7 @@ Simple, incremental validation across three branches:
 **Purpose**: Rapid iteration, catch obvious issues early
 **Checks**:
 - ✅ Lint (ruff) - 30 seconds
-- ✅ Type check (mypy) - 1 minute  
+- ✅ Type check (mypy) - 1 minute
 - ✅ Unit tests only - 2 minutes
 - **Total**: ~3 minutes
 
@@ -42,7 +42,7 @@ Simple, incremental validation across three branches:
 ### Speed vs Thoroughness Trade-off
 ```
 development: 3 min  → Fast feedback, basics only
-staging:     8 min  → Add integration, browser tests  
+staging:     8 min  → Add integration, browser tests
 main:       15 min  → Full validation + security
 ```
 
@@ -73,7 +73,7 @@ COVERAGE: 1  # Generate coverage reports
 - Allow force push: Yes (for rebasing)
 - Auto-delete head branches: Yes
 
-### Staging  
+### Staging
 - Require PR reviews: Optional
 - Required checks: lint, type-check, integration-tests
 - Allow force push: No
@@ -105,7 +105,7 @@ COVERAGE: 1  # Generate coverage reports
 1. **Conditional execution**: Jobs only run for relevant branches
 2. **Fail fast**: Type/lint fail early before expensive tests
 3. **Parallel jobs**: Lint and type-check run simultaneously
-4. **Timeout limits**: 
+4. **Timeout limits**:
    - Unit tests: 5 minutes max
    - Integration: 10 minutes max
    - Full suite: 15 minutes max
@@ -117,7 +117,7 @@ Developers can run same checks locally:
 # Development equivalent
 make lint type test
 
-# Staging equivalent  
+# Staging equivalent
 make verify
 
 # Main equivalent

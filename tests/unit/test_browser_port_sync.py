@@ -82,6 +82,6 @@ class TestBrowserPortSync:
         ]:
             method = getattr(OpenAICUABrowser, method_name)
             # The methods themselves should not be async def
-            assert not inspect.iscoroutinefunction(method), (
-                f"OpenAICUABrowser.{method_name} must be synchronous for AutonomousFlow"
-            )
+            assert not inspect.iscoroutinefunction(
+                method
+            ), f"OpenAICUABrowser.{method_name} must be synchronous for AutonomousFlow"

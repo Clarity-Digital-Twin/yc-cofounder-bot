@@ -45,7 +45,7 @@ CUA_MODEL = cua_models[0] if cua_models else None
 ```
 User Provides:
 1. Your Profile
-2. Match Criteria  
+2. Match Criteria
 3. Message Template
 
 Flow:

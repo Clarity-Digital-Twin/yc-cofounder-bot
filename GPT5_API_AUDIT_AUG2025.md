@@ -1,9 +1,9 @@
 # GPT-5 API Audit - August 2025 [OUTDATED]
 
 > ⚠️ **DEPRECATED**: This document contains outdated information based on speculation before Context7 verification.
-> 
+>
 > **Please use [CONTEXT7_TRUTH.md](./CONTEXT7_TRUTH.md) for accurate, Context7 MCP-verified OpenAI API documentation.**
-> 
+>
 > This file is preserved for historical reference only.
 
 ---

@@ -23,21 +23,21 @@ CUA exists but only handles message sending. It should drive the entire flow.
 class OpenAICUABrowser:
     async def send_message(self, message: str) -> bool:
         # Only used for sending
-        
-# REQUIRED (Right - drives entire flow)  
+
+# REQUIRED (Right - drives entire flow)
 class OpenAICUABrowser:
     async def browse_to_listing(self) -> None:
         """Navigate to YC cofounder listing"""
-        
+
     async def extract_profiles(self) -> List[ProfileData]:
         """Extract all visible profiles from page"""
-        
+
     async def open_profile(self, profile_id: str) -> None:
         """Click into specific profile"""
-        
+
     async def extract_profile_details(self) -> Profile:
         """Extract detailed profile information"""
-        
+
     async def send_message(self, message: str) -> bool:
         """Send message to current profile"""
 ```
@@ -53,7 +53,7 @@ class OpenAICUABrowser:
 2. **Fix Responses API usage** (1 hour)
    ```python
    from agents import Agent, ComputerTool, Session
-   
+
    class OpenAICUABrowser:
        def __init__(self):
            self.model = os.getenv("CUA_MODEL")  # From env
@@ -87,31 +87,31 @@ from ..domain.entities import Profile, Decision
 
 class AutonomousBrowserPort(Protocol):
     """Port for autonomous browser operations via CUA"""
-    
+
     async def start_session(self, base_url: str) -> None:
         """Initialize browser session"""
-        
+
     async def browse_to_listing(self) -> None:
         """Navigate to candidate listing page"""
-        
+
     async def extract_profile_list(self) -> List[dict]:
         """Extract all visible profile summaries"""
-        
+
     async def open_profile(self, profile_id: str) -> None:
         """Navigate to specific profile"""
-        
+
     async def extract_full_profile(self) -> Profile:
         """Extract complete profile details"""
-        
+
     async def send_message(self, message: str) -> bool:
         """Send message to current profile"""
-        
+
     async def close_session(self) -> None:
         """Clean up browser session"""
 
 class DecisionModePort(Protocol):
     """Port for decision mode implementations"""
-    
+
     async def evaluate(
         self,
         profile: Profile,
@@ -141,7 +141,7 @@ from ...domain.entities import Profile, Decision
 
 class DecisionMode(ABC):
     """Base class for all decision modes"""
-    
+
     @abstractmethod
     async def evaluate(
         self,
@@ -151,7 +151,7 @@ class DecisionMode(ABC):
     ) -> Decision:
         """Evaluate if profile matches criteria"""
         pass
-        
+
     @property
     @abstractmethod
     def mode_name(self) -> str:
@@ -164,16 +164,16 @@ class DecisionMode(ABC):
 ```python
 class AdvisorMode(DecisionMode):
     """Pure LLM evaluation (no auto-send)"""
-    
+
     def __init__(self, llm_adapter):
         self.llm = llm_adapter
-        
+
     async def evaluate(self, profile, your_profile, criteria):
         # Pure LLM reasoning
         prompt = self._build_advisor_prompt(profile, your_profile, criteria)
         response = await self.llm.complete(prompt)
         return self._parse_decision(response)
-        
+
     @property
     def mode_name(self) -> str:
         return "advisor"
@@ -184,11 +184,11 @@ class AdvisorMode(DecisionMode):
 ```python
 class RubricMode(DecisionMode):
     """Deterministic scoring (auto-send if threshold met)"""
-    
+
     def __init__(self, scoring_service, threshold=5.0):
         self.scorer = scoring_service
         self.threshold = threshold
-        
+
     async def evaluate(self, profile, your_profile, criteria):
         # Deterministic scoring
         score = self.scorer.calculate_score(profile, criteria)
@@ -198,7 +198,7 @@ class RubricMode(DecisionMode):
             rationale=f"Score: {score.total:.1f}",
             mode="rubric"
         )
-        
+
     @property
     def mode_name(self) -> str:
         return "rubric"
@@ -209,12 +209,12 @@ class RubricMode(DecisionMode):
 ```python
 class HybridMode(DecisionMode):
     """Weighted combination of advisor + rubric"""
-    
+
     def __init__(self, advisor, rubric, weight=0.5):
         self.advisor = advisor
         self.rubric = rubric
         self.weight = weight  # 0=rubric only, 1=advisor only
-        
+
     async def evaluate(self, profile, your_profile, criteria):
         # Get both evaluations
         advisor_decision = await self.advisor.evaluate(
@@ -223,21 +223,21 @@ class HybridMode(DecisionMode):
         rubric_decision = await self.rubric.evaluate(
             profile, your_profile, criteria
         )
-        
+
         # Weighted combination
         combined_confidence = (
             self.weight * advisor_decision.confidence +
             (1 - self.weight) * rubric_decision.confidence
         )
-        
+
         return Decision(
             should_message=combined_confidence > 0.5,
             confidence=combined_confidence,
             rationale=f"Hybrid: {combined_confidence:.0%}",
             mode="hybrid"
         )
-        
-    @property  
+
+    @property
     def mode_name(self) -> str:
         return "hybrid"
 ```
@@ -252,20 +252,20 @@ from typing import Optional
 
 class FeatureFlags:
     """Centralized feature flag management"""
-    
+
     # Core features
     USE_CUA_PRIMARY = os.getenv("USE_CUA_PRIMARY", "false") == "true"
     USE_THREE_INPUT_UI = os.getenv("USE_THREE_INPUT_UI", "false") == "true"
     USE_DECISION_MODES = os.getenv("USE_DECISION_MODES", "false") == "true"
-    
+
     # Fallback options
     ENABLE_PLAYWRIGHT_FALLBACK = os.getenv("ENABLE_PLAYWRIGHT_FALLBACK", "true") == "true"
-    
+
     # Decision mode configuration
     DEFAULT_DECISION_MODE = os.getenv("DEFAULT_DECISION_MODE", "rubric")
     HYBRID_WEIGHT = float(os.getenv("HYBRID_WEIGHT", "0.5"))
     RUBRIC_THRESHOLD = float(os.getenv("RUBRIC_THRESHOLD", "5.0"))
-    
+
     @classmethod
     def is_enabled(cls, flag: str) -> bool:
         """Check if a feature flag is enabled"""
@@ -304,9 +304,9 @@ def create_decision_mode() -> DecisionMode:
     if not FeatureFlags.USE_DECISION_MODES:
         # Old behavior - use existing adapters
         return LegacyDecisionAdapter()
-        
+
     mode = FeatureFlags.DEFAULT_DECISION_MODE
-    
+
     if mode == "advisor":
         return AdvisorMode(create_llm_adapter())
     elif mode == "rubric":
@@ -341,26 +341,26 @@ class TestOpenAICUABrowser:
             browser = OpenAICUABrowser()
             assert browser.model == 'test-model'
             mock_agent.assert_called_once()
-    
+
     @pytest.mark.asyncio
     async def test_browse_to_listing(self):
         """Test navigation to YC listing"""
         browser = OpenAICUABrowser()
         browser.agent = Mock()
-        
+
         await browser.browse_to_listing()
-        
+
         browser.agent.run.assert_called_with(
             messages=ANY,
             tools=[ComputerTool()],
             session=ANY
         )
-    
+
     @pytest.mark.asyncio
     async def test_extract_profiles(self):
         """Test profile extraction from page"""
         # Test implementation
-        
+
     @pytest.mark.asyncio
     async def test_fallback_on_error(self):
         """Test fallback to Playwright on CUA error"""
@@ -381,10 +381,10 @@ class TestAdvisorMode:
         """Test advisor mode uses only LLM"""
         llm = Mock()
         llm.complete.return_value = "YES: Good match"
-        
+
         mode = AdvisorMode(llm)
         decision = await mode.evaluate(profile, your_profile, criteria)
-        
+
         assert decision.mode == "advisor"
         assert llm.complete.called
 
@@ -393,10 +393,10 @@ class TestRubricMode:
         """Test rubric mode is deterministic"""
         scorer = Mock()
         scorer.calculate_score.return_value = Score(total=6.0)
-        
+
         mode = RubricMode(scorer, threshold=5.0)
         decision = await mode.evaluate(profile, your_profile, criteria)
-        
+
         assert decision.should_message is True
         assert decision.confidence == 1.0
         assert decision.mode == "rubric"
@@ -407,13 +407,13 @@ class TestHybridMode:
         """Test hybrid combines advisor and rubric"""
         advisor = Mock()
         advisor.evaluate.return_value = Decision(confidence=0.8)
-        
-        rubric = Mock()  
+
+        rubric = Mock()
         rubric.evaluate.return_value = Decision(confidence=0.6)
-        
+
         mode = HybridMode(advisor, rubric, weight=0.7)
         decision = await mode.evaluate(profile, your_profile, criteria)
-        
+
         # 0.7 * 0.8 + 0.3 * 0.6 = 0.74
         assert decision.confidence == pytest.approx(0.74)
 ```

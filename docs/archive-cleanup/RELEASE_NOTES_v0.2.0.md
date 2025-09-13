@@ -10,7 +10,7 @@
 
 ### Browser Automation Improvements
 - ✅ **Single browser instance** - Fixed singleton pattern preventing multiple windows
-- ✅ **Auto-login** - Automatic YC credential handling  
+- ✅ **Auto-login** - Automatic YC credential handling
 - ✅ **Profile detection** - Correctly identifies when on candidate pages
 - ✅ **Session persistence** - Browser stays open across operations
 

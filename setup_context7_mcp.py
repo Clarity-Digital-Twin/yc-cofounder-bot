@@ -30,16 +30,13 @@ def setup_context7_mcp():
             "disabledMcpjsonServers": [],
             "hasTrustDialogAccepted": True,
             "ignorePatterns": [],
-            "hasCompletedProjectOnboarding": True
+            "hasCompletedProjectOnboarding": True,
         }
 
     # Add context7 MCP server
     config["projects"][project_path]["mcpServers"]["context7"] = {
         "command": "npx",
-        "args": [
-            "-y",
-            "@upstash/context7-mcp"
-        ]
+        "args": ["-y", "@upstash/context7-mcp"],
     }
 
     # Optional: Add with API key for higher rate limits
@@ -50,7 +47,7 @@ def setup_context7_mcp():
     # ])
 
     # Write updated config
-    with open(config_path, 'w') as f:
+    with open(config_path, "w") as f:
         json.dump(config, f, indent=2)
 
     print("✅ Context7 MCP server configured successfully!")
@@ -64,6 +61,7 @@ def setup_context7_mcp():
     print("   - 'Show me OpenAI's latest API for GPT-5. use context7'")
     print("   - 'Create a Playwright test with async/await. use context7'")
     print("\n🔑 Optional: Get an API key at https://context7.com/dashboard for higher rate limits")
+
 
 if __name__ == "__main__":
     try:

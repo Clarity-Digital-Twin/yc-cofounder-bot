@@ -35,13 +35,13 @@ from unittest.mock import Mock, patch
 class TestOpenAICUABrowser:
     def test_uses_responses_api(self):
         """Test CUA uses Responses API not Agents SDK"""
-        
+
     def test_screenshot_loop(self):
         """Test YOU provide browser, CUA analyzes"""
-        
+
     def test_truncation_auto(self):
         """Test truncation='auto' is used"""
-        
+
     def test_fallback_to_playwright(self):
         """Test fallback when CUA fails"""
 ```
@@ -52,10 +52,10 @@ class TestOpenAICUABrowser:
 class TestStreamlitUI:
     def test_three_input_mode(self):
         """Test 3-input panel renders"""
-        
+
     def test_paste_mode_retained(self):
         """Test paste mode still works"""
-        
+
     def test_decision_mode_selector(self):
         """Test mode selection UI"""
 ```
@@ -66,10 +66,10 @@ class TestStreamlitUI:
 class TestAutonomousFlow:
     async def test_full_autonomous_flow(self):
         """Test browse → extract → evaluate → send"""
-        
+
     async def test_respects_limit(self):
         """Test stops at profile limit"""
-        
+
     async def test_mode_based_sending(self):
         """Test advisor/rubric/hybrid behaviors"""
 ```
@@ -80,10 +80,10 @@ class TestAutonomousFlow:
 class TestDI:
     def test_cua_browser_selection(self):
         """Test ENABLE_CUA selects right browser"""
-        
+
     def test_decision_mode_selection(self):
         """Test mode selection logic"""
-        
+
     def test_fallback_chain(self):
         """Test CUA → Playwright → Null"""
 ```
@@ -94,10 +94,10 @@ class TestDI:
 class TestDecisionModes:
     def test_advisor_no_auto_send(self):
         """Test advisor never auto-sends"""
-        
+
     def test_rubric_always_auto_send(self):
         """Test rubric auto-sends on YES"""
-        
+
     def test_hybrid_conditional_send(self):
         """Test hybrid uses confidence"""
 ```

@@ -4,9 +4,9 @@
 
 Transform YC Cofounder Bot from manual paste-and-evaluate to autonomous CUA-driven browser automation with three decision modes.
 
-**Duration:** 5 weeks  
-**Approach:** TDD with feature flags  
-**Risk Level:** High (complete workflow reversal)  
+**Duration:** 5 weeks
+**Approach:** TDD with feature flags
+**Risk Level:** High (complete workflow reversal)
 
 ## Pre-Implementation Checklist
 
@@ -26,7 +26,7 @@ Transform YC Cofounder Bot from manual paste-and-evaluate to autonomous CUA-driv
 # src/yc_matcher/infrastructure/openai_cua_browser.py
 class OpenAICUABrowser:
     """Browser automation via OpenAI Computer-Using Agent"""
-    
+
     async def start_session(self, url: str) -> Session
     async def take_screenshot(self) -> Screenshot
     async def perform_action(self, action: Action) -> Result
@@ -135,7 +135,7 @@ class ProcessCandidateV2:
     def __init__(self, browser: BrowserPort, mode: str = "legacy"):
         self.browser = browser
         self.mode = mode
-    
+
     def __call__(self, inputs: ProcessInputs) -> ProcessResult:
         if self.mode == "cua":
             return self._process_with_cua(inputs)
@@ -223,7 +223,7 @@ def render_mode_selector():
         ["advisor", "rubric", "hybrid"],
         help="Choose evaluation strategy"
     )
-    
+
     if mode == "advisor":
         st.info("AI-only evaluation (no auto-send)")
     elif mode == "rubric":
@@ -255,22 +255,22 @@ class TestDecisionModes:
 # src/yc_matcher/interface/web/ui_streamlit_v2.py
 def render_three_input_panel():
     col1, col2, col3 = st.columns(3)
-    
+
     with col1:
         url = st.text_input(
             "YC Profile URL",
             placeholder="https://startup.school/profile/..."
         )
-    
+
     with col2:
         criteria = st.text_area(
             "Match Criteria",
             placeholder="Skills, location, interests..."
         )
-    
+
     with col3:
         limits = render_limit_controls()
-    
+
     if st.button("Start Autonomous Browsing"):
         launch_cua_session(url, criteria, limits)
 ```

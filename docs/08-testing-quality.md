@@ -1,7 +1,7 @@
 # 08 — Testing & Quality
 
-**Status:** Draft v0.2 (2025-08-20)  
-**Owner:** QA / Eng  
+**Status:** Draft v0.2 (2025-08-20)
+**Owner:** QA / Eng
 **Related:** [02-scope-and-requirements.md] · [03-architecture.md] · [06-dev-environment.md] · [11-engineering-guidelines.md]
 
 ---
@@ -72,18 +72,18 @@
 > All commands must be run from repo root. **No `$HOME` writes**; Makefile enforces repo-local caches.
 
 ### Core Commands
-- **Static + unit:**  
+- **Static + unit:**
   `make verify` → Ruff (lint) + Mypy (types) + Pytest (unit)
-- **Integration (headless):**  
+- **Integration (headless):**
   `PLAYWRIGHT_HEADLESS=1 make test-int`
-- **Playwright browsers (local cache):**  
+- **Playwright browsers (local cache):**
   `make browsers`
-- **HIL smoke (visible):**  
+- **HIL smoke (visible):**
   ```bash
   export ENABLE_PLAYWRIGHT=1  # or ENABLE_CUA=1 if testing CUA
   uv run streamlit run -m yc_matcher.interface.web.ui_streamlit
   ```
-- **CUA readiness probe:**  
+- **CUA readiness probe:**
   `make check-cua` *(initializes `agents` import; prints model availability hints)*
 
 ### Environment (enforced in Makefile / CI)
@@ -207,7 +207,7 @@ Dr. Jung profile markdown (short sample)
 
 ### Template
 ```
-Hey {first_name}, loved your {their_highlight}. 
+Hey {first_name}, loved your {their_highlight}.
 I'm a {my_context} ... {cta}
 ```
 

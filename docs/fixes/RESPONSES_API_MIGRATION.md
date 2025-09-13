@@ -9,7 +9,7 @@ Successfully migrated from legacy Agents SDK to OpenAI Responses API with proper
 **Files:** `openai_decision.py`, `openai_cua_browser.py`
 
 **Issue:** GPT-5 returns `reasoning` items before `message` items, causing silent failures
-**Fix:** 
+**Fix:**
 - Use `response.output_text` helper as primary method
 - Fallback to manual parsing that explicitly skips `reasoning` items
 - Added comprehensive logging for debugging

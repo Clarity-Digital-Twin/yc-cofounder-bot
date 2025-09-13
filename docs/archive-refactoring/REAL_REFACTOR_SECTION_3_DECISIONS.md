@@ -45,18 +45,18 @@
 def create_decision_adapter(mode: str = None):
     """Create decision adapter based on mode"""
     mode = mode or os.getenv("DECISION_MODE", "hybrid")
-    
+
     if mode == "advisor":
         # Pure AI, no auto-send
         adapter = OpenAIDecisionAdapter(...)
         adapter.auto_send = False  # ADD this flag
         return adapter
-        
+
     elif mode == "rubric":
         # Pure scoring, always auto-send
         scoring = WeightedScoringService(...)
         return RubricOnlyAdapter(scoring)  # Create thin wrapper
-        
+
     elif mode == "hybrid":
         # Existing GatedDecision
         return GatedDecision(
@@ -71,7 +71,7 @@ class RubricOnlyAdapter(DecisionPort):
         self.scoring = scoring
         self.threshold = threshold
         self.auto_send = True  # Always auto-send
-        
+
     def evaluate(self, profile, criteria):
         score = self.scoring.score(profile, criteria)
         passed = score.value >= self.threshold
@@ -86,7 +86,7 @@ class RubricOnlyAdapter(DecisionPort):
 
 ## Test Coverage:
 - `test_openai_decision_adapter.py` ✅ EXISTS
-- `test_gated_decision.py` ✅ EXISTS  
+- `test_gated_decision.py` ✅ EXISTS
 - `test_scoring.py` ✅ EXISTS
 - **Missing**: Mode selection tests
 

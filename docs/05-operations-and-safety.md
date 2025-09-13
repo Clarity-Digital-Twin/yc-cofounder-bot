@@ -1,7 +1,7 @@
 # 05 — Operations & Safety
 
-**Status:** Draft v0.2 (2025-08-20)  
-**Owner:** YC Matcher Team  
+**Status:** Draft v0.2 (2025-08-20)
+**Owner:** YC Matcher Team
 **Related:** [02-scope-and-requirements.md] · [04-implementation-plan.md] · [10-ui-reference.md]
 
 Primary automation uses **OpenAI Computer Use (CUA) via the Responses API (computer_use tool)** with **Playwright** executing actions locally. A Playwright-only adapter is used as a fallback when CUA is unavailable or explicitly disabled.

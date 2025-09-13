@@ -49,7 +49,7 @@ resp = client.responses.create(
 # 2. Execute actions with Playwright
 if resp has computer_call:
     await playwright.execute(action)
-    
+
 # 3. Send screenshot back
 client.responses.create(
     previous_response_id=resp.id,

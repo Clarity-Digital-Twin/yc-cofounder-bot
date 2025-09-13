@@ -39,14 +39,14 @@ from typing import List, Dict, Any
 @dataclass
 class AutonomousFlow:
     """CUA-driven autonomous browsing and matching"""
-    
+
     browser: BrowserPort  # Will be CUA browser
     evaluate: EvaluateProfile  # Reuse existing
     send: SendMessage  # Reuse existing
     seen: SeenRepo  # Reuse existing
     logger: LoggerPort  # Reuse existing
     stop: StopController  # Reuse existing
-    
+
     async def run(
         self,
         your_profile: str,  # NEW: Your profile input
@@ -62,59 +62,59 @@ class AutonomousFlow:
         3. Evaluate each against criteria
         4. Send messages based on mode
         """
-        
+
         # 1. Navigate to listing
         await self.browser.navigate_to_listing()
-        
+
         # 2. Extract profile list
         profile_list = await self.browser.extract_profile_list()
-        
+
         results = []
         sent_count = 0
-        
+
         for profile_data in profile_list[:limit]:
             # Check stop
             if self.stop.is_stopped():
                 break
-                
+
             # Open individual profile
             await self.browser.open_profile(profile_data['id'])
-            
+
             # Extract full text
             text = await self.browser.read_profile_text()
             profile = Profile(raw_text=text)
-            
+
             # Check seen
             phash = hash_profile_text(text)
             if self.seen.is_seen(phash):
                 continue
             self.seen.mark_seen(phash)
-            
+
             # Evaluate (reuse existing)
             criteria_obj = Criteria(text=criteria)
             decision = self.evaluate(profile, criteria_obj)
-            
+
             # Auto-send logic based on mode
             should_send = self._should_auto_send(decision, mode)
-            
+
             if should_send and decision['decision'] == 'YES':
                 # Send (reuse existing)
                 success = self.send(decision['draft'], limit)
                 if success:
                     sent_count += 1
-                    
+
             results.append({
                 'profile': profile,
                 'decision': decision,
                 'sent': should_send
             })
-            
+
         return {
             'total_evaluated': len(results),
             'total_sent': sent_count,
             'results': results
         }
-    
+
     def _should_auto_send(self, decision: Dict, mode: str) -> bool:
         """Determine if should auto-send based on mode"""
         if mode == "advisor":
@@ -130,7 +130,7 @@ class AutonomousFlow:
 
 ### Reusable Components:
 - ✅ `EvaluateProfile` - Can reuse as-is
-- ✅ `SendMessage` - Can reuse as-is  
+- ✅ `SendMessage` - Can reuse as-is
 - ✅ `SeenRepo` - Can reuse for dedup
 - ✅ `StopController` - Can reuse for abort
 - ✅ `LoggerPort` - Can reuse for logging

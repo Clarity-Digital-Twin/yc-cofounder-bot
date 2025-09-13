@@ -20,7 +20,7 @@ if st.button("Evaluate"):
 ```python
 # Should be:
 your_profile = st.text_area("Your Profile")
-match_criteria = st.text_area("Match Criteria")  
+match_criteria = st.text_area("Match Criteria")
 message_template = st.text_area("Message Template")
 if st.button("Start Autonomous Browsing"):
     cua.browse_and_match(url, your_profile, criteria, template)

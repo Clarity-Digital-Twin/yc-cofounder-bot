@@ -69,4 +69,3 @@ Scope: Validate data flows, code paths, and tests against Mermaid diagrams; high
 - Add STOP re-check and optional non-blocking pacing in `SendMessage` (behind env flag).
 - Add a small async adapter for tests or update tests to call sync methods for `BrowserPort`.
 - Tighten docs in README with environment and Playwright install notes.
-

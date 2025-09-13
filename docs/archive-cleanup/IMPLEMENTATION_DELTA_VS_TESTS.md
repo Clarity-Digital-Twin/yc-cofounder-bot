@@ -48,4 +48,3 @@ This file lists discrepancies between current implementation and expectations en
 ## Minor
 - Model resolver tests (missing): Add if we wire resolver.
 - STOP-in-send test (missing): Add once `SendMessage` gains stop gates.
-

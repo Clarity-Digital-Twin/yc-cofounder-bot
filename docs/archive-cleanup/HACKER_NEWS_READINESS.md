@@ -23,4 +23,3 @@
 
 ## Suggested Tagline
 - “Open-source YC cofounder matcher: deterministic Playwright navigation + pluggable AI decisions, with optional Computer Use planning.”
-

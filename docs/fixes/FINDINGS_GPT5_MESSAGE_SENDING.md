@@ -55,7 +55,7 @@ temperature=1
 
 ### Input to GPT-5:
 1. **Your Profile**: Who you are, what you bring
-2. **Match Criteria**: What you're looking for in a co-founder  
+2. **Match Criteria**: What you're looking for in a co-founder
 3. **Message Template**: Format for personalized messages
 4. **Candidate Profile**: The person being evaluated
 
@@ -72,7 +72,7 @@ temperature=1
 
 ### Execution Pipeline:
 1. **Login** ✅ Working
-2. **Navigate to profiles** ✅ Working  
+2. **Navigate to profiles** ✅ Working
 3. **Extract profile text** ✅ Working (gets 2000-5000 chars)
 4. **Send to GPT-5** ✅ Working (with temperature=1)
 5. **Parse response** ✅ Working (with output_text)
@@ -107,7 +107,7 @@ Already fixed:
 
 ### What We Tested:
 - Dr. Juan Rosario (Rhode Island) - NO match (location mismatch) ✅
-- Mike Pollard (SF) - NO match (technical not business) ✅  
+- Mike Pollard (SF) - NO match (technical not business) ✅
 - Test message filling - Successfully filled ✅
 - Button clicking - Successfully found "Invite to connect" ✅
 

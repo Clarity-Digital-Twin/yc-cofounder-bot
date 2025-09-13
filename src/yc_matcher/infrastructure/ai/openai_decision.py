@@ -143,7 +143,9 @@ class OpenAIDecisionAdapter(DecisionPort):
                 # Try with all optional params first, fall back if they error
                 # Use config values for GPT-5 parameters
                 max_tokens = config.get_gpt5_max_tokens() if self.model.startswith("gpt-5") else 800
-                temperature = config.get_gpt5_temperature() if self.model.startswith("gpt-5") else 0.3
+                temperature = (
+                    config.get_gpt5_temperature() if self.model.startswith("gpt-5") else 0.3
+                )
                 top_p = config.get_gpt5_top_p() if self.model.startswith("gpt-5") else 0.9
 
                 # Build params according to Context7 documentation

@@ -159,4 +159,3 @@ Read this file top-to-bottom and implement in order. Each task lists files, exac
 - `make verify` green locally (headed) and headless integration tests pass.
 - README/SSOT/CANONICAL_TRUTH updated to match reality.
 - Short demo recorded per HACKER_NEWS_READINESS.md.
-

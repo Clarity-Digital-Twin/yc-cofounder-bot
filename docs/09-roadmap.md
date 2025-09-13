@@ -1,7 +1,7 @@
 # 09 — Roadmap
 
-**Status:** Draft v0.2 (2025-08-20)  
-**Owner:** Product / Eng  
+**Status:** Draft v0.2 (2025-08-20)
+**Owner:** Product / Eng
 **Related:** [02-scope-and-requirements.md] · [03-architecture.md] · [04-implementation-plan.md]
 
 **Product North Star:** One-click, **hands-off matcher**. You paste **(1) Your Profile**, **(2) Match Criteria**, **(3) Message Template** — the system **autonomously** browses YC Cofounder Matching via **OpenAI Computer Use (CUA, Responses API)** planning actions from screenshots while **Playwright** executes them locally; Playwright-only runs as a **fallback** if CUA is unavailable.

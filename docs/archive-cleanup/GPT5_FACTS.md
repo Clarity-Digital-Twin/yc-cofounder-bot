@@ -35,7 +35,7 @@ response = client.chat.completions.create(
 
 ### 4. Key Differences from GPT-4
 - **Different API**: Responses API vs Chat Completions
-- **Different parameters**: 
+- **Different parameters**:
   - `max_output_tokens` instead of `max_tokens` (CRITICAL FIX!)
   - `input` instead of `messages`
   - NO `response_format` parameter (use prompt instructions for JSON)
@@ -88,7 +88,7 @@ def get_best_model(client):
     """Get best available model with fallback."""
     models = client.models.list()
     available = [m.id for m in models.data]
-    
+
     if "gpt-5" in available:
         return "gpt-5"
     elif "gpt-4o" in available:

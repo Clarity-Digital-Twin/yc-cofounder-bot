@@ -1,7 +1,7 @@
 # 07 — Project Structure
 
-**Status:** Draft v0.2 (2025-08-20)  
-**Owner:** YC Matcher Team  
+**Status:** Draft v0.2 (2025-08-20)
+**Owner:** YC Matcher Team
 **Related:** [03-architecture.md] · [06-dev-environment.md] · [08-testing-quality.md]
 
 **Goal:** Make the repo's layout, responsibilities, and run commands unambiguous so new contributors can ship safely without breaking the CUA-first automation flow.

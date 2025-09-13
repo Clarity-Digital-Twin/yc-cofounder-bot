@@ -1,7 +1,7 @@
 # 10 — UI Reference
 
-**Status:** Draft v0.2 (2025-08-20)  
-**Owner:** UI/UX Team  
+**Status:** Draft v0.2 (2025-08-20)
+**Owner:** UI/UX Team
 **Related:** [02-scope-and-requirements.md] · [03-architecture.md] · [05-operations-and-safety.md]
 
 ## Streamlit Dashboard - Single Page with 3 Core Inputs
@@ -39,7 +39,7 @@
 - **Quotas**: shows `DAILY_QUOTA` / `WEEKLY_QUOTA` remaining (from `.runs/quota.sqlite`)
 
 **Provider**
-- **Status**: 
+- **Status**:
   - **OpenAI Computer Use (Responses API)** — 🟢 Connected | 🔴 Unavailable
   - **Executor: Playwright** — Always used; Playwright-only fallback when `ENABLE_PLAYWRIGHT_FALLBACK=1`
 - **Model**: `CUA_MODEL` (read-only), Decision LLM: `OPENAI_DECISION_MODEL` (read-only)

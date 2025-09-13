@@ -33,7 +33,7 @@ if "\nMessage Template:" in criteria.text:
     parts = criteria.text.split("\nMessage Template:")
     criteria_text = parts[0]
     template = parts[1].strip()
-    
+
 if template:
     user_text += f"MESSAGE TEMPLATE (use this style but personalize it):\n{template}\n\n"
 ```
@@ -82,35 +82,35 @@ def resolve_best_decision_model(client: OpenAI) -> str:
     """Discover best GPT-5 model via Models API."""
     models = client.models.list()
     ids = [m.id for m in models.data]
-    
+
     # 1. Try GPT-5 thinking variants
     gpt5_thinking = [m for m in ids if 'gpt-5' in m.lower() and 'thinking' in m.lower()]
     if gpt5_thinking:
         return sorted(gpt5_thinking, reverse=True)[0]
-    
+
     # 2. Try any GPT-5
     gpt5_any = [m for m in ids if m.lower().startswith('gpt-5')]
     if gpt5_any:
         return sorted(gpt5_any, reverse=True)[0]
-    
+
     # 3. Fallback to GPT-4 variants (despite user preference)
     gpt4_variants = [m for m in ids if m.lower().startswith('gpt-4')]
     if gpt4_variants:
         # Sort to get newest (4o, 4.1, etc)
         return sorted(gpt4_variants, reverse=True)[0]
-    
+
     raise RuntimeError("No suitable GPT model found. Check API key and tier.")
 
 def resolve_cua_model(client: OpenAI) -> Optional[str]:
     """Discover Computer Use model if available."""
     models = client.models.list()
     ids = [m.id for m in models.data]
-    
+
     # Look for computer-use variants
     cua_models = [m for m in ids if 'computer' in m.lower() or 'cua' in m.lower()]
     if cua_models:
         return cua_models[0]
-    
+
     return None
 ```
 

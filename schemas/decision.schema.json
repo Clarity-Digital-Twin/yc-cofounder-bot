@@ -3,28 +3,28 @@
   "title": "DecisionResponse",
   "type": "object",
   "properties": {
-    "decision": { 
-      "type": "string", 
+    "decision": {
+      "type": "string",
       "enum": ["YES", "NO", "ERROR"],
       "description": "The evaluation decision"
     },
-    "rationale": { 
+    "rationale": {
       "type": "string",
       "description": "Explanation of the decision in 1-2 sentences"
     },
-    "draft": { 
+    "draft": {
       "type": "string",
       "description": "Personalized message draft if YES, empty string if NO"
     },
-    "score": { 
-      "type": "number", 
-      "minimum": 0, 
+    "score": {
+      "type": "number",
+      "minimum": 0,
       "maximum": 1,
       "description": "Match strength score"
     },
-    "confidence": { 
-      "type": "number", 
-      "minimum": 0, 
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
       "maximum": 1,
       "description": "Confidence in the decision"
     }

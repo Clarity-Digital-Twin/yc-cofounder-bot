@@ -59,4 +59,3 @@ Reality: Functional for MVP; STOP flag UI controls exist; shadow mode supported.
 - DI wiring: `interface/di.py` selects CUA or Playwright; decision adapters and logger stamping.
 - Async singleton: `infrastructure/async_loop_runner.py`, `infrastructure/browser_playwright_async.py` (not used by DI).
 - Model resolver: `infrastructure/model_resolver.py` (not used by DI).
-

@@ -56,7 +56,7 @@
 
 ## Summary
 
-**ALL CODE QUALITY CHECKS ARE FULLY GREEN** 
+**ALL CODE QUALITY CHECKS ARE FULLY GREEN**
 
 The codebase is:
 - ✅ Lint clean (ruff)

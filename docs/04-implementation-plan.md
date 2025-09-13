@@ -1,7 +1,7 @@
 # 04 — Implementation Plan
 
-**Status:** Draft v0.2 (2025-08-20)  
-**Owner:** YC Matcher Team  
+**Status:** Draft v0.2 (2025-08-20)
+**Owner:** YC Matcher Team
 **Related:** [01-product-brief.md] · [02-scope-and-requirements.md] · [03-architecture.md] · [10-ui-reference.md]
 
 This plan maps directly to the SSOT: CUA+Playwright work together (CUA analyzes, Playwright executes), three decision modes, STOP/quotas/dedupe, single-page UI.

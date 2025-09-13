@@ -3,7 +3,7 @@
 ## What Was Broken (Your Original Issues)
 
 1. **"Profiles being skipped with JSONDecodeError"** - The app was silently skipping all profiles
-2. **"Black box with no visibility"** - You saw skipping but had no idea what was causing it  
+2. **"Black box with no visibility"** - You saw skipping but had no idea what was causing it
 3. **"CUA toggle shows Playwright-only even when toggled ON"** - Toggle didn't actually work
 4. **"Profile text cut off mid-sentence"** - Screenshots only showed visible portion, missing critical data
 
@@ -50,7 +50,7 @@ client.responses.create(
 def build_services(criteria_text, ...):
     if config.is_cua_enabled():  # Always reads ENV
 
-# After:  
+# After:
 def build_services(criteria_text, ..., enable_cua=None):
     use_cua = enable_cua if enable_cua is not None else config.is_cua_enabled()
     if use_cua:  # Uses UI toggle when provided
@@ -72,7 +72,7 @@ async def _read_profile_text_async(self):
 
 ### 4. Added Comprehensive Instrumentation
 Every event now includes:
-- `engine`: "cua" or "playwright" 
+- `engine`: "cua" or "playwright"
 - `extracted_len`: Number of characters extracted
 - `skip_reason`: Why a profile was skipped (if applicable)
 - `latency_ms`: Time taken for operations
@@ -91,7 +91,7 @@ The confusion about CUA + Playwright is resolved:
 ```
 CUA (OpenAI Computer Use API):
 - Plans navigation actions
-- Analyzes screenshots  
+- Analyzes screenshots
 - Suggests what to click/type
 - Good at: Adapting to UI changes
 

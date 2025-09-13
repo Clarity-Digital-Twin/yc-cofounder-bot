@@ -46,4 +46,3 @@
 3. Minor doc cleanup: unify model claims, clarify CUA positioning vs Playwright
    - Files: README, SSOT.md, CANONICAL_TRUTH.md
    - Effort: S
-

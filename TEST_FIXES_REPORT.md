@@ -39,7 +39,7 @@ def parse_timestamp(timestamp_str: str | int | float | datetime) -> datetime:
 **Solution**: Added `max_output_tokens=self.max_tokens` to all 4 `responses.create()` calls in `openai_cua.py`:
 - Line 247: First turn (plan) API call
 - Line 345: Computer call output response
-- Line 725: Login action API call  
+- Line 725: Login action API call
 - Line 780: Login feedback response
 
 This was the **one real code misalignment** with Context7 documentation.
@@ -49,7 +49,7 @@ This was the **one real code misalignment** with Context7 documentation.
 ## Test Results
 
 After fixes, the following tests now pass:
-- ✅ `test_boolean_parsing` 
+- ✅ `test_boolean_parsing`
 - ✅ `test_parse_timestamp_with_unix_timestamp`
 - ✅ `test_format_for_display`
 - ✅ `test_parse_timestamp_invalid_input`

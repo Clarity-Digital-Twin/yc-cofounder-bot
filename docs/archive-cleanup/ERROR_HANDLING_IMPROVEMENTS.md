@@ -6,7 +6,7 @@ The app was skipping all profiles with no visibility into why. Errors were being
 
 ## Root Cause
 
-1. **GPT-5 Responses API parameter mismatch**: 
+1. **GPT-5 Responses API parameter mismatch**:
    - Used `response_format` (not supported)
    - Used `reasoning_effort` and `verbosity` (don't exist)
    - Used wrong token parameter name

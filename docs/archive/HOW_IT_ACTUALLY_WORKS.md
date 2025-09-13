@@ -10,7 +10,7 @@
 - **Purpose:** SEE screenshots, CLICK buttons, NAVIGATE pages
 - **How:** Takes screenshot → AI suggests "click at (x,y)" → Playwright executes
 
-### 2. DECISION AI (Match Evaluation) 
+### 2. DECISION AI (Match Evaluation)
 **Model:** `gpt-5-thinking` (NEW August 2025 model!)
 **Purpose:** READ profiles, DECIDE yes/no, WRITE messages
 
@@ -30,7 +30,7 @@ Output: {
 ## THE COMPLETE FLOW:
 
 1. **Playwright** opens browser, auto-logs in
-2. **Playwright** clicks "View Profiles" 
+2. **Playwright** clicks "View Profiles"
 3. **Playwright** extracts profile text
 4. **GPT-5-thinking** evaluates match (via API)
 5. **GPT-5-thinking** generates message
@@ -54,7 +54,7 @@ They work together:
 ENABLE_CUA=0                    # OFF - using Playwright selectors
 CUA_MODEL=computer-use-preview  # Would use this if enabled
 
-# Decisions  
+# Decisions
 OPENAI_DECISION_MODEL=gpt-5-thinking  # Smart matching!
 DECISION_MODE=hybrid                  # Rubric filter + GPT-5
 ```

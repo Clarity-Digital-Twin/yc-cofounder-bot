@@ -1,7 +1,7 @@
 # 11 — Engineering Guidelines
 
-**Status:** Draft v0.3 (2025-08-20)  
-**Owner:** Engineering Team  
+**Status:** Draft v0.3 (2025-08-20)
+**Owner:** Engineering Team
 **Related:** [03-architecture.md] · [07-project-structure.md] · [08-testing-quality.md]
 
 ## Product Truth (The North Star)
@@ -102,22 +102,22 @@ export HOME="$PWD/.home"
 class BrowserPort(Protocol):
     async def open(self, url: str) -> None:
         """Navigate to URL"""
-    
+
     async def read_profile_text(self) -> str:
         """Extract visible profile text"""
-    
+
     async def focus_message_box(self) -> None:
         """Focus the message input area"""
-    
+
     async def fill_message(self, text: str) -> None:
         """Type message into focused area"""
-    
+
     async def click_send(self) -> None:
         """Click the send button"""
-    
+
     async def verify_sent(self) -> bool:
         """Verify message was sent successfully"""
-    
+
     async def close(self) -> None:
         """Clean up resources"""
 ```
@@ -158,7 +158,7 @@ CUA_MODEL=<your-computer-use-model>   # From your Models endpoint
 CUA_TEMPERATURE=0.3
 CUA_MAX_TOKENS=1200
 
-# Decision Engine  
+# Decision Engine
 DECISION_MODE=hybrid                   # advisor|rubric|hybrid
 OPENAI_DECISION_MODEL=<your-best-llm>  # For Advisor/Hybrid
 THRESHOLD=0.72
@@ -177,7 +177,7 @@ SHADOW_MODE=0                          # 1 = evaluate-only
 ### Schema (Canonical)
 ```json
 // Decision event
-{"event": "decision", "mode": "hybrid", "advisor_conf": 0.85, "rubric_score": 0.70, 
+{"event": "decision", "mode": "hybrid", "advisor_conf": 0.85, "rubric_score": 0.70,
  "final_score": 0.775, "threshold": 0.72, "pass": true, "rationale": "Strong ML match"}
 
 // Sent event (SUCCESS)
@@ -186,11 +186,11 @@ SHADOW_MODE=0                          # 1 = evaluate-only
 // Quota event
 {"event": "quota", "day_count": 15, "week_count": 67, "allowed": true}
 
-// Stop event  
+// Stop event
 {"event": "stop", "reason": "user_requested"}
 
 // Model usage
-{"event": "model_usage", "provider": "openai", "model": "<model>", 
+{"event": "model_usage", "provider": "openai", "model": "<model>",
  "tokens_in": 1200, "tokens_out": 150, "cost_est": 0.042}
 ```
 
@@ -217,7 +217,7 @@ SHADOW_MODE=0                          # 1 = evaluate-only
 
 ### Coverage Requirements
 - Domain layer: ≥90% line coverage
-- Application layer: ≥85% line coverage  
+- Application layer: ≥85% line coverage
 - Adapters: Contract tests required
 - No test writes to $HOME (use tmp_path fixtures)
 
@@ -286,7 +286,7 @@ make browsers       # Install Playwright browsers to .ms-playwright/
 make run            # Start Streamlit UI (repo-scoped HOME)
 make run-cli        # Show CLI options
 
-# Maintenance  
+# Maintenance
 make clean          # Remove caches and temp files
 make clean-pyc      # Remove Python cache files
 ```
@@ -299,7 +299,7 @@ Change environment variable only:
 # Before
 CUA_MODEL=old-model
 
-# After  
+# After
 CUA_MODEL=new-model
 
 # No code changes required

@@ -13,7 +13,6 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
-
 from yc_matcher.application.autonomous_flow import AutonomousFlow
 from yc_matcher.application.use_cases import EvaluateProfile, SendMessage
 from yc_matcher.infrastructure.control.stop_flag import FileStopFlag

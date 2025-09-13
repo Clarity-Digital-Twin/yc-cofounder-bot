@@ -22,9 +22,9 @@ ENABLE_CUA=1  # Turn it on to test
 ### 3. Fix Decision Flow
 The flow should be:
 1. Extract profile text
-2. **Hybrid Mode**: 
+2. **Hybrid Mode**:
    - First: Rubric scores keywords (Python=3, FastAPI=2, etc.)
-   - If score >= 0.72 threshold → 
+   - If score >= 0.72 threshold →
    - Then: Ask GPT-4 "Should I match with this person?"
    - GPT-4 returns: {decision: "YES", rationale: "...", draft: "Hey [name]..."}
 3. If YES → Send message (unless SHADOW_MODE=1)
@@ -76,7 +76,7 @@ print(result)  # Should show decision, rationale, draft
 
 ### Decision flow (your ChatGPT mirror):
 ```
-Profile Text → Rubric Score → Above threshold? 
+Profile Text → Rubric Score → Above threshold?
     ↓ YES
 Ask GPT-4 → "Match with this person?"
     ↓ YES

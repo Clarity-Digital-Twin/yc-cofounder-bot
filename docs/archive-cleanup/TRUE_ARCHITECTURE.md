@@ -25,4 +25,3 @@
 - Model auto-resolution and GPT-5 claims: resolver exists but unused; documentation should permit GPT-4 family fallback.
 - Auto-login/singleton: implemented in async adapter, not default; either wire it via DI or soften claims in docs.
 - Async ergonomics: CUA OpenAI calls in async context are synchronous; run in executor to avoid event loop blocking.
-

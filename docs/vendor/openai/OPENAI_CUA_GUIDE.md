@@ -80,15 +80,15 @@ response = client.responses.create(
 # Loop until no more actions
 while True:
     # Check for computer_call in response
-    computer_calls = [item for item in response.output 
+    computer_calls = [item for item in response.output
                      if item.type == "computer_call"]
-    
+
     if not computer_calls:
         break  # Done!
-    
+
     action = computer_calls[0].action
     call_id = computer_calls[0].call_id
-    
+
     # YOU execute the action in YOUR browser
     if action.type == "click":
         await page.mouse.click(action.x, action.y)
@@ -96,11 +96,11 @@ while True:
         await page.keyboard.type(action.text)
     elif action.type == "scroll":
         await page.evaluate(f"window.scrollBy({action.scroll_x}, {action.scroll_y})")
-    
+
     # YOU take a screenshot of YOUR browser
     screenshot_bytes = await page.screenshot()
     screenshot_base64 = base64.b64encode(screenshot_bytes).decode()
-    
+
     # Send the screenshot back to CUA
     response = client.responses.create(
         model="computer-use-preview",
@@ -134,12 +134,12 @@ import os
 
 class OpenAICUABrowser:
     """Browser automation via CUA + YOUR Playwright browser."""
-    
+
     def __init__(self):
         self.client = OpenAI()
         self.browser = None
         self.page = None
-    
+
     async def start(self):
         """Start YOUR browser"""
         playwright = await async_playwright().start()
@@ -147,28 +147,28 @@ class OpenAICUABrowser:
             headless=os.getenv("HEADLESS", "1") == "1"
         )
         self.page = await self.browser.new_page()
-    
+
     async def browse_to_profile(self, url: str) -> dict:
         """Navigate and extract using CUA + YOUR browser"""
         # Navigate YOUR browser
         await self.page.goto(url)
-        
+
         # Start CUA analysis loop
         response = await self._cua_loop(
             "Extract all profile information from this page"
         )
-        
+
         return self._parse_response(response)
-    
+
     async def send_message(self, message: str) -> bool:
         """Fill and send using CUA + YOUR browser"""
         response = await self._cua_loop(
             f"Click the message box, type this message, then click send: {message}"
         )
-        
+
         # Verify in YOUR browser
         return await self._verify_sent()
-    
+
     async def _cua_loop(self, goal: str):
         """The core CUA loop with YOUR browser"""
         response = self.client.responses.create(
@@ -185,21 +185,21 @@ class OpenAICUABrowser:
             }],
             truncation="auto"
         )
-        
+
         while True:
-            computer_calls = [item for item in response.output 
+            computer_calls = [item for item in response.output
                             if item.type == "computer_call"]
-            
+
             if not computer_calls:
                 return response
-            
+
             # Execute in YOUR browser
             await self._execute_action(computer_calls[0].action)
-            
+
             # Screenshot YOUR browser
             screenshot = await self.page.screenshot()
             screenshot_b64 = base64.b64encode(screenshot).decode()
-            
+
             # Continue loop
             response = self.client.responses.create(
                 model="computer-use-preview",
@@ -220,7 +220,7 @@ class OpenAICUABrowser:
                 }],
                 truncation="auto"
             )
-    
+
     async def _execute_action(self, action):
         """Execute CUA action in YOUR browser"""
         if action.type == "click":
@@ -265,7 +265,7 @@ HEADLESS=1                               # 0 for visible browser
 if any(item.pending_safety_checks for item in response.output):
     # STOP and require human approval
     safety_check = response.output[0].pending_safety_checks[0]
-    
+
     # Show to user and wait for approval
     if user_approves:
         # Continue with acknowledgment

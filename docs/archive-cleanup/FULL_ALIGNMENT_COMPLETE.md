@@ -81,7 +81,7 @@ is_calendar_quota_enabled() -> bool     # Calendar-aware quotas
 # Settings
 get_auto_send_default() -> bool         # Auto-send on match
 get_daily_quota() -> int                # Daily message quota
-get_weekly_quota() -> int               # Weekly message quota  
+get_weekly_quota() -> int               # Weekly message quota
 get_pace_seconds() -> int               # Min seconds between sends
 get_playwright_fallback_enabled() -> bool  # Fallback to Playwright
 

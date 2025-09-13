@@ -1,7 +1,7 @@
 # 06 — Developer Environment
 
-**Status:** Draft v0.2 (2025-08-20)  
-**Owner:** YC Matcher Team  
+**Status:** Draft v0.2 (2025-08-20)
+**Owner:** YC Matcher Team
 **Related:** [04-implementation-plan.md] · [05-operations-and-safety.md] · [07-project-structure.md]
 
 ## Baseline Requirements

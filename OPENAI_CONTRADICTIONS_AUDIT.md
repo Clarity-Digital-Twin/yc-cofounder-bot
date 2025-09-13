@@ -62,7 +62,7 @@ After auditing all documentation files, here are the contradictions about OpenAI
 
 ### Status:
 - **Missing from**: All docs/fixes/*.md files
-- **Missing from**: docs/archive-cleanup/*.md files  
+- **Missing from**: docs/archive-cleanup/*.md files
 - **Only in**: CONTEXT7_TRUTH.md and CLAUDE.md
 
 ### ✅ TRUTH (from Context7): **`reasoning: { effort: "minimal" }` for speed**

@@ -54,9 +54,9 @@ Score: 0.97
 Confidence: 0.9
 
 Generated Message:
-"Hi Sarah, I noticed you led a $5M Series A and bring 10 years in sales 
-on top of your Stanford MBA—impressive. I'm also SF-based and looking for 
-a business cofounder; your go-to-market and fundraising experience sound 
+"Hi Sarah, I noticed you led a $5M Series A and bring 10 years in sales
+on top of your Stanford MBA—impressive. I'm also SF-based and looking for
+a business cofounder; your go-to-market and fundraising experience sound
 like a great complement. Would love to connect and compare what we're building."
 ```
 

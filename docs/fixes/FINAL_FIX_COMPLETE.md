@@ -14,7 +14,7 @@
 ✅ **Validation**: Schema validation with decision_json_ok flag
 
 ### 3. Message Fill/Paste Flow
-✅ **Selector priority**: 
+✅ **Selector priority**:
    - `textarea[placeholder*='excited about potentially working' i]`
    - Fallbacks for other textarea types
 ✅ **Clear before fill**: elem.clear() then elem.fill()
@@ -23,7 +23,7 @@
 
 ### 4. Code Quality
 ✅ **JSON Schema**: schemas/decision.schema.json
-✅ **Validation function**: _validate_decision() 
+✅ **Validation function**: _validate_decision()
 ✅ **Type hints**: Fixed critical type issues
 ✅ **Linting**: Auto-fixed formatting issues
 
@@ -31,14 +31,14 @@
 
 ```
 ✅ GPT-5 with validation: PASS
-✅ Model fallback to gpt-4o: PASS  
+✅ Model fallback to gpt-4o: PASS
 ✅ Message fill flow: PASS
 ✅ JSON schema validation: PASS
 ```
 
 ## What We Discovered
 
-1. **GPT-5 Responses API**: 
+1. **GPT-5 Responses API**:
    - Does NOT support response_format parameter
    - Does NOT support temperature parameter
    - Returns reasoning item first, message item second
@@ -58,7 +58,7 @@
 
 1. **src/yc_matcher/config.py**: Default to gpt-4o
 2. **src/yc_matcher/infrastructure/model_resolver.py**: Prefer gpt-4o
-3. **src/yc_matcher/infrastructure/openai_decision.py**: 
+3. **src/yc_matcher/infrastructure/openai_decision.py**:
    - Added validation function
    - Improved fallback logic
    - Fixed type issues

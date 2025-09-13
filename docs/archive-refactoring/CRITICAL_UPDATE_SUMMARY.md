@@ -37,7 +37,7 @@ resp = openai_client.responses.create(
 if getattr(resp, "computer_call", None):
     act = resp.computer_call
     await execute_with_playwright(act)
-    
+
     # 3) Take a screenshot and send computer_call_output
     screenshot = await playwright_page.screenshot()
     openai_client.responses.create(

@@ -40,7 +40,7 @@ if any(x in fmt for x in ["%H", "%I", "%M", "%S", "%p"]):
 **Problem**: All 4 CUA API calls were missing `max_output_tokens` parameter
 **Solution**: Added `max_output_tokens=self.max_tokens` to all responses.create() calls
 - Line 247: First turn (plan) API call ✅
-- Line 345: Computer call output response ✅  
+- Line 345: Computer call output response ✅
 - Line 725: Login action API call ✅
 - Line 780: Login feedback response ✅
 
@@ -54,7 +54,7 @@ if any(x in fmt for x in ["%H", "%I", "%M", "%S", "%p"]):
 
 ### Passing Tests (27/27) ✅
 - `test_config.py`: 9 tests passing
-- `test_time_utils.py`: 10 tests passing  
+- `test_time_utils.py`: 10 tests passing
 - `test_ai_only_decision.py`: 7 tests passing
 - `test_openai_decision_adapter.py`: 1 test passing
 
@@ -121,7 +121,7 @@ env PACE_MIN_SECONDS=0 PYTHONPATH=src python3 -m pytest \
 # Check linting
 make lint
 
-# Check types  
+# Check types
 make type
 ```
 

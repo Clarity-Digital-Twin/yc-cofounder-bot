@@ -3,7 +3,7 @@
 ## 🚨 TWO APIs, TWO MODELS, NO CONFUSION
 
 ### 1. COMPUTER USE API (Navigation)
-- **Model**: `computer-use-preview` 
+- **Model**: `computer-use-preview`
 - **API**: OpenAI Responses API
 - **Purpose**: Plans browser actions (click, type, scroll)
 - **How**: Takes screenshots → Suggests actions → Playwright executes

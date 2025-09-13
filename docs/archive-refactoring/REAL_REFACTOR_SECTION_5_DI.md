@@ -44,9 +44,9 @@ def create_decision_by_mode(
     threshold: float = 4.0
 ) -> DecisionPort:
     """Create decision adapter based on mode"""
-    
+
     mode = mode or os.getenv("DECISION_MODE", "hybrid")
-    
+
     if mode == "advisor":
         # Pure AI, no auto-send
         if os.getenv("ENABLE_OPENAI") == "1":
@@ -57,12 +57,12 @@ def create_decision_by_mode(
             return adapter
         else:
             return LocalDecisionAdapter()
-            
+
     elif mode == "rubric":
         # Pure scoring, auto-send
         from ..application.rubric_only import RubricOnlyAdapter
         return RubricOnlyAdapter(scoring=scoring, threshold=threshold)
-        
+
     elif mode == "hybrid":
         # Current GatedDecision
         base_decision = _get_base_decision()
@@ -71,7 +71,7 @@ def create_decision_by_mode(
             decision=base_decision,
             threshold=threshold
         )
-    
+
     raise ValueError(f"Unknown mode: {mode}")
 
 def build_autonomous_services(
@@ -81,26 +81,26 @@ def build_autonomous_services(
     mode: str = "hybrid"
 ) -> tuple[AutonomousFlow, LoggerWithStamps]:
     """Build services for autonomous flow"""
-    
+
     # Get browser (CUA required for autonomous)
     if not os.getenv("ENABLE_CUA") == "1":
         raise RuntimeError("Autonomous flow requires ENABLE_CUA=1")
-    
+
     from ..infrastructure.openai_cua_browser import OpenAICUABrowser
     from ..application.autonomous_flow import AutonomousFlow
-    
+
     browser = OpenAICUABrowser()
-    
+
     # Get decision by mode
     scoring = _get_scoring_service()
     decision = create_decision_by_mode(mode, scoring)
-    
+
     # Reuse existing infrastructure
     eval_use, send_use, logger = build_services(
         criteria_text=criteria,
         template_text=template
     )
-    
+
     # Build autonomous flow
     flow = AutonomousFlow(
         browser=browser,
@@ -110,7 +110,7 @@ def build_autonomous_services(
         logger=logger,
         stop=_get_stop_controller()
     )
-    
+
     return flow, logger
 ```
 

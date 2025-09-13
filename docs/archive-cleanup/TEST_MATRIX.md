@@ -33,4 +33,3 @@
   - Unit test that `_cua_action` awaits `asyncio.to_thread(...)` (can patch and assert threading or awaitable call).
 - File quota vs SQLite default
   - Test DI path default selection and behavior under env flags.
-

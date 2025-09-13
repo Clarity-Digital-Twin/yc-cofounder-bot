@@ -44,7 +44,7 @@ class OpenAICUABrowser:
         self.browser = None
         self.page = None
         self.prev_id = None
-        
+
     async def _ensure_browser(self):
         """Ensure Playwright browser is running"""
         if not self.playwright:
@@ -52,11 +52,11 @@ class OpenAICUABrowser:
             self.playwright = await async_playwright().start()
             self.browser = await self.playwright.chromium.launch()
             self.page = await self.browser.new_page()
-        
+
     async def _cua_action(self, instruction: str):
         """Core loop: CUA plans; Playwright executes; send computer_call_output each turn"""
         await self._ensure_browser()
-        
+
         # Start or continue a CUA planning turn
         response = self.client.responses.create(
             model=self.model,
@@ -65,7 +65,7 @@ class OpenAICUABrowser:
             truncation="auto",
             previous_response_id=self.prev_id,
         )
-        
+
         # If model requests a computer_call, execute via Playwright, screenshot, then send output
         if getattr(response, "computer_call", None):
             action = response.computer_call

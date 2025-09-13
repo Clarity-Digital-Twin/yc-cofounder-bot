@@ -55,7 +55,7 @@ def run(self, ...):
 ### 3. No User Interaction Point
 Missing a "pause for login" step where user can:
 - See the browser
-- Enter credentials  
+- Enter credentials
 - Navigate to the right page
 - Signal when ready
 
@@ -66,11 +66,11 @@ Missing a "pause for login" step where user can:
 def run(self, ...):
     # Phase 1: Open browser for login
     self.browser.open(yc_url, headless=False)  # VISIBLE
-    
+
     # Phase 2: Wait for user confirmation
     if not wait_for_user_ready():  # New UI element
         return
-    
+
     # Phase 3: Begin automation
     for i in range(limit):
         self.browser.click_view_profile()
@@ -81,7 +81,7 @@ def run(self, ...):
 ```python
 def run(self, ...):
     self.browser.open(yc_url)
-    
+
     # Check if logged in by looking for profile elements
     if not self.browser.is_logged_in():
         # Show message to user
@@ -90,7 +90,7 @@ def run(self, ...):
         self.browser.reopen_visible()
         # Wait for login
         wait_for_login_complete()
-    
+
     # Continue with automation
 ```
 
@@ -125,11 +125,11 @@ def run(self, ...):
     # Open browser visibly
     os.environ["PLAYWRIGHT_HEADLESS"] = "0"
     self.browser.open(yc_url)
-    
+
     # Wait for login signal
     while not st.session_state.get('login_complete'):
         time.sleep(1)
-    
+
     # Now start automation
     # ...
 ```

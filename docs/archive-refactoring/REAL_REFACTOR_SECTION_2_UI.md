@@ -12,7 +12,7 @@
   - Quota setting (line 33-35)
   - Shadow mode toggle (line 36)
   - STOP flag toggle (line 39-45)
-- **Buttons**: 
+- **Buttons**:
   - "Evaluate" - Run decision
   - "Approve & Send (Playwright)" - Send if YES
 
@@ -30,10 +30,10 @@
 def render_three_input_mode():
     """New 3-input autonomous mode"""
     st.title("🚀 YC Co-Founder Matcher - Autonomous Mode")
-    
+
     # Three main inputs
     col1, col2, col3 = st.columns(3)
-    
+
     with col1:
         st.subheader("📝 Your Profile")
         your_profile = st.text_area(
@@ -42,7 +42,7 @@ def render_three_input_mode():
             placeholder="Technical co-founder\n5 years Python/FastAPI\nNYC based",
             key="your_profile"
         )
-    
+
     with col2:
         st.subheader("🎯 Match Criteria")
         criteria = st.text_area(
@@ -51,7 +51,7 @@ def render_three_input_mode():
             placeholder="Business background\nB2B sales\nHealthcare experience",
             key="match_criteria"
         )
-    
+
     with col3:
         st.subheader("💬 Message Template")
         template = st.text_area(
@@ -60,7 +60,7 @@ def render_three_input_mode():
             value=load_default_template(),
             key="msg_template"
         )
-    
+
     # Decision mode selector
     st.markdown("---")
     mode = st.selectbox(
@@ -72,7 +72,7 @@ def render_three_input_mode():
             "hybrid": "🔄 Hybrid (Combined)"
         }[x]
     )
-    
+
     # Start button
     if st.button("🚀 Start Autonomous Browsing", type="primary"):
         # Use existing ProcessCandidate but with CUA

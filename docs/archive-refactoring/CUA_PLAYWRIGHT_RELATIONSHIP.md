@@ -34,24 +34,24 @@ class OpenAICUABrowser:
         self.client = OpenAI()  # For CUA API
         self.playwright = None  # YOU provide browser
         self.page = None        # YOUR browser page
-        
+
     async def navigate_to_listing(self):
         """CUA + Playwright working together"""
-        
+
         # 1. YOU launch browser with Playwright
         if not self.playwright:
             self.playwright = await async_playwright().start()
             self.browser = await self.playwright.chromium.launch()
             self.page = await self.browser.new_page()
-        
+
         # 2. Navigate using CUA loop
         instruction = "Navigate to YC cofounder listing"
-        
+
         while not done:
             # YOU take screenshot
             screenshot = await self.page.screenshot()
             screenshot_b64 = base64.b64encode(screenshot).decode()
-            
+
             # CUA analyzes and suggests
             response = self.client.responses.create(
                 model=os.getenv("CUA_MODEL"),
@@ -60,14 +60,14 @@ class OpenAICUABrowser:
                 truncation="auto",
                 previous_response_id=prev_id if prev_id else None
             )
-            
+
             # Parse CUA's suggestion
             if getattr(response, "computer_call", None):
                 action = response.computer_call
-                
+
                 # YOU execute with Playwright
                 await self._execute_action(action)
-                
+
                 # Continue loop with computer_call_output (include a fresh screenshot)
                 screenshot = await self.page.screenshot()
                 screenshot_b64 = base64.b64encode(screenshot).decode()
@@ -89,7 +89,7 @@ When `ENABLE_CUA=0` or CUA unavailable:
 ```python
 class PlaywrightOnlyBrowser:
     """Pure Playwright without CUA planning"""
-    
+
     async def navigate_to_listing(self):
         # Direct DOM manipulation (no CUA)
         await self.page.goto(YC_URL)
@@ -104,7 +104,7 @@ class PlaywrightOnlyBrowser:
 ENABLE_CUA=1                    # Enable CUA planning
 CUA_MODEL=computer-use-preview  # Model for analysis
 
-# Playwright Configuration  
+# Playwright Configuration
 ENABLE_PLAYWRIGHT=1              # ALWAYS needed (even with CUA!)
 PLAYWRIGHT_HEADLESS=1           # Run browser headless
 

@@ -8,7 +8,6 @@ import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from yc_matcher.infrastructure.browser.openai_cua import OpenAICUABrowser
 
 
@@ -36,7 +35,9 @@ class TestCUAAsyncSafety:
         browser.client.responses.create = slow_responses_create
 
         # Mock playwright to avoid actual browser launch
-        with patch("yc_matcher.infrastructure.browser.async_loop_runner.async_playwright") as mock_pw:
+        with patch(
+            "yc_matcher.infrastructure.browser.async_loop_runner.async_playwright"
+        ) as mock_pw:
             mock_manager = AsyncMock()
             mock_browser = AsyncMock()
             mock_page = AsyncMock()

@@ -9,7 +9,7 @@ Autonomous browser automation for YC/Startup School cofounder matching. Takes 3 
 
 ### 1. NAVIGATION/BROWSER CONTROL
 - **Executor**: Always Playwright (singleton browser instance)
-- **Planner**: 
+- **Planner**:
   - **Default (ENABLE_CUA=0)**: Playwright hardcoded selectors
   - **Optional (ENABLE_CUA=1)**: OpenAI Computer Use API plans, Playwright executes
 
@@ -127,7 +127,7 @@ Reliability: VARIABLE (AI decisions)
 # In autonomous_flow.py
 def run():
     browser.ensure_logged_in()  # Block until logged in
-    
+
     # In click_view_profile()
     if "/candidate/" in page.url:
         return True  # Already on profile
@@ -166,7 +166,7 @@ SHADOW_MODE=1  # Don't send real messages
 
 ### Current Performance (Playwright-only)
 - Profile evaluation: ~2-3 seconds
-- Message generation (GPT-5): ~1-2 seconds  
+- Message generation (GPT-5): ~1-2 seconds
 - Send + verify: ~1 second
 - Total per profile: ~5 seconds + 45s pacing
 
@@ -186,7 +186,7 @@ SHADOW_MODE=1  # Don't send real messages
 
 **Current Setup**: Perfect for YC matching
 - Playwright navigation ✅
-- GPT-5/GPT-5-thinking decisions ✅  
+- GPT-5/GPT-5-thinking decisions ✅
 - Auto-login ✅
 - Message generation ✅
 

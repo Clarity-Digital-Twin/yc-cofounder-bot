@@ -171,7 +171,6 @@ def main():
 
     # Use the REAL OpenAI decision adapter
     from openai import OpenAI
-
     from yc_matcher.infrastructure.ai.openai_decision import OpenAIDecisionAdapter
 
     client = OpenAI()  # Uses OPENAI_API_KEY from env

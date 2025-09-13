@@ -1,10 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git add:*)",
-      "Bash(python -m pytest tests/ -v --tb=short)",
-      "Bash(python -m pytest tests/unit/ -v --tb=short)",
-      "Bash(make:*)"
+      "Bash(cat:*)",
+      "Bash(uv run pre-commit run:*)"
     ],
     "deny": [],
     "ask": []

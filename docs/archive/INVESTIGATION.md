@@ -9,7 +9,7 @@ Executable doesn't exist at /home/jj/.cache/ms-playwright/chromium-1181/chrome-l
 ## Root Cause Analysis
 
 ### 1. Environment Variable Not Propagating
-- We set `PLAYWRIGHT_BROWSERS_PATH=.ms-playwright` 
+- We set `PLAYWRIGHT_BROWSERS_PATH=.ms-playwright`
 - But Playwright looks in `~/.cache/ms-playwright`
 - The env var isn't reaching the async context
 
@@ -90,7 +90,7 @@ self.playwright = await async_playwright().start()
 
 Even "simple" bots have complex implementation details:
 - Path configurations
-- Async/sync boundaries  
+- Async/sync boundaries
 - Environment variable propagation
 - Security (API keys, etc.)
 

@@ -121,10 +121,10 @@ evaluate(profile_text: str, criteria: Criteria) -> DecisionResult
        profile = cua.read_next_profile()
        if seen_repo.is_duplicate(profile.hash):
            continue
-       
+
        decision = decision_port.evaluate(profile, criteria)
        logger.log_event("decision", decision)
-       
+
        if decision.decision == "YES":
            if mode == "advisor":
                wait_for_hil_approval()
@@ -205,10 +205,10 @@ def create_browser_adapter(config):
             model=config.CUA_MODEL or os.getenv("CUA_MODEL"),  # read from env/config
             temperature=0.3
         )
-    
+
     if config.ENABLE_PLAYWRIGHT_FALLBACK:
         return PlaywrightBrowserAdapter()
-    
+
     raise ConfigError("No browser automation configured")
 
 def create_decision_adapter(mode, config):
@@ -218,7 +218,7 @@ def create_decision_adapter(mode, config):
         return RubricDecisionAdapter(config)
     elif mode == "hybrid":
         return HybridDecisionAdapter(config, alpha=config.ALPHA)
-    
+
     raise ConfigError(f"Unknown decision mode: {mode}")
 ```
 

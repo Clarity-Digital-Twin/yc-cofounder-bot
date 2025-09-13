@@ -192,7 +192,7 @@ resp = client.responses.create(
 if resp.computer_call:
     # Execute with Playwright
     await playwright_page.click(resp.computer_call.coordinates)
-    
+
     # Send result back with screenshot
     screenshot = await playwright_page.screenshot()
     client.responses.create(
@@ -218,10 +218,10 @@ async def test_rubric_score_calculation() -> None:
     profile = ProfileData(skills=["python", "ml"], location="SF")
     criteria = MatchCriteria(required_skills=["python"], locations=["SF"])
     weights = RubricWeights(skills=0.6, location=0.4)
-    
+
     # Act
     score = await calculate_rubric_score(profile, criteria, weights)
-    
+
     # Assert
     assert score == 1.0  # Perfect match
     assert isinstance(score, float)

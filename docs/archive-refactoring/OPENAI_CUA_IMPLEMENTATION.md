@@ -107,12 +107,12 @@ src/yc_matcher/
 async def cua_browse_and_match(your_profile, criteria, template):
     # 1. YOU launch browser
     page = await launch_browser()
-    
+
     # 2. Loop: screenshot → analyze → action
     while not done:
         # YOU take screenshot
         screenshot = await page.screenshot()
-        
+
         # CUA analyzes
         response = client.responses.create(
             model=os.getenv("CUA_MODEL"),
@@ -120,10 +120,10 @@ async def cua_browse_and_match(your_profile, criteria, template):
             tools=[computer_use_tool(screenshot)],
             truncation="auto"
         )
-        
+
         # YOU execute suggested action
         await execute_action(page, response.tool_calls[0])
-        
+
         # Continue until profiles processed
 ```
 

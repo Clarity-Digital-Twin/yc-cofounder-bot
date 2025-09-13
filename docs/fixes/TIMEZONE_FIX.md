@@ -5,7 +5,7 @@
 The UI showed "Events are cleared after 1 hour" but events persisted indefinitely. Investigation revealed:
 
 1. **JSONLLogger** writes timestamps in UTC with timezone info (`+00:00`)
-2. **UI (ui_streamlit.py)** compared using local time without timezone (`datetime.now()`)  
+2. **UI (ui_streamlit.py)** compared using local time without timezone (`datetime.now()`)
 3. **Timezone mismatch** caused the 1-hour filter to fail - UTC events were ~4 hours in the future compared to local time
 
 ## The Solution: Professional Timezone Handling
@@ -22,7 +22,7 @@ Key functions:
 
 ### 2. Updated All Timestamp Generation
 
-| File | Change | 
+| File | Change |
 |------|--------|
 | `jsonl_logger.py` | Already using UTC ✅ |
 | `browser_debug.py` | Now uses `utc_isoformat()` |
@@ -49,7 +49,7 @@ if is_within_hours(event_time, hours=1.0):  # Timezone-aware comparison
 ### 4. Updated UI Message
 
 Changed misleading message:
-- Old: "Events are cleared after 1 hour" 
+- Old: "Events are cleared after 1 hour"
 - New: "Only showing recent events (1 hour window)"
 
 ## Best Practices Applied

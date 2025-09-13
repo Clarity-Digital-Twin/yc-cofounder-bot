@@ -222,7 +222,7 @@ Run these commands to understand the truth:
 # 1. Find all TODOs and FIXMEs
 grep -r "TODO\|FIXME\|XXX\|HACK" src/
 
-# 2. Find all try/except blocks that might hide errors  
+# 2. Find all try/except blocks that might hide errors
 grep -r "except.*pass" src/
 grep -r "except Exception" src/
 

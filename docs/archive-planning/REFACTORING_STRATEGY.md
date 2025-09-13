@@ -41,7 +41,7 @@ class TestCUABrowserContract:
         # Define expected behavior
         cua_browser.navigate("https://example.com")
         assert cua_browser.current_url == "https://example.com"
-    
+
     def test_extracts_profile_data(self, cua_browser):
         # Define extraction contract
         profile = cua_browser.extract_profile()
@@ -92,7 +92,7 @@ class OpenAICUABrowser:
     def __init__(self, api_key: str):
         self.client = OpenAI(api_key=api_key)
         self.model = os.getenv("CUA_MODEL")  # From env, never hardcoded
-    
+
     async def navigate_and_extract(self, url: str) -> Profile:
         # Use CUA to browse and extract
         pass
@@ -184,10 +184,10 @@ class FeatureManager:
             "decision_modes": self._check_env("ENABLE_MODES"),
             "auto_send": self._check_env("AUTO_SEND"),
         }
-    
+
     def is_enabled(self, feature: str) -> bool:
         return self.flags.get(feature, False)
-    
+
     def run_with_fallback(self, feature: str, new_func, old_func):
         """Run new code with automatic fallback"""
         if self.is_enabled(feature):
@@ -228,7 +228,7 @@ class HybridDecisionMode:
     def __init__(self):
         self.rubric = RubricMode()
         self.advisor = AdvisorMode()
-    
+
     def evaluate(self, profile, criteria):
         # Combine existing modes
         rubric_result = self.rubric.evaluate(profile, criteria)
@@ -254,7 +254,7 @@ class Migration:
     def up(self):
         # Add new column, don't remove old
         add_column("profiles", "cua_data", nullable=True)
-    
+
     def down(self):
         # Can safely rollback
         remove_column("profiles", "cua_data")
@@ -281,9 +281,9 @@ if error_rate > threshold:
 def test_cua_browser_extracts_profile():
     browser = MockCUABrowser()
     browser.set_page_content("<div>John Doe, Python Dev</div>")
-    
+
     profile = browser.extract_profile()
-    
+
     assert profile.name == "John Doe"
     assert "Python" in profile.skills
 ```
@@ -301,7 +301,7 @@ def test_gradual_migration():
         else:
             result = process_with_manual()
         results.append(result)
-    
+
     # Both flows should work
     assert all(r.success for r in results)
 ```
@@ -353,7 +353,7 @@ stages:
 - Write contract tests
 - Deploy with flags off
 
-### Week 2: Parallel Flows  
+### Week 2: Parallel Flows
 - Implement dual-mode UI
 - Add metrics/monitoring
 - Internal testing

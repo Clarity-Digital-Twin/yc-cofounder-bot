@@ -14,7 +14,7 @@ Could not extract text from GPT-5 response. Output items: 1, Types: ['reasoning'
 Mock(output_text='{"decision": "YES", ...}')  # Always had output_text
 ```
 
-### Real GPT-5 (Actual Behavior)  
+### Real GPT-5 (Actual Behavior)
 ```python
 {
   "output": [{"type": "reasoning", "content": "..."}],  # ONLY reasoning!
@@ -62,7 +62,7 @@ Created realistic mocks that match actual GPT-5 behavior:
 ### Test Results
 ```
 ✅ TESTING REASONING-ONLY RESCUE - PASSED
-✅ TESTING NO JSON IN REASONING - PASSED  
+✅ TESTING NO JSON IN REASONING - PASSED
 ✅ TESTING MIXED OUTPUT TYPES - PASSED
 ```
 
@@ -116,7 +116,7 @@ Watch for these events in `.runs/events.jsonl`:
 
 ## The Fix in Action
 
-Before: 
+Before:
 ```
 ❌ Could not extract text from GPT-5 response
 ```

@@ -4,7 +4,6 @@ import os
 from unittest.mock import patch
 
 import pytest
-
 from yc_matcher import config
 
 
@@ -68,7 +67,21 @@ class TestConfigModule:
     def test_boolean_parsing(self) -> None:
         """Test that boolean env vars handle various truthy values."""
         truthy_values = ["1", "true", "True"]  # Only these are actually accepted
-        falsy_values = ["0", "false", "False", "FALSE", "no", "No", "NO", "", "2", "TRUE", "yes", "Yes", "YES"]  # Everything else is falsy
+        falsy_values = [
+            "0",
+            "false",
+            "False",
+            "FALSE",
+            "no",
+            "No",
+            "NO",
+            "",
+            "2",
+            "TRUE",
+            "yes",
+            "Yes",
+            "YES",
+        ]  # Everything else is falsy
 
         for val in truthy_values:
             with patch.dict(os.environ, {"SHADOW_MODE": val}):
@@ -130,7 +143,9 @@ class TestConfigModule:
 
         with patch.dict(os.environ, {"CUA_MODEL": "", "OPENAI_DECISION_MODEL": ""}):
             assert config.get_cua_model() == ""  # Empty string returned as-is
-            assert config.get_decision_model() == "gpt-4o"  # Default per config.py (empty string triggers default)
+            assert (
+                config.get_decision_model() == "gpt-4o"
+            )  # Default per config.py (empty string triggers default)
 
     def test_gpt5_configuration(self) -> None:
         """Test GPT-5 specific configuration functions."""
@@ -142,12 +157,15 @@ class TestConfigModule:
             assert config.get_service_tier() == "auto"
 
         # Test custom values
-        with patch.dict(os.environ, {
-            "GPT5_MAX_TOKENS": "8000",
-            "GPT5_TEMPERATURE": "0.7",
-            "GPT5_TOP_P": "0.95",
-            "SERVICE_TIER": "priority"
-        }):
+        with patch.dict(
+            os.environ,
+            {
+                "GPT5_MAX_TOKENS": "8000",
+                "GPT5_TEMPERATURE": "0.7",
+                "GPT5_TOP_P": "0.95",
+                "SERVICE_TIER": "priority",
+            },
+        ):
             assert config.get_gpt5_max_tokens() == 8000
             assert config.get_gpt5_temperature() == 0.7
             assert config.get_gpt5_top_p() == 0.95

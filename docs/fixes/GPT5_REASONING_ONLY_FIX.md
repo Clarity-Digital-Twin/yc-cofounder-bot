@@ -39,7 +39,7 @@ Could not extract text from GPT-5 response. Output items: 1, Types: ['reasoning'
        # We just LOG and SKIP reasoning items!
        continue
    ```
-   
+
 4. **Result: Total Failure**
    - No message items → `text_parts` stays empty
    - Reasoning items skipped → no JSON extracted
@@ -87,7 +87,7 @@ def _extract_json_from_reasoning(reasoning_content: str) -> dict | None:
     # Look for JSON-like structure in reasoning
     import re
     json_pattern = r'\{[^{}]*"decision"[^{}]*\}'
-    
+
     match = re.search(json_pattern, reasoning_content, re.DOTALL)
     if match:
         try:
@@ -102,7 +102,7 @@ if not c:  # No message content found
     for item in r.output:
         if item.type == "reasoning" and hasattr(item, "content"):
             reasoning_text = str(item.content)
-            
+
             # Try to extract JSON from reasoning
             rescued_json = _extract_json_from_reasoning(reasoning_text)
             if rescued_json:
@@ -120,7 +120,7 @@ if not c:  # No message content found
 sys_prompt = '''You are evaluating profiles for co-founder matching.
 
 CRITICAL: Your response MUST be a valid JSON object with these keys:
-- decision: "YES" or "NO"  
+- decision: "YES" or "NO"
 - rationale: Brief explanation
 - draft: Message to send (if YES)
 - score: 0.0 to 1.0
@@ -166,10 +166,10 @@ def mock_reasoning_only_response():
 def test_gpt5_reasoning_only_rescue():
     mock_client = Mock()
     mock_client.responses.create.return_value = mock_reasoning_only_response()
-    
+
     adapter = OpenAIDecisionAdapter(mock_client, model="gpt-5")
     result = adapter.evaluate(profile, criteria)
-    
+
     # Should successfully extract from reasoning!
     assert result["decision"] == "YES"
 ```
@@ -177,7 +177,7 @@ def test_gpt5_reasoning_only_rescue():
 ## Implementation Priority
 
 1. **IMMEDIATE**: Add reasoning rescue parser (fixes current failures)
-2. **NEXT**: Add `text.verbosity="low"` to reduce reasoning-only responses  
+2. **NEXT**: Add `text.verbosity="low"` to reduce reasoning-only responses
 3. **THEN**: Update tests to use realistic mocks
 4. **FINALLY**: Add telemetry to track patterns
 

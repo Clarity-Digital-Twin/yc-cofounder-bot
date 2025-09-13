@@ -13,7 +13,7 @@ Successfully integrated Context7 MCP server and used it to verify and fix GPT-5 
 
 **After Context7 Verification:**
 - ✅ `temperature`: 0-2 range (fully supported)
-- ✅ `top_p`: 0-1 range for nucleus sampling  
+- ✅ `top_p`: 0-1 range for nucleus sampling
 - ✅ `max_output_tokens`: Up to 128,000 tokens!
 - ✅ `truncation`: "auto" or "disabled"
 - ✅ `store`: Save responses for retrieval

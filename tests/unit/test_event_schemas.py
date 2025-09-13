@@ -145,6 +145,6 @@ class TestEventSchemas:
         if quota_idx is not None:
             # No sent events should follow
             for e in events[quota_idx + 1 :]:
-                assert e.get("event") != "sent", (
-                    "No sent event should follow quota_block in same call"
-                )
+                assert (
+                    e.get("event") != "sent"
+                ), "No sent event should follow quota_block in same call"

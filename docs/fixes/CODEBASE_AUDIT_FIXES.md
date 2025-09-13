@@ -11,7 +11,7 @@ Based on our investigation, the message sending pipeline is now 90% working. Her
 - Added specific selector: `textarea[placeholder*='excited about potentially working' i]`
 - Verified working in test_full_flow_real.py
 
-### 2. Send Button Selector (browser_playwright_async.py)  
+### 2. Send Button Selector (browser_playwright_async.py)
 **Status**: FIXED ✅
 - Added specific selector: `button:has-text('Invite to connect')`
 - Successfully clicking in tests

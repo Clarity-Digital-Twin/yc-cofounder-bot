@@ -155,26 +155,34 @@ class TestOpenAICUABrowserResponsesAPI:
             ):
                 browser = OpenAICUABrowser()
 
-                # Act
-                await browser._cua_action("Click the first profile")
+                # Mock _ensure_browser to return the page mock
+                with patch.object(
+                    browser, "_ensure_browser", new_callable=AsyncMock
+                ) as mock_ensure:
+                    mock_ensure.return_value = page_mock
 
-                # Assert - proper API calls
-                assert mock_openai_client.responses.create.call_count == 2
+                    # Act
+                    await browser._cua_action("Click the first profile")
 
-                # First call: initial request with tools
-                first_call = mock_openai_client.responses.create.call_args_list[0]
-                assert first_call.kwargs["model"] == "computer-use-preview"
-                assert first_call.kwargs["truncation"] == "auto"
-                assert any(t["type"] == "computer_use_preview" for t in first_call.kwargs["tools"])
+                    # Assert - proper API calls
+                    assert mock_openai_client.responses.create.call_count == 2
 
-                # Second call: computer_call_output with screenshot
-                second_call = mock_openai_client.responses.create.call_args_list[1]
-                assert second_call.kwargs["previous_response_id"] == "resp_123"
-                assert "input" in second_call.kwargs
-                assert second_call.kwargs["input"][0]["type"] == "computer_call_output"
-                assert second_call.kwargs["input"][0]["call_id"] == "call_456"
-                assert "output" in second_call.kwargs["input"][0]
-                assert second_call.kwargs["input"][0]["output"]["type"] == "input_image"
+                    # First call: initial request with tools
+                    first_call = mock_openai_client.responses.create.call_args_list[0]
+                    assert first_call.kwargs["model"] == "computer-use-preview"
+                    assert first_call.kwargs["truncation"] == "auto"
+                    assert any(
+                        t["type"] == "computer_use_preview" for t in first_call.kwargs["tools"]
+                    )
+
+                    # Second call: computer_call_output with screenshot
+                    second_call = mock_openai_client.responses.create.call_args_list[1]
+                    assert second_call.kwargs["previous_response_id"] == "resp_123"
+                    assert "input" in second_call.kwargs
+                    assert second_call.kwargs["input"][0]["type"] == "computer_call_output"
+                    assert second_call.kwargs["input"][0]["call_id"] == "call_456"
+                    assert "output" in second_call.kwargs["input"][0]
+                    assert second_call.kwargs["input"][0]["output"]["type"] == "input_image"
 
     @pytest.mark.asyncio
     async def test_cua_executes_actions_with_playwright(
@@ -284,20 +292,26 @@ class TestOpenAICUABrowserResponsesAPI:
             ):
                 browser = OpenAICUABrowser()
 
-                # Act
-                await browser._cua_action("Navigate and click")
+                # Mock _ensure_browser to return the page mock
+                with patch.object(
+                    browser, "_ensure_browser", new_callable=AsyncMock
+                ) as mock_ensure:
+                    mock_ensure.return_value = page_mock
 
-                # Assert - verify chaining
-                calls = mock_openai_client.responses.create.call_args_list
+                    # Act
+                    await browser._cua_action("Navigate and click")
 
-                # First call has no previous_response_id
-                assert calls[0].kwargs.get("previous_response_id") is None
+                    # Assert - verify chaining
+                    calls = mock_openai_client.responses.create.call_args_list
 
-                # Second call (computer_call_output) references first response
-                assert calls[1].kwargs["previous_response_id"] == "resp_1"
+                    # First call has no previous_response_id
+                    assert calls[0].kwargs.get("previous_response_id") is None
 
-                # Third call references second response
-                assert calls[2].kwargs["previous_response_id"] == "resp_2"
+                    # Second call (computer_call_output) references first response
+                    assert calls[1].kwargs["previous_response_id"] == "resp_1"
+
+                    # Third call references second response
+                    assert calls[2].kwargs["previous_response_id"] == "resp_2"
 
     def test_browser_port_methods_use_cua_loop(
         self, mock_openai_client: Mock, mock_playwright: tuple, mock_env: None
@@ -487,19 +501,24 @@ class TestOpenAICUABrowserResponsesAPI:
                 # HIL callback that rejects
                 browser.hil_approve_callback = AsyncMock(return_value=False)
 
-                # Act
-                result = await browser._cua_action("Send message")
+                # Mock _ensure_browser to return the page mock
+                with patch.object(
+                    browser, "_ensure_browser", new_callable=AsyncMock
+                ) as mock_ensure:
+                    mock_ensure.return_value = page_mock
 
-                # Assert - should stop due to safety check rejection
-                assert result is None
-                browser.hil_approve_callback.assert_called_once()
-                # Check that log_event was called with safety_check_not_acknowledged
-                browser.logger.log_event.assert_called_once()
-                call_args = browser.logger.log_event.call_args
-                assert call_args[0][0] == "stopped"
-                assert call_args[0][1]["event"] == "stopped"
-                assert call_args[0][1]["reason"] == "safety_check_not_acknowledged"
-                assert "safety_check" in call_args[0][1]
+                    # Act
+                    result = await browser._cua_action("Send message")
+
+                    # Assert - should stop due to safety check rejection
+                    assert result is None
+                    browser.hil_approve_callback.assert_called_once()
+                    # Check that log_event was called with safety_check_not_acknowledged
+                    browser.logger.log_event.assert_called_once()
+                    call_args = browser.logger.log_event.call_args
+                    assert call_args[0][0]["event"] == "stopped"
+                    assert call_args[0][0]["reason"] == "safety_check_not_acknowledged"
+                    assert "safety_check" in call_args[0][0]
 
     def test_verify_sent_strict_checking(
         self, mock_openai_client: Mock, mock_playwright: tuple, mock_env: None

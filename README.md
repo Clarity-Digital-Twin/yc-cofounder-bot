@@ -119,7 +119,7 @@ graph LR
 ```bash
 # Run tests
 make test          # Unit tests
-make test-int      # Integration tests  
+make test-int      # Integration tests
 make verify        # Full verification (lint + type + tests)
 
 # Code quality

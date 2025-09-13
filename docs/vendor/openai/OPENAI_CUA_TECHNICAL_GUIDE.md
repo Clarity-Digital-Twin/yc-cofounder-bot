@@ -49,13 +49,13 @@ import os
 
 class OpenAICUABrowser:
     """CUA + YOUR Playwright browser for YC Matcher"""
-    
+
     def __init__(self):
         self.client = OpenAI()
         self.playwright = None
         self.browser = None
         self.page = None
-    
+
     async def start(self):
         """Start YOUR browser that CUA will guide"""
         self.playwright = await async_playwright().start()
@@ -64,48 +64,48 @@ class OpenAICUABrowser:
         )
         self.page = await self.browser.new_page()
         await self.page.set_viewport_size({"width": 1024, "height": 768})
-    
+
     async def browse_profiles(self, base_url: str, criteria: dict) -> list:
         """Main workflow using CUA + YOUR browser"""
         profiles = []
-        
+
         # Navigate YOUR browser
         await self.page.goto(base_url)
-        
+
         # CUA loop for browsing
         response = await self._cua_loop(
             "Find and click on the first cofounder profile in the list"
         )
-        
+
         for i in range(criteria.get('max_profiles', 10)):
             # Check STOP flag
             if self._should_stop():
                 break
-            
+
             # Extract profile using CUA
             profile_data = await self._extract_profile()
             profiles.append(profile_data)
-            
+
             # Local decision engine
             decision = await self._evaluate(profile_data, criteria)
-            
+
             if decision['should_message']:
                 # Use CUA to send message
                 sent = await self._send_message(decision['message'])
                 profile_data['sent'] = sent
-            
+
             # Use CUA to go back
             await self._cua_loop("Go back to the profile list")
-            
+
             # Use CUA to click next profile
             if i < criteria.get('max_profiles', 10) - 1:
                 await self._cua_loop(f"Click on profile number {i+2} in the list")
-        
+
         return profiles
-    
+
     async def _cua_loop(self, goal: str) -> dict:
         """Core CUA loop - YOU execute, CUA guides"""
-        
+
         # Initial request
         response = self.client.responses.create(
             model="computer-use-preview",
@@ -124,34 +124,34 @@ class OpenAICUABrowser:
             }],
             truncation="auto"  # REQUIRED
         )
-        
+
         # Loop until no more actions
         while True:
             # Check for computer_call
             computer_calls = [
-                item for item in response.output 
+                item for item in response.output
                 if item.type == "computer_call"
             ]
-            
+
             if not computer_calls:
                 return response  # Done!
-            
+
             call = computer_calls[0]
             action = call.action
-            
+
             # Check for safety warnings
             if call.pending_safety_checks:
                 # STOP for human review
                 if not await self._handle_safety_check(call):
                     return response
-            
+
             # YOU execute the action in YOUR browser
             await self._execute_action(action)
-            
+
             # YOU take screenshot of YOUR browser
             screenshot = await self.page.screenshot()
             screenshot_b64 = base64.b64encode(screenshot).decode()
-            
+
             # Send screenshot back to CUA
             response = self.client.responses.create(
                 model="computer-use-preview",
@@ -173,22 +173,22 @@ class OpenAICUABrowser:
                 }],
                 truncation="auto"
             )
-    
+
     async def _execute_action(self, action):
         """Execute CUA's suggested action in YOUR browser"""
         action_type = action.type
-        
+
         if action_type == "click":
             await self.page.mouse.click(action.x, action.y, button=action.button)
-            
+
         elif action_type == "type":
             await self.page.keyboard.type(action.text)
-            
+
         elif action_type == "scroll":
             await self.page.evaluate(
                 f"window.scrollBy({action.scroll_x}, {action.scroll_y})"
             )
-            
+
         elif action_type == "keypress":
             for key in action.keys:
                 if key.lower() == "enter":
@@ -197,63 +197,63 @@ class OpenAICUABrowser:
                     await self.page.keyboard.press(" ")
                 else:
                     await self.page.keyboard.press(key)
-        
+
         elif action_type == "wait":
             await asyncio.sleep(2)
-        
+
         elif action_type == "screenshot":
             pass  # We take screenshots every loop anyway
-    
+
     async def _extract_profile(self) -> dict:
         """Use CUA to extract profile data"""
         response = await self._cua_loop(
             "Extract the name, skills, location, and bio from the current profile page"
         )
-        
+
         # Parse the text from response
         text = ""
         for item in response.output:
             if hasattr(item, 'text'):
                 text += item.text
-        
+
         return {
             "raw_text": text,
             "url": self.page.url
         }
-    
+
     async def _send_message(self, message_text: str) -> bool:
         """Use CUA to send a message"""
         response = await self._cua_loop(
             f"Click the message/connect button, type this message, then send it: {message_text}"
         )
-        
+
         # Verify sent
         verify_response = await self._cua_loop(
             "Check if the message was sent successfully. Look for confirmation text or cleared input."
         )
-        
+
         # Parse response for success indicators
         for item in verify_response.output:
             if hasattr(item, 'text') and 'success' in item.text.lower():
                 return True
-        
+
         return False
-    
+
     async def _handle_safety_check(self, call) -> bool:
         """Handle CUA safety warnings - require human approval"""
         safety_check = call.pending_safety_checks[0]
-        
+
         print(f"⚠️ SAFETY CHECK: {safety_check.message}")
         print(f"Code: {safety_check.code}")
-        
+
         # In production, show in UI and wait for user
         # For now, we'll be conservative and stop
         return False  # Don't proceed without approval
-    
+
     async def _evaluate(self, profile: dict, criteria: dict) -> dict:
         """Local decision engine (not CUA)"""
         mode = os.getenv("DECISION_MODE", "advisor")
-        
+
         # This uses regular OpenAI API, not CUA
         if mode == "advisor":
             return await self._advisor_evaluate(profile, criteria)
@@ -269,11 +269,11 @@ class OpenAICUABrowser:
                 'message': self._render_message(profile),
                 'score': final_score
             }
-    
+
     def _should_stop(self) -> bool:
         """Check STOP flag"""
         return os.path.exists(".runs/stop.flag")
-    
+
     async def cleanup(self):
         """Clean up YOUR browser"""
         if self.page:
@@ -311,7 +311,7 @@ from typing import Protocol
 
 class BrowserPort(Protocol):
     """Port for browser automation"""
-    
+
     async def start(self) -> None: ...
     async def browse_profiles(self, url: str, criteria: dict) -> list: ...
     async def cleanup(self) -> None: ...
@@ -353,7 +353,7 @@ async def test_cua_browser_integration():
     """Test CUA browser with real Playwright, mocked API"""
     browser = OpenAICUABrowser()
     browser.client = mock_openai_client()
-    
+
     await browser.start()
     try:
         # Test against local HTML fixture

@@ -33,7 +33,7 @@ DECISION_TEMPERATURE=0.7                   # Higher = more creative
 - Tier 3-5 OpenAI account required
 - Check availability: https://platform.openai.com/account/models
 
-### Decision Model  
+### Decision Model
 - Any GPT-4+ class model
 - Used for Advisor and Hybrid modes only
 - Rubric mode doesn't use LLM (deterministic)
@@ -107,11 +107,11 @@ Any model configuration must pass:
 # Primary: OpenAI CUA via Responses API
 if CUA_MODEL and tier_3_plus:
     use_cua_responses_api()
-    
+
 # Fallback: Playwright automation
 elif ENABLE_PLAYWRIGHT_FALLBACK:
     use_playwright_dom_automation()
-    
+
 # Manual: User intervention required
 else:
     prompt_user_for_manual_action()

@@ -108,7 +108,7 @@ if response.output and hasattr(response.output[0], 'computer_call'):
     computer_call = response.output[0].computer_call
     # Execute with Playwright
     await page.click(computer_call.coordinates)
-    
+
     # Send result back
     screenshot = await page.screenshot()
     client.responses.create(
