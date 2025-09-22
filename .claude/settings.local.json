@@ -1,8 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(PLAYWRIGHT_BROWSERS_PATH=.ms-playwright python -m playwright install chromium)",
-      "Bash(PYTHONPATH=src PLAYWRIGHT_BROWSERS_PATH=.ms-playwright PLAYWRIGHT_HEADLESS=1 python -c \"\nfrom yc_matcher.infrastructure.browser.playwright_async import PlaywrightBrowserAsync\n\nprint(''Testing Playwright browser...'')\nbrowser = PlaywrightBrowserAsync()\n\n# Test navigation\nbrowser.open(''https://www.example.com'')\nprint(''✅ Browser opened example.com'')\n\n# Test YC site\nbrowser.open(''https://www.startupschool.org/cofounder-matching'')\nprint(''✅ Navigated to YC cofounder matching'')\n\n# Check if we''re on login page (expected)\nimport time\ntime.sleep(2)\nprint(''Browser test completed'')\n\")"
+      "Bash(PYTHONPATH=src python:*)",
+      "Bash(PYTHONPATH=src PLAYWRIGHT_BROWSERS_PATH=.ms-playwright streamlit run src/yc_matcher/interface/web/ui_streamlit.py --server.port 8501 --server.headless true)",
+      "Bash(source .env)"
     ],
     "deny": [],
     "ask": []
