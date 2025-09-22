@@ -3,7 +3,9 @@
     "allow": [
       "Bash(PYTHONPATH=src python:*)",
       "Bash(PYTHONPATH=src PLAYWRIGHT_BROWSERS_PATH=.ms-playwright streamlit run src/yc_matcher/interface/web/ui_streamlit.py --server.port 8501 --server.headless true)",
-      "Bash(source .env)"
+      "Bash(source .env)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)"
     ],
     "deny": [],
     "ask": []
