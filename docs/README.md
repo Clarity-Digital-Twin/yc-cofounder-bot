@@ -56,7 +56,7 @@ An autonomous bot that finds co-founders on YC Startup School by:
 ### Status Reports (Historical Context)
 - [`PLAYWRIGHT_BOT_STATUS.md`](PLAYWRIGHT_BOT_STATUS.md) - Playwright-only pipeline status
 - [`P0_BLOCKERS_DEFINITIVE.md`](P0_BLOCKERS_DEFINITIVE.md) - Critical issues (all fixed)
-- [`FINAL_STATUS_DECEMBER_2025.md`](FINAL_STATUS_DECEMBER_2025.md) - December 2025 status
+- [`FINAL_STATUS_SEPTEMBER_2025.md`](FINAL_STATUS_SEPTEMBER_2025.md) - September 2025 status
 - [`OPENAI_CURRENT_APIS_SSOT.md`](OPENAI_CURRENT_APIS_SSOT.md) - API discovery findings
 - [`EXTRACTED_KEY_INFO.md`](EXTRACTED_KEY_INFO.md) - Key implementation details
 - [`CURRENT_STATE_AND_FIX.md`](CURRENT_STATE_AND_FIX.md) - Initial assessment

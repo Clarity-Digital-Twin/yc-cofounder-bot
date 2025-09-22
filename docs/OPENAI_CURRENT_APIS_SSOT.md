@@ -1,5 +1,5 @@
 # OpenAI Current APIs - Single Source of Truth
-*Last Updated: December 2025*
+*Last Updated: September 2025*
 
 ## MAJOR DISCOVERY: The Responses API EXISTS!
 
@@ -77,7 +77,7 @@ After thorough investigation using Context7 MCP and web search, here's the defin
 
 ## 3. Critical SDK Version Information ⚠️
 
-### Current Status (December 2025)
+### Current Status (September 2025)
 - **Our SDK**: OpenAI Python SDK v1.64.0
 - **Latest SDK**: v1.108.1
 - **CONFIRMED**: v1.64.0 does NOT have `responses` attribute (tested: returns False)
