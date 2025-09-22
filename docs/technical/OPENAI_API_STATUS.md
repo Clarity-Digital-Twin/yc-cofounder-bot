@@ -1,5 +1,5 @@
-# OpenAI API Status - December 2025
-*Last verified: December 2025 with SDK v1.108.1*
+# OpenAI API Status - September 2025
+*Last verified: September 2025 with SDK v1.108.1*
 
 ## Executive Summary
 

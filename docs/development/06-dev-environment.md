@@ -1,6 +1,6 @@
 # 06 — Developer Environment
 
-**Status:** Current v1.0 (December 2025)
+**Status:** Current v1.0 (September 2025)
 **Owner:** YC Matcher Team
 **Related:** [04-implementation-plan.md] · [05-operations-and-safety.md] · [07-project-structure.md]
 

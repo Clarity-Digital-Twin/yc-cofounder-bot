@@ -2,7 +2,7 @@
 
 ## 🚀 Quick Status: 99% Functional
 
-**Last Updated**: December 2025 | **SDK**: v1.108.1 | **Status**: Ready to Run
+**Last Updated**: September 2025 | **SDK**: v1.108.1 | **Status**: Ready to Run
 
 ## What This Is
 
@@ -188,10 +188,10 @@ src/yc_matcher/
 
 ## 📝 Recent Updates
 
-- **December 2025**: Confirmed Responses API exists and works
-- **December 2025**: Fixed GPT-4 response_format issue
-- **December 2025**: Verified GPT-5 and Computer Use access
-- **December 2025**: Documentation fully refactored
+- **September 2025**: Confirmed Responses API exists and works
+- **September 2025**: Fixed GPT-4 response_format issue
+- **September 2025**: Verified GPT-5 and Computer Use access
+- **September 2025**: Documentation fully refactored
 
 ## 🔗 Links
 
