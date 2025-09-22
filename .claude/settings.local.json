@@ -1,30 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cat:*)",
-      "Bash(uv run pre-commit run:*)",
-      "Bash(git commit:*)",
-      "Bash(pre-commit:*)",
-      "Bash(git fsck:*)",
-      "Bash(python -m pytest tests/unit/test_config.py::TestConfigModule::test_openai_enabled_requires_api_key -v)",
-      "Bash(python -m pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_safety_checks_require_hil_acknowledgment -xvs)",
-      "Bash(.venv/bin/python -m pytest:*)",
-      "Bash(python -m pytest tests/unit/ -q --tb=no)",
-      "Bash(python -m pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_cua_screenshot_loop_with_computer_call_output -xvs)",
-      "Bash(python -m pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_previous_response_id_chains_turns -xvs)",
-      "Bash(PACE_MIN_SECONDS=0 PYTHONPATH=src python -m pytest tests/unit tests/integration tests/e2e -q --tb=short)",
-      "Bash(make verify:*)",
-      "Bash(find:*)",
-      "Bash(mkdir:*)",
-      "Bash(mv:*)",
-      "Bash(tree:*)",
-      "Bash(python:*)",
-      "mcp__context7__resolve-library-id",
-      "mcp__context7__get-library-docs",
-      "WebSearch",
-      "Bash(pip show:*)",
-      "Bash(pip index versions:*)",
-      "Bash(pip search:*)"
+      "Bash(PLAYWRIGHT_BROWSERS_PATH=.ms-playwright python -m playwright install chromium)",
+      "Bash(PYTHONPATH=src PLAYWRIGHT_BROWSERS_PATH=.ms-playwright PLAYWRIGHT_HEADLESS=1 python -c \"\nfrom yc_matcher.infrastructure.browser.playwright_async import PlaywrightBrowserAsync\n\nprint(''Testing Playwright browser...'')\nbrowser = PlaywrightBrowserAsync()\n\n# Test navigation\nbrowser.open(''https://www.example.com'')\nprint(''✅ Browser opened example.com'')\n\n# Test YC site\nbrowser.open(''https://www.startupschool.org/cofounder-matching'')\nprint(''✅ Navigated to YC cofounder matching'')\n\n# Check if we''re on login page (expected)\nimport time\ntime.sleep(2)\nprint(''Browser test completed'')\n\")"
     ],
     "deny": [],
     "ask": []
