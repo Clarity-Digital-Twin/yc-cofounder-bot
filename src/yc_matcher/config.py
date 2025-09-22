@@ -40,9 +40,28 @@ def get_decision_model() -> str:
     Precedence:
     1. DECISION_MODEL_RESOLVED (from runtime discovery)
     2. OPENAI_DECISION_MODEL (from .env)
-    3. Default to gpt-4o (current GPT-4 class model)
+    3. Auto-detect best available model
+    4. Default to gpt-4o (current GPT-4 class model)
     """
-    return os.getenv("DECISION_MODEL_RESOLVED") or os.getenv("OPENAI_DECISION_MODEL") or "gpt-4o"
+    # Check explicit settings first
+    resolved = os.getenv("DECISION_MODEL_RESOLVED")
+    if resolved:
+        return resolved
+
+    explicit = os.getenv("OPENAI_DECISION_MODEL")
+    if explicit:
+        return explicit
+
+    # Try to auto-detect best model
+    try:
+        from yc_matcher.infrastructure.ai.model_selector import get_best_available_model
+        best_model = get_best_available_model()
+        # Cache it for this session
+        os.environ["DECISION_MODEL_RESOLVED"] = best_model
+        return best_model
+    except Exception:
+        # Fallback if import fails
+        return "gpt-4o"
 
 
 def get_cua_model() -> str | None:

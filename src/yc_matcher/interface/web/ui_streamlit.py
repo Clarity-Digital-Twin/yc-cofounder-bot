@@ -114,51 +114,47 @@ def render_three_input_mode() -> None:
 
     # Debug info expander
     with st.expander("🔍 Debug Info", expanded=False):
-        # Determine engine type
-        cua_enabled = config.is_cua_enabled()
+        # Browser automation status
         playwright_enabled = config.is_playwright_enabled()
 
-        if cua_enabled:
-            engine = "**CUA planner + Playwright executor**"
-            st.success(f"Engine: {engine}")
-            st.caption("OpenAI CUA plans actions, Playwright executes them")
-        elif playwright_enabled:
-            engine = "**Playwright-only**"
-            st.info(f"Engine: {engine}")
-            st.caption("Direct browser automation without AI planning")
+        if playwright_enabled:
+            st.info("🎭 **Browser Engine**: Playwright")
+            st.caption("Automated browser control for YC navigation")
         else:
-            engine = "**None (dry run)**"
-            st.warning(f"Engine: {engine}")
+            st.warning("⚠️ **Browser Engine**: Disabled")
+            st.caption("Enable ENABLE_PLAYWRIGHT=1 in .env")
 
         # Show key environment settings
+        headless = config.is_headless()
         st.code(f"""
 Environment Settings:
-• PLAYWRIGHT_HEADLESS: {config.is_headless()}
-• PLAYWRIGHT_BROWSERS_PATH: {config.get_playwright_browsers_path() or "not set"}
-• CUA_MODEL: {config.get_cua_model() or "not set"}
-• CUA_MAX_TURNS: {config.get_cua_max_turns()}
-• PACE_MIN_SECONDS: {config.get_pace_seconds()}
-• Auto-Send: {auto_send}
-• Shadow Mode: {shadow_mode}
+• Browser Mode: {'Headless' if headless else 'Visible'}
+• Browsers Path: {config.get_playwright_browsers_path() or '.ms-playwright'}
+• Pace Between Sends: {config.get_pace_seconds()} seconds
+• Daily Quota: {config.get_daily_quota()}
+• Weekly Quota: {config.get_weekly_quota()}
         """)
 
     # Advanced settings in expander (Clean Code: hide complexity)
     with st.expander("⚙️ Advanced Settings"):
-        # Using AI-only decision mode
-        st.info("🤖 Using AI-only decision mode")
+        # Model selection
+        st.info("🤖 AI Decision Model")
         decision_model = config.get_decision_model()
-        st.caption(f"Model: **{decision_model}**")
+
+        # Check if it's GPT-5 or fallback
+        if "gpt-5" in decision_model.lower():
+            st.success(f"Using GPT-5: **{decision_model}**")
+            st.caption("Advanced reasoning model with best performance")
+        else:
+            st.info(f"Using: **{decision_model}**")
+            st.caption("Reliable GPT-4 class model")
 
         # Set dummy values for backwards compatibility
         threshold = 0.7  # Not used but kept for function signature
         alpha = 0.5  # Not used but kept for function signature  # noqa: F841
 
-        enable_cua = st.toggle(
-            "Use OpenAI Computer Use",
-            value=config.is_cua_enabled(),
-            help="Use AI to browse (vs Playwright fallback)",
-            key="enable_cua_auto",
-        )
+        # Simplified - just Playwright for now
+        enable_cua = False  # Disabled until properly implemented
 
     # STOP control (Safety First principle)
     stop_flag = FileStopFlag(Path(".runs/stop.flag"))
@@ -226,11 +222,13 @@ Environment Settings:
         with col2:
             # Model info
             decision_model = config.get_decision_model()
-            st.info(f"🤖 **Model**: {decision_model}")
+            if "gpt-5" in decision_model.lower():
+                st.success(f"🤖 **Model**: {decision_model}")
+            else:
+                st.info(f"🤖 **Model**: {decision_model}")
 
-            # Engine type
-            engine = "CUA + Playwright" if enable_cua else "Playwright Only"
-            st.info(f"⚙️ **Engine**: {engine}")
+            # Browser status
+            st.info(f"🎭 **Browser**: Playwright")
 
         with col3:
             # Headless mode
