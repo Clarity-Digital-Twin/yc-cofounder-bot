@@ -1,28 +1,29 @@
 # 06 — Developer Environment
 
-**Status:** Draft v0.2 (2025-08-20)
+**Status:** Current v1.0 (December 2025)
 **Owner:** YC Matcher Team
 **Related:** [04-implementation-plan.md] · [05-operations-and-safety.md] · [07-project-structure.md]
 
 ## Baseline Requirements
-- Python: 3.12+
-- Package manager: `uv` (recommended) or `pip`
+- Python: 3.10+ (tested with 3.10)
+- Package manager: `pip` (standard)
 - Browser automation: Playwright (Chromium) — always used (executor)
-- OpenAI API: Responses API with Computer Use tool; Agents SDK optional wrapper
+- OpenAI API: SDK v1.108.1+ with Responses API support
 
 ## Core Dependencies
 
 ### Runtime
-- `openai>=1.*`                 # OpenAI base SDK (Responses API)
+- `openai>=1.108.1`             # OpenAI SDK with Responses API support (VERIFIED)
 - `playwright`                  # Browser control (executor)
-# Note: openai-agents package NOT used - we use Responses API directly
 - `streamlit`                   # Web UI dashboard
 - `python-dotenv`               # Environment configuration
 - `pydantic>=2.0.0`            # Data validation
 - `sqlite3`                     # Built-in, for quotas and deduplication
 
-### Import Surface (IMPORTANT)
-We use the Responses API directly for CUA. The legacy Agents SDK (`openai-agents`) is not required.
+### Import Surface (VERIFIED WORKING)
+- ✅ `client.responses.create()` - Responses API for GPT-5 and Computer Use
+- ✅ `client.chat.completions.create()` - Chat Completions for GPT-4 fallback
+- No external Agents SDK required - everything in main OpenAI SDK
 
 ### Development
 - `pytest` - Testing framework
