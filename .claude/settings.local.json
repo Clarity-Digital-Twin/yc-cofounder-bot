@@ -18,7 +18,13 @@
       "Bash(mkdir:*)",
       "Bash(mv:*)",
       "Bash(tree:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "WebSearch",
+      "Bash(pip show:*)",
+      "Bash(pip index versions:*)",
+      "Bash(pip search:*)"
     ],
     "deny": [],
     "ask": []
