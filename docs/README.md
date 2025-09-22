@@ -11,18 +11,35 @@ An autonomous matching agent that uses a Computer Use Agent (CUA) to browse YC c
 - **Safety**: STOP flag, quotas, pacing, dedupe, JSONL audit
 
 ## Documentation Map
+
+### Core Documentation (`/core`)
 - `01-product-brief.md` — 3-input system, CUA primary, modes
 - `02-scope-and-requirements.md` — In-scope/out-of-scope, functional/non-functional reqs
 - `03-architecture.md` — Ports/adapters, decision schema, events
 - `04-implementation-plan.md` — Milestones M1–M4 (CUA+modes, robustness, OpenAI adapter, analytics)
 - `05-operations-and-safety.md` — STOP, quotas, HIL, platform respect
+- `09-roadmap.md` — Milestones and later options
+- `10-ui-reference.md` — Single-page UI with mode selector and live events
+- `12-prompts-and-rubric.md` — Prompts, scoring, hard rules, versioning
+
+### Development (`/development`)
 - `06-dev-environment.md` — Env flags, setup, Make targets, repo-scoped caches
 - `07-project-structure.md` — DDD layout, ports, adapters
 - `08-testing-quality.md` — TDD plan, gates, contract tests
-- `09-roadmap.md` — Milestones and later options
-- `10-ui-reference.md` — Single-page UI with mode selector and live events
 - `11-engineering-guidelines.md` — Clean code, ports, DI, logging
-- `12-prompts-and-rubric.md` — Prompts, scoring, hard rules, versioning
+- `MCP_SETUP.md` — Context7 MCP configuration
+- `ROOT_STRUCTURE.md` — Repository organization
+
+### Technical Reference (`/technical`)
+- `API_CONTRACT_RESPONSES.md` — OpenAI Responses API contracts
+- `event_schema.md` — Event logging schema
+- `YC_UI_STRUCTURE.md` — YC website structure
+- `CONTEXT7_*.md` — Context7 MCP docs
+- `GPT5_*.md` — GPT-5 API reference
+- `OPENAI_*.md` — OpenAI API documentation
+
+### Archive (`/archive/historical`)
+Historical documentation, refactoring notes, and cleanup reports from development iterations
 
 ## Quick Start
 1. Create `.env` from `.env.example` and set `CUA_API_KEY`.

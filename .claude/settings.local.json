@@ -16,7 +16,8 @@
       "Bash(make verify:*)",
       "Bash(find:*)",
       "Bash(mkdir:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []
