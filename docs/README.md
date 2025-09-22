@@ -1,65 +1,52 @@
-# YC Co-Founder Matching Bot Documentation
+# YC Co-Founder Bot Documentation
 
-## 🚀 Quick Status: 99% Functional
+## Quick Links
 
-**Last Updated**: September 2025 | **SDK**: v1.108.1 | **Status**: Ready to Run
+### 🚀 Getting Started
+- [Project Status & Quick Start](technical/PROJECT_STATUS.md) - Current state and how to run
+- [Development Environment](development/06-dev-environment.md) - Setup instructions
 
-## What This Is
+### 📖 Core Documentation
+- [Product Brief](core/01-product-brief.md) - What this bot does
+- [Architecture](core/03-architecture.md) - System design
+- [Operations & Safety](core/05-operations-and-safety.md) - Safety mechanisms
 
-An autonomous bot that finds co-founders on YC Startup School by:
-1. **Browsing** profiles automatically using OpenAI Computer Use or Playwright
-2. **Evaluating** profiles with GPT-5/GPT-4 against your criteria
-3. **Messaging** high-quality matches automatically (with safeguards)
+### 🔧 Technical Reference
+- [OpenAI API Guide](technical/OPENAI_API_GUIDE.md) - API usage patterns
+- [YC UI Structure](technical/YC_UI_STRUCTURE.md) - Browser automation details
+- [Event Schema](technical/event_schema.md) - Logging format
 
-**3 Key Inputs**: Your Profile → Match Criteria → Message Template → Done!
+### 💻 Development
+- [Project Structure](development/07-project-structure.md) - Code organization
+- [Engineering Guidelines](development/11-engineering-guidelines.md) - Clean code practices
+- [Testing & Quality](development/08-testing-quality.md) - Test strategy
 
-## ✅ Current Status
+## Project Overview
 
-### Working Components
-- **OpenAI Responses API**: Verified working with SDK v1.108.1
-- **GPT-5 Models**: Full access (gpt-5, gpt-5-mini, gpt-5-nano)
-- **Computer Use**: Available via computer-use-preview model
-- **Playwright Browser**: Tested and functional
-- **Decision Evaluation**: All three modes implemented
-- **Safety Systems**: Quotas, deduplication, STOP flag
+A bot that automates finding co-founders on YC's Startup School platform by:
 
-### Recent Fixes
-- ✅ Fixed GPT-4 `response_format` incompatibility (line 405)
-- ✅ Upgraded SDK to v1.108.1 with Responses API support
-- ✅ Installed Playwright browsers locally
+1. **Browsing** profiles automatically using Playwright
+2. **Evaluating** matches with GPT-4 AI
+3. **Messaging** high-quality candidates
 
-## 📁 Documentation Structure
+## Current Status (September 2025)
 
-### Core Documentation (`/core`)
-- [`01-product-brief.md`](core/01-product-brief.md) - Product vision and decision modes
-- [`02-scope-and-requirements.md`](core/02-scope-and-requirements.md) - Functional/non-functional requirements
-- [`03-architecture.md`](core/03-architecture.md) - DDD architecture with ports/adapters
-- [`04-implementation-plan.md`](core/04-implementation-plan.md) - Development milestones
-- [`05-operations-and-safety.md`](core/05-operations-and-safety.md) - Safety mechanisms and quotas
-- [`09-roadmap.md`](core/09-roadmap.md) - Future development roadmap
-- [`10-ui-reference.md`](core/10-ui-reference.md) - Streamlit UI documentation
-- [`12-prompts-and-rubric.md`](core/12-prompts-and-rubric.md) - Decision prompts and scoring
+✅ **Core functionality working** - Browser automation, AI evaluation, and messaging all functional
 
-### Technical Documentation (`/technical`)
-- [`OPENAI_API_STATUS.md`](technical/OPENAI_API_STATUS.md) - **⭐ CRITICAL: API availability and models**
-- [`CURRENT_STATUS.md`](technical/CURRENT_STATUS.md) - **⭐ Current implementation status**
-- [`event_schema.md`](technical/event_schema.md) - Event logging schema
-- [`YC_UI_STRUCTURE.md`](technical/YC_UI_STRUCTURE.md) - YC website structure
+⚙️ **Configuration needed** - Set YC credentials and OpenAI API key in `.env`
 
-### Development Documentation (`/development`)
-- [`06-dev-environment.md`](development/06-dev-environment.md) - Environment setup and configuration
-- [`07-project-structure.md`](development/07-project-structure.md) - Codebase organization
-- [`08-testing-quality.md`](development/08-testing-quality.md) - Testing approach
-- [`11-engineering-guidelines.md`](development/11-engineering-guidelines.md) - Clean code principles
-- [`MCP_SETUP.md`](development/MCP_SETUP.md) - Context7 MCP configuration
+📋 **One known fix applied** - Removed unsupported `response_format` parameter for GPT-4
 
-### Status Reports (Historical Context)
-- [`PLAYWRIGHT_BOT_STATUS.md`](PLAYWRIGHT_BOT_STATUS.md) - Playwright-only pipeline status
-- [`P0_BLOCKERS_DEFINITIVE.md`](P0_BLOCKERS_DEFINITIVE.md) - Critical issues (all fixed)
-- [`FINAL_STATUS_SEPTEMBER_2025.md`](FINAL_STATUS_SEPTEMBER_2025.md) - September 2025 status
-- [`OPENAI_CURRENT_APIS_SSOT.md`](OPENAI_CURRENT_APIS_SSOT.md) - API discovery findings
-- [`EXTRACTED_KEY_INFO.md`](EXTRACTED_KEY_INFO.md) - Key implementation details
-- [`CURRENT_STATE_AND_FIX.md`](CURRENT_STATE_AND_FIX.md) - Initial assessment
+## File Organization
+
+```
+docs/
+├── README.md              # This file
+├── core/                  # Product & design docs
+├── technical/             # Implementation details
+├── development/           # Dev setup & guidelines
+└── archive/              # Historical/outdated docs
+```
 
 ## 🚦 Quick Start
 
