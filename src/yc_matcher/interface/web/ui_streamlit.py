@@ -29,8 +29,8 @@ def render_three_input_mode() -> None:
     SOLID: Single Responsibility - Only handles UI rendering
     DRY: Reuses existing services and components
     """
-    st.set_page_config(page_title="YC Matcher (Autonomous Mode)", layout="wide")
-    st.title("🚀 YC Co-Founder Matcher - Autonomous Mode")
+    st.set_page_config(page_title="YC Co-Founder Matcher", layout="wide")
+    st.title("🚀 YC Co-Founder Matcher")
 
     # Initialize session state for HIL and screenshots
     if "hil_pending" not in st.session_state:
