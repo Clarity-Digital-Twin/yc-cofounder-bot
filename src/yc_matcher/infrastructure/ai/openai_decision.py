@@ -402,7 +402,7 @@ class OpenAIDecisionAdapter(DecisionPort):
                         {"role": "system", "content": sys_prompt},
                         {"role": "user", "content": user_text},
                     ],
-                    response_format={"type": "json_object"},  # Force JSON response
+                    # response_format not supported by GPT-4, rely on prompt for JSON
                     temperature=0.3,  # Stable for structured outputs (0.2-0.5 recommended)
                     max_tokens=800,  # Enough for decision + message
                 )
