@@ -43,13 +43,13 @@ ENABLE_PLAYWRIGHT=0                  # Optional: force Playwright for debugging
 
 # OpenAI
 OPENAI_API_KEY=sk-...                # OpenAI API key
-CUA_MODEL=<your-computer-use-model>  # Model id visible to your account
+CUA_MODEL=computer-use-preview       # VERIFIED: Available in our account
 CUA_TEMPERATURE=0.3
 CUA_MAX_TOKENS=1200
 
 # Decision Engine
 DECISION_MODE=advisor|rubric|hybrid
-OPENAI_DECISION_MODEL=<your-best-llm>   # For Advisor/Hybrid reasoning
+OPENAI_DECISION_MODEL=gpt-5          # VERIFIED: Available (also gpt-4o, gpt-5-mini)
 THRESHOLD=0.72
 ALPHA=0.50                           # Hybrid weighting for Advisor
 
