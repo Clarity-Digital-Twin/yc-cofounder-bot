@@ -118,21 +118,15 @@ response = client.chat.completions.create(
 ## Testing the Bot
 
 ```bash
-# 1. Test browser automation
-PYTHONPATH=src python -c "
-from yc_matcher.infrastructure.browser.browser_playwright import test_browser
-test_browser()
-"
+# 1. Run unit tests
+make test
 
-# 2. Test AI evaluation
-PYTHONPATH=src python -c "
-from yc_matcher.infrastructure.ai.openai_decision import test_decision
-test_decision()
-"
+# 2. Run integration tests (requires browser)
+PLAYWRIGHT_HEADLESS=1 make test-int
 
 # 3. Run full pipeline
 make run
-# Then use Streamlit UI
+# Then use Streamlit UI at localhost:8501
 ```
 
 ## Clean Code Principles
