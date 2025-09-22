@@ -5,7 +5,18 @@
       "Bash(uv run pre-commit run:*)",
       "Bash(git commit:*)",
       "Bash(pre-commit:*)",
-      "Bash(git fsck:*)"
+      "Bash(git fsck:*)",
+      "Bash(python -m pytest tests/unit/test_config.py::TestConfigModule::test_openai_enabled_requires_api_key -v)",
+      "Bash(python -m pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_safety_checks_require_hil_acknowledgment -xvs)",
+      "Bash(.venv/bin/python -m pytest:*)",
+      "Bash(python -m pytest tests/unit/ -q --tb=no)",
+      "Bash(python -m pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_cua_screenshot_loop_with_computer_call_output -xvs)",
+      "Bash(python -m pytest tests/unit/test_openai_cua_browser.py::TestOpenAICUABrowserResponsesAPI::test_previous_response_id_chains_turns -xvs)",
+      "Bash(PACE_MIN_SECONDS=0 PYTHONPATH=src python -m pytest tests/unit tests/integration tests/e2e -q --tb=short)",
+      "Bash(make verify:*)",
+      "Bash(find:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)"
     ],
     "deny": [],
     "ask": []
