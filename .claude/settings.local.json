@@ -7,7 +7,12 @@
       "Bash(mkdir:*)",
       "Bash(mv:*)",
       "mcp__context7__resolve-library-id",
-      "mcp__context7__get-library-docs"
+      "mcp__context7__get-library-docs",
+      "Bash(pkill:*)",
+      "Bash(lsof:*)",
+      "Bash(awk:*)",
+      "Bash(xargs kill:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []
