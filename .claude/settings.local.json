@@ -12,7 +12,9 @@
       "Bash(lsof:*)",
       "Bash(awk:*)",
       "Bash(xargs kill:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(make verify:*)",
+      "Bash(export PYTHONPATH=src)"
     ],
     "deny": [],
     "ask": []
