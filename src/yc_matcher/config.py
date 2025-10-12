@@ -55,6 +55,7 @@ def get_decision_model() -> str:
     # Try to auto-detect best model
     try:
         from yc_matcher.infrastructure.ai.model_selector import get_best_available_model
+
         best_model = get_best_available_model()
         # Cache it for this session
         os.environ["DECISION_MODEL_RESOLVED"] = best_model

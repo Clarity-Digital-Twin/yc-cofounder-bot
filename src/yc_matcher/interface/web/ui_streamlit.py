@@ -225,6 +225,7 @@ def run_autonomous_browsing(
             st.error(f"❌ Failed: {str(e)}")
             with st.expander("Error Details"):
                 import traceback
+
                 st.code(traceback.format_exc())
 
 
@@ -251,7 +252,9 @@ def display_results(results: dict[str, Any]) -> None:
         with st.expander(f"⚠️ {error_count} Errors Occurred", expanded=True):
             for r in results.get("results", []):
                 if r.get("decision") == "ERROR":
-                    st.error(f"Profile {r.get('profile_num')}: {r.get('rationale', 'Unknown error')}")
+                    st.error(
+                        f"Profile {r.get('profile_num')}: {r.get('rationale', 'Unknown error')}"
+                    )
 
     # Show all results in collapsible
     with st.expander("📊 Detailed Results"):

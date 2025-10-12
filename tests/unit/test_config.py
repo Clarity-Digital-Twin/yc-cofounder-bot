@@ -132,7 +132,9 @@ class TestConfigModule:
         with patch.dict(os.environ, {"OPENAI_API_KEY": "sk-test"}, clear=True):
             assert config.is_openai_enabled() is False  # Has API key but no flag
 
-        with patch.dict(os.environ, {"ENABLE_OPENAI": "1", "OPENAI_API_KEY": "sk-test"}, clear=True):
+        with patch.dict(
+            os.environ, {"ENABLE_OPENAI": "1", "OPENAI_API_KEY": "sk-test"}, clear=True
+        ):
             assert config.is_openai_enabled() is True  # Has both AND flag
 
     def test_empty_string_handling(self) -> None:

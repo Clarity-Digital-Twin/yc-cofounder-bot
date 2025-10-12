@@ -1,12 +1,11 @@
 """Model selector - automatically choose best available model."""
 
 import os
-from typing import Optional
 
 from openai import OpenAI
 
 
-def get_best_available_model(client: Optional[OpenAI] = None) -> str:
+def get_best_available_model(client: OpenAI | None = None) -> str:
     """Get the best available model from the user's OpenAI account.
 
     Priority order:
