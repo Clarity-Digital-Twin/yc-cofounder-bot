@@ -451,11 +451,14 @@ if evaluation.get("decision") == "YES":
 
 **What We CANNOT Observe:**
 - ❌ The actual draft message that was sent (NOT logged!)
+- ❌ The AI's original draft (discarded before send)
 - ❌ Correlation between decision and profile content
 - ❌ If "verified: True" actually means verified or just assumed
 
 **🚨 CRITICAL GAPS:**
 1. **Draft message not logged** - We log that we sent, but not WHAT we sent
+   - The `draft` in `evaluation` is the **template output**, NOT the AI's draft
+   - AI's original draft is lost (overwritten in `use_cases.py:30`)
 2. **Profile content not logged with decision** - Can't audit decisions
 3. **No correlation ID** - Can't trace a specific profile through the pipeline
 
