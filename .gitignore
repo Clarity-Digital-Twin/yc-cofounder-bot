@@ -33,3 +33,7 @@ events.jsonl
 
 # Streamlit
 .streamlit/
+
+# Personal/private files (YC profiles, personal notes, etc.)
+personal/*
+!personal/README.md
