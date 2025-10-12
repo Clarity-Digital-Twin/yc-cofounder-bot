@@ -381,14 +381,13 @@ return dict(payload)
 
 After this function returns, in `use_cases.py:28-31`:
 ```python
-result = self._decision.evaluate(profile, criteria)
-
-if result.get("decision") == "YES":
-    # AI draft is DISCARDED and replaced with template output
-    result["draft"] = self._message.render()  # ← Template replaces AI draft
+def __call__(self, profile: Profile, criteria: Criteria) -> Mapping[str, Any]:
+    data = self.decision.evaluate(profile, criteria)
+    draft = self.message.render(data)  # ← UNCONDITIONALLY render template
+    return {**data, "draft": draft}    # ← ALWAYS overwrite AI draft!
 ```
 
-**The AI generates a draft message, but it's immediately overwritten with the template renderer output.**
+**The AI generates a draft message, but it's ALWAYS overwritten with template output (regardless of YES/NO).**
 
 ---
 
@@ -581,11 +580,20 @@ logger.emit({"event": "decision", "decision": "YES", ...})
 
 **Impact:** Cannot verify personalization, cannot detect spam-like messages
 
+**Additional Problem:** AI's original draft is lost (overwritten UNCONDITIONALLY with template)
+
 **Current Code:**
 ```python
-if evaluation.get("decision") == "YES":
-    draft = evaluation.get("draft", "")
-    if draft:
+# In use_cases.py:28-31 - AI draft is UNCONDITIONALLY overwritten
+def __call__(self, profile: Profile, criteria: Criteria) -> Mapping[str, Any]:
+    data = self.decision.evaluate(profile, criteria)
+    draft = self.message.render(data)  # ← ALWAYS renders template
+    return {**data, "draft": draft}    # ← ALWAYS overwrites AI draft!
+
+# In autonomous_flow.py:259-274 - Template output sent but not logged
+if would_send and evaluation.get("decision") == "YES":
+    draft = evaluation.get("draft", "")  # ← This is template output, not AI!
+    if draft and not shadow_mode:
         success = self.send(draft, 1)
         logger.emit({"event": "sent", "ok": True})  # ❌ No draft logged!
 ```

@@ -123,12 +123,16 @@ logger.emit({
 - No record of what messages were sent
 - Cannot verify personalization
 - Cannot detect spam patterns
+- ⚠️ AI's original draft is lost (overwritten in `use_cases.py:30`)
 
 **Solution:**
 ```python
+# ⚠️ NOTE: draft here is TEMPLATE OUTPUT, not AI's original draft!
+# The AI's draft was overwritten in use_cases.py before it gets here
+
 # In autonomous_flow.py, before sending
 if would_send and evaluation.get("decision") == "YES":
-    draft = evaluation.get("draft", "")
+    draft = evaluation.get("draft", "")  # ← This is template output!
     if draft:
         # Log draft (with PII protection)
         logger.emit({
@@ -137,12 +141,31 @@ if would_send and evaluation.get("decision") == "YES":
             "draft_hash": hashlib.sha256(draft.encode()).hexdigest()[:16],
             "draft_length": len(draft),
             "draft_excerpt": draft[:100],  # First 100 chars
-            "contains_template_vars": "{{" in draft or "{name}" in draft,  # Check personalization
+            # Check for template placeholders (square brackets, not braces!)
+            "contains_template_vars": "[Name]" in draft or "[name]" in draft or "[" in draft,
             "timestamp": time.time()
         })
 
         if not shadow_mode:
             success = self.send(draft, 1)
+```
+
+**Additional Fix Needed:**
+To log BOTH AI draft and template output, modify `use_cases.py:28-31`:
+```python
+def __call__(self, profile: Profile, criteria: Criteria) -> Mapping[str, Any]:
+    data = self.decision.evaluate(profile, criteria)
+
+    # ⚠️ Current code UNCONDITIONALLY overwrites draft
+    # Store AI's original draft before overwriting
+    ai_draft = data.get("draft", "")  # ← NEW: Preserve AI draft
+    template_draft = self.message.render(data)  # ← Render template
+
+    return {
+        **data,
+        "ai_draft": ai_draft,           # ← NEW: Keep AI draft
+        "draft": template_draft         # ← Template for sending
+    }
 ```
 
 **Files to Modify:**
@@ -525,6 +548,78 @@ All improvements must:
 - ✅ Include unit tests (where applicable)
 - ✅ Log PII-protected excerpts only (not full content)
 - ✅ Use correlation IDs for tracing
+
+---
+
+## Additional Fixes Needed (Not Covered Above)
+
+### Fix A: Cost Calculation Uses Wrong Rates
+**File:** `src/yc_matcher/infrastructure/ai/openai_decision.py:76`
+
+**Problem:**
+```python
+# ALWAYS uses GPT-4o rates regardless of model!
+cost_est = (inp * 0.003 / 1000.0) + (out * 0.012 / 1000.0)
+```
+
+**Solution:**
+```python
+# Model-specific pricing
+PRICING = {
+    "gpt-4o": (0.003, 0.012),
+    "gpt-4-turbo": (0.001, 0.004),
+    "gpt-4": (0.03, 0.06),
+    "gpt-5": (0.015, 0.06),
+    "gpt-5-mini": (0.001, 0.004),
+}
+
+def _calculate_cost(self, model: str, input_tokens: int, output_tokens: int) -> float:
+    input_rate, output_rate = PRICING.get(model, (0.003, 0.012))  # Default to GPT-4o
+    return (input_tokens * input_rate / 1000.0) + (output_tokens * output_rate / 1000.0)
+```
+
+### Fix B: Wire Up `your_profile` Input
+**File:** `src/yc_matcher/application/autonomous_flow.py:206`
+
+**Problem:**
+- User's profile is collected but never used
+- AI doesn't see the user's background
+- `your_profile` is a parameter (line 59), NOT stored as `self.your_profile`
+
+**Solution:**
+```python
+# In autonomous_flow.py:206
+# BEFORE: evaluation = self.evaluate(profile, criteria_obj)
+# AFTER: Pass your_profile parameter to evaluation
+evaluation = self.evaluate(profile, criteria_obj, your_profile=your_profile)
+
+# Update EvaluateProfile use case signature to accept your_profile
+# Update openai_decision.py prompt to include your_profile in context
+```
+
+### Fix C: Wire Up `threshold` and `auto_send` UI Controls
+**File:** `src/yc_matcher/interface/web/ui_streamlit.py:210-219`
+
+**Problem:**
+- UI shows threshold/auto_send controls but they're ignored
+- Values never passed to flow
+
+**Solution:**
+```python
+# In ui_streamlit.py
+results = flow.run(
+    your_profile=your_profile,
+    criteria=criteria_text,
+    template=template_text,
+    mode="ai",
+    limit=max_profiles,
+    shadow_mode=shadow_mode,
+    threshold=threshold,      # ← ADD THIS
+    auto_send=auto_send,      # ← ADD THIS
+)
+
+# Update autonomous_flow.py to actually use these parameters
+```
 
 ---
 

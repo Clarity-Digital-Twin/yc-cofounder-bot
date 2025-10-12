@@ -59,7 +59,7 @@ max_profiles: int = 10        # How many profiles to evaluate
 shadow_mode: bool = False     # Dry-run mode (no actual sends)
 
 # ⚠️ UI shows these but they're NOT actually wired up:
-auto_send: bool = True        # NOT USED - always auto-sends for mode="ai"
+auto_send: bool = True        # NOT USED - mode="ai" NEVER auto-sends (missing "auto_send" key in payload)
 threshold: float = 0.7        # Hard-coded in autonomous_flow.py, UI value ignored
 ```
 
@@ -289,13 +289,13 @@ If YES, write a personalized outreach message that references specific details f
 
 After AI evaluation, in `use_cases.py:28-31`:
 ```python
-result = self._decision.evaluate(profile, criteria)
-
-if result.get("decision") == "YES":
-    # OVERWRITE AI draft with template output
-    result["draft"] = self._message.render()  # ← Template applied here!
+def __call__(self, profile: Profile, criteria: Criteria) -> Mapping[str, Any]:
+    data = self.decision.evaluate(profile, criteria)
+    draft = self.message.render(data)  # ← UNCONDITIONALLY render template
+    return {**data, "draft": draft}    # ← ALWAYS overwrite AI draft!
 ```
 
+**The draft is ALWAYS overwritten with template output, regardless of YES/NO decision.**
 **The actual message sent is the template output, NOT the AI draft.**
 
 ### OpenAI API Call (GPT-4 Pathway)
