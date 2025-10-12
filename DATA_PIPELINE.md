@@ -37,7 +37,8 @@ Results → Events JSONL + UI Display
 ### Inputs Collected (3 Required)
 1. **Your Profile** (`str`)
    - User's background, skills, goals
-   - Used by AI to evaluate match compatibility
+   - ⚠️ **CURRENTLY UNUSED** - Collected but NOT passed to AI prompt
+   - TODO: Wire this into the evaluation pipeline
    - Length: ~200-1000 chars typical
 
 2. **Match Criteria** (`str`)
@@ -47,15 +48,19 @@ Results → Events JSONL + UI Display
 
 3. **Message Template** (`str`)
    - Template for personalized outreach
-   - Can include placeholders like `{name}`, `{skills}`
+   - Uses placeholders like `[Name]`, `[project]`, `[skill]` (note: square brackets, not braces)
+   - ⚠️ **NOT passed to AI** - Template is applied AFTER AI makes decision
+   - The AI's draft message is discarded and replaced with template output
    - Length: ~50-300 chars typical
 
 ### Configuration Settings
 ```python
 max_profiles: int = 10        # How many profiles to evaluate
-auto_send: bool = True        # Auto-send if match score > threshold
 shadow_mode: bool = False     # Dry-run mode (no actual sends)
-threshold: float = 0.72       # Auto-send score threshold
+
+# ⚠️ UI shows these but they're NOT actually wired up:
+auto_send: bool = True        # NOT USED - always auto-sends for mode="ai"
+threshold: float = 0.7        # Hard-coded in autonomous_flow.py, UI value ignored
 ```
 
 ### Data Validation
@@ -133,8 +138,12 @@ logger = LoggerWithStamps(
     criteria_preset="custom"
 )
 
-# Quota management
-quota = SQLiteDailyWeeklyQuota(Path(".runs/quota.sqlite"))
+# Quota management (conditional based on config)
+quota = (
+    SQLiteDailyWeeklyQuota(Path(".runs/quota.sqlite"))  # If ENABLE_CALENDAR_QUOTA=1
+    if config.is_calendar_quota_enabled()
+    else FileQuota()  # ← DEFAULT: Simple file-based counter
+)
 
 # Stop flag
 stop = FileStopFlag(Path(".runs/stop.flag"))
@@ -161,19 +170,27 @@ This is the **main orchestrator** - loops through profiles and coordinates all s
 
 ### Step 1: Login Check & Navigation
 ```python
-# Check if logged in
-if not browser.is_logged_in():
-    # Attempt auto-login if credentials available
-    browser.ensure_logged_in()  # Uses YC_EMAIL/YC_PASSWORD
-
-# Navigate to YC matching page
+# Navigate to YC matching page (login happens automatically inside open())
 browser.open("https://www.startupschool.org/cofounder-matching")
+# → Internally calls _auto_login_if_needed() if YC_EMAIL/YC_PASSWORD set
+
+# Verify login after navigation
+if hasattr(browser, "is_logged_in") and not browser.is_logged_in():
+    return {"error": "Login required after navigation", "evaluated": 0, "sent": 0}
 ```
+
+**Actual Login Flow (Inside playwright_async.py):**
+- `open()` navigates to URL
+- Detects if on startupschool.org
+- Calls internal `_auto_login_if_needed()` method
+- Fills email/password from env vars
+- Submits form and waits for navigation
 
 **Potential Issues:**
 - ⚠️ No retry logic if login fails
 - ⚠️ No verification that we're on the right page
 - ⚠️ Assumes YC UI structure hasn't changed
+- ⚠️ No public `ensure_logged_in()` method exists
 
 ### Step 2: Profile Browsing Loop
 ```python
@@ -236,11 +253,11 @@ This is where the **AI magic happens** - calls OpenAI API to evaluate match qual
 
 ### Input Preparation
 ```python
-# Extract template from criteria if embedded
+# Extract template from criteria if embedded (but it's NOT used in prompt)
 if "\nMessage Template:" in criteria.text:
     parts = criteria.text.split("\nMessage Template:")
     criteria_text = parts[0]
-    template = parts[1].strip()
+    template = parts[1].strip()  # ← Extracted but NEVER used!
 else:
     criteria_text = criteria.text
 
@@ -255,7 +272,7 @@ You MUST return a valid JSON object with these exact keys:
 - confidence: float between 0.0 and 1.0 indicating your confidence
 """
 
-# Build user prompt
+# Build user prompt (NOTE: Template is NOT included!)
 user_text = f"""
 MY CRITERIA:
 {criteria_text}
@@ -263,13 +280,23 @@ MY CRITERIA:
 CANDIDATE PROFILE:
 {profile.raw_text}
 
-MESSAGE TEMPLATE (use this style but personalize it):
-{template}
-
 Evaluate if this candidate matches my criteria.
 If YES, write a personalized outreach message that references specific details from their profile.
 """
 ```
+
+**CRITICAL:** Despite building a `draft` field, the AI's draft is immediately discarded!
+
+After AI evaluation, in `use_cases.py:28-31`:
+```python
+result = self._decision.evaluate(profile, criteria)
+
+if result.get("decision") == "YES":
+    # OVERWRITE AI draft with template output
+    result["draft"] = self._message.render()  # ← Template applied here!
+```
+
+**The actual message sent is the template output, NOT the AI draft.**
 
 ### OpenAI API Call (GPT-4 Pathway)
 ```python
@@ -293,20 +320,21 @@ payload = json.loads(content)  # Parse JSON
 ### OpenAI API Call (GPT-5 Pathway)
 ```python
 # For GPT-5 models (if using gpt-5, gpt-5-mini, gpt-5-nano)
+# Defaults loaded from config.py, overridable via env vars
 response = client.responses.create(
     model="gpt-5",
     input=[
         {"role": "system", "content": sys_prompt},
         {"role": "user", "content": user_text}
     ],
-    max_output_tokens=800,  # Different parameter name!
-    temperature=1.0,        # GPT-5 works best at 1.0
-    top_p=0.9,
-    truncation="auto",      # Handle long contexts
-    store=True,             # Save response for retrieval
-    text={"verbosity": "low"},  # Minimize reasoning output
-    reasoning={"effort": "minimal"},  # Speed optimization
-    response_format={       # Structured output (GPT-5 specific)
+    max_output_tokens=4000,  # Default from config.get_gpt5_max_tokens() [GPT5_MAX_TOKENS]
+    temperature=0.3,         # Default from config.get_gpt5_temperature() [GPT5_TEMPERATURE]
+    top_p=0.9,               # Default from config.get_gpt5_top_p() [GPT5_TOP_P]
+    truncation="auto",       # Handle long contexts
+    store=True,              # Save response for retrieval
+    text={"verbosity": "low"},       # From config.get_gpt5_verbosity() [GPT5_VERBOSITY]
+    reasoning={"effort": "minimal"}, # From config.get_gpt5_reasoning_effort() [GPT5_REASONING_EFFORT]
+    response_format={        # Structured output (GPT-5 specific)
         "type": "json_schema",
         "json_schema": {
             "name": "decision_response",
@@ -383,17 +411,25 @@ except Exception as e:
 # Calculate cost estimate
 inp = response.usage.input_tokens
 out = response.usage.output_tokens
+
+# ⚠️ ALWAYS uses GPT-4o rates regardless of actual model!
 cost_est = (inp * 0.003 / 1000.0) + (out * 0.012 / 1000.0)
 
 # Log usage
 logger.emit({
     "event": "model_usage",
-    "model": "gpt-4o",
+    "model": self.model,  # ← Logs correct model name
     "tokens_in": inp,
     "tokens_out": out,
-    "cost_est": cost_est
+    "cost_est": cost_est  # ← But cost uses GPT-4o rates!
 })
 ```
+
+**⚠️ IMPORTANT:** Cost estimates are **INCORRECT for all non-GPT-4o models**!
+- GPT-4-turbo uses different rates ($0.001/$0.004)
+- GPT-5 uses higher rates ($0.015/$0.06)
+- Code does NOT check model before calculating cost
+- See `openai_decision.py:76` - hard-coded GPT-4o rates
 
 ### Retry Logic
 ```python
@@ -743,7 +779,7 @@ Streamlit shows:
 
 ## Token Usage & Cost Tracking
 
-### Per-Profile Cost Estimate
+### Per-Profile Cost Estimate (ACTUAL Pricing)
 ```
 Input tokens:  ~1200  (profile + criteria + system prompt)
 Output tokens: ~150   (decision JSON + message draft)
@@ -764,24 +800,29 @@ Cost (GPT-5):
   Total:  ~$0.027 per profile
 ```
 
-### Session Cost
+### Session Cost (Actual)
 ```
 10 profiles:   $0.05 - $0.27
 50 profiles:   $0.25 - $1.35
 100 profiles:  $0.50 - $2.70
 ```
 
-### Logging
-Token usage is logged for every API call:
+### ⚠️ Logged Cost Estimates (INCORRECT)
+Token usage is logged for every API call, BUT cost estimates are wrong:
 ```json
 {
   "event": "model_usage",
-  "model": "gpt-4o",
-  "tokens_in": 1234,
-  "tokens_out": 156,
-  "cost_est": 0.0054
+  "model": "gpt-4o",      // ← Correct model logged
+  "tokens_in": 1234,      // ← Correct token count
+  "tokens_out": 156,      // ← Correct token count
+  "cost_est": 0.0054      // ← WRONG if not GPT-4o!
 }
 ```
+
+**The `cost_est` field always uses GPT-4o rates, regardless of actual model.**
+- For GPT-4-turbo: Logged cost is 3x higher than actual
+- For GPT-5: Logged cost is 5x lower than actual
+- See `openai_decision.py:76` for hard-coded rates
 
 ---
 
@@ -807,17 +848,20 @@ PLAYWRIGHT_HEADLESS=0           # 1 = headless, 0 = visible
 PLAYWRIGHT_BROWSERS_PATH=/path  # Custom browser install path
 
 # GPT-5 Specific (if using gpt-5 models)
-GPT5_MAX_TOKENS=800             # Max output tokens
-GPT5_TEMPERATURE=1.0            # 1.0 recommended for GPT-5
-GPT5_TOP_P=0.9                  # Nucleus sampling
-GPT5_VERBOSITY=low              # low/medium/high
-GPT5_REASONING_EFFORT=minimal   # minimal/low/medium/high
+GPT5_MAX_TOKENS=4000            # Max output tokens (default: 4000, not 800)
+GPT5_TEMPERATURE=0.3            # Temperature (default: 0.3, not 1.0)
+GPT5_TOP_P=0.9                  # Nucleus sampling (default: 0.9)
+GPT5_VERBOSITY=low              # Verbosity level (default: low)
+GPT5_REASONING_EFFORT=minimal   # Reasoning effort (default: minimal)
 
 # Safety & Limits
-DAILY_QUOTA=25                  # Max sends per day
-WEEKLY_QUOTA=120                # Max sends per week
+ENABLE_CALENDAR_QUOTA=0         # 1 = use SQLite daily/weekly quota, 0 = simple file counter
+DAILY_QUOTA=25                  # Max sends per day (if calendar quota enabled)
+WEEKLY_QUOTA=120                # Max sends per week (if calendar quota enabled)
 SHADOW_MODE=0                   # 1 = test only, no sends
-THRESHOLD=0.72                  # Auto-send threshold
+
+# ⚠️ NOT WIRED UP (UI shows but ignored):
+THRESHOLD=0.7                   # Hard-coded in autonomous_flow.py
 ```
 
 ### API Endpoints Used

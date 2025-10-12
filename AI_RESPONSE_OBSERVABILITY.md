@@ -34,16 +34,16 @@ MY CRITERIA:
 CANDIDATE PROFILE:
 {profile.raw_text}
 
-MESSAGE TEMPLATE (use this style but personalize it):
-{template}
-
 Evaluate if this candidate matches my criteria.
 If YES, write a personalized outreach message that references specific details.
 """
+
+# ⚠️ NOTE: Template is extracted but NOT included in prompt!
+# The AI generates a draft, but it's immediately overwritten with template output
 ```
 
 **What We CAN Observe:**
-- ✅ Input prompt text (logged via logger if enabled)
+- ❌ Input prompt text (NOT logged today - this is a gap!)
 - ✅ Profile text length: `len(profile.raw_text)`
 - ✅ Criteria text length: `len(criteria_text)`
 
@@ -376,6 +376,19 @@ return dict(payload)
 - ❌ If decision aligns with actual profile content
 - ❌ If rationale justifies the decision (semantic check)
 - ❌ If draft message is actually personalized
+
+**⚠️ CRITICAL:** The `draft` field in the returned payload is **NOT what the AI wrote**!
+
+After this function returns, in `use_cases.py:28-31`:
+```python
+result = self._decision.evaluate(profile, criteria)
+
+if result.get("decision") == "YES":
+    # AI draft is DISCARDED and replaced with template output
+    result["draft"] = self._message.render()  # ← Template replaces AI draft
+```
+
+**The AI generates a draft message, but it's immediately overwritten with the template renderer output.**
 
 ---
 
